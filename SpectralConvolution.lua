@@ -2,6 +2,7 @@ require 'interp'
 require 'complex' 
 require 'image'
 require 'HermitianInterp'
+require 'libFFTconv'
 
 local cufft = dofile('cufft/cufft.lua')
 
@@ -33,27 +34,17 @@ function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, 
    self.bias = torch.Tensor(nOutputPlanes)
    self.gradBias = torch.Tensor(nOutputPlanes)
    -- buffers in spectral domain (TODO: use single global buffer)
-   if self.fullweights then
-      self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
-      self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
-      self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW,2)	
-   else
-      self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW/2+1, 2)
-      self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW/2+1, 2)
-      self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW/2+1, 2)
-      self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW/2+1,2)	
-      self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW/2+1, 2)
-   end
+   self.inputSpectralHermitian = torch.Tensor(batchSize, nInputPlanes, iH, iW/2+1, 2)
+   self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
+   self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
+   self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
+   self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
+   self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW,2)	
+   self.gradOutputSpectralHermitian = torch.Tensor(batchSize, nOutputPlanes, iH, iW/2+1,2)
+   self.output = self.outputSpectral:clone()
 
    -- weight transformation
-   local weightTransform
-   if self.fullweights then
-      weightTransform = nn.ComplexInterp({sH,sW},{iH,iW},false,false)
-   else
-      weightTransform = nn.HermitianInterp(sH,sW,iH,iW/2+1)
-   end
+   local weightTransform = nn.ComplexInterp(sH,sW,iH,iW,false,false)
    self:setWeightTransform(weightTransform,torch.LongStorage({nOutputPlanes,nInputPlanes,sH,sW,2}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
@@ -70,73 +61,38 @@ function SpectralConvolution:reset(stdv)
    self.bias:uniform(-stdv,stdv)
 end
 
-function SpectralConvolution:updateOutput(input,flag) 
+function SpectralConvolution:updateOutput(input) 
    -- forward FFT
-   if self.fullweights then
-      self.inputSpectral:zero()
-      self.inputSpectral:select(5,1):copy(input)
-      cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1,true)
-   else
-      cufft.fft2d_r2c(input,self.inputSpectral) 
-   end
-   -- compute product in spectral domain
-   complex.conj(self.weight)
-   cucomplex.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral)
-   --complex.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral)
-   complex.conj(self.weight)
+   self.inputSpectral:zero()
+   self.inputSpectral:select(5,1):copy(input)
+   cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1,false)
+   -- product
+   libFFTconv.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral,true)
    -- inverse FFT
-   if self.fullweights then
-      cufft.fft2d_c2c(self.outputSpectral,self.outputSpectral,-1,true)
-      self.output:copy(self.outputSpectral:select(5,1))
-   else
-      cufft.fft2d_c2r(self.outputSpectral, self.output)
-   end
+   cufft.fft2d_c2c(self.outputSpectral,self.output,-1,false)
    return self.output
 end
 
 -- note that here gradOutput is the same size as input
-function SpectralConvolution:updateGradInput(input, gradOutput,flag)
+function SpectralConvolution:updateGradInput(input, gradOutput)
    -- forward FFT
-   if self.fullweights then
-      self.gradOutputSpectral:zero()
-      self.gradOutputSpectral:select(5,1):copy(gradOutput)
-      cufft.fft2d_c2c(self.gradOutputSpectral,self.gradOutputSpectral,1,false)
-   else
-      cufft.fft2d_r2c(gradOutput, self.gradOutputSpectral)   
-   end
-   -- product in spectral domain
-   self.gradInputSpectral:zero()
-   cucomplex.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral)
+   self.gradOutputSpectral:zero()
+   cufft.fft2d_c2c(gradOutput,self.gradOutputSpectral,1,false)
+   -- product
+   libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
    -- inverse FFT
-   if self.fullweights then
-      cufft.fft2d_c2c(self.gradInputSpectral,self.gradInputSpectral,-1,false)
-      self.gradInput = self.gradInputSpectral:select(5,1)
-   else 
-      cufft.fft2d_c2r(self.gradInputSpectral, self.gradInput)
-   end
+   cufft.fft2d_c2c(self.gradInputSpectral,self.gradInputSpectral,-1,false)
+   self.gradInput = self.gradInputSpectral:select(5,1)
    return self.gradInput
 end
 
 function SpectralConvolution:accGradParameters(input, gradOutput, scale)
    scale  = scale or 1
    -- forward FFT
-   if self.fullweights then
-      self.gradOutputSpectral:zero()
-      self.gradOutputSpectral:select(5,1):copy(gradOutput)
-      cufft.fft2d_c2c(self.gradOutputSpectral,self.gradOutputSpectral,1,false)
-   else
-      cufft.fft2d_r2c(gradOutput, self.gradOutputSpectral)   
-   end
-   -- product in spectral domain
-   complex.conj(self.gradOutputSpectral)
-   cucomplex.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight)
-   complex.conj(self.gradOutputSpectral)
-   -- normalize
+   cufft.fft2d_c2c(gradOutput,self.gradOutputSpectral,1,false)
+   -- product
+   libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
    self.gradWeight:div(self.iW * self.iH)
-   if not self.fullweights then
-      -- hack to pass the unit tests (forward jacobian gives certain coefficients twice the influence due to hermitian symmetries)
-      self.gradWeight[{{},{},{},{2,self.iW/2},{}}]:mul(2)
-   end
 end
 
 
@@ -146,20 +102,20 @@ end
 
 function SpectralConvolution:printFilters()
    local imgs = {}
+   local spatialFilters = torch.CudaTensor(self.weight:size())
+   cufft.fft2d_c2c(self.weight,spatialFilters,-1)
    for i = 1,self.nOutputPlanes do
       for j = 1,self.nInputPlanes do
          -- compute modulus
-         local mod = self.weight[i][j]:norm(2,3)
-         table.insert(imgs,mod:double():squeeze())
+         --local mod = self.weight[i][j]:norm(2,3)
+         --table.insert(imgs,mod:double():squeeze())
          -- compute iFFT
-         cufft.fft1d_c2r(self.weight[i][j],self.tmp)
-         table.insert(imgs,self.GFTMatrix:clone():double() * self.tmp:clone():double())
+         --cufft.fft1d_c2r(self.weight[i][j],self.tmp)
+         table.insert(imgs,spatialFilters[i][j]:select(3,1))
+         table.insert(imgs,spatialFilters[i][j]:select(3,2))
       end
    end
-   for i=1,#imgs do
-      gnuplot.figure(i)
-      gnuplot.imagesc(imgs[i])
-   end
+   return spatialFilters
 end
 
 

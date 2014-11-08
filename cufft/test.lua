@@ -2,6 +2,7 @@ require 'fftw'
 require 'cunn'
 require 'libcufft'
 require 'cucomplex'
+require 'libFFTconv'
 dofile('../complex.lua')
 cufft = dofile('cufft.lua')
 
@@ -89,7 +90,7 @@ function testHermitian()
    print('error1=' .. err1)
    print('error2=' .. err2)
 end
-testHermitian()
+--testHermitian()
 
 
 function testfft()
@@ -118,7 +119,7 @@ function test2dc2c()
 end
 
 
-test2dc2c()
+--test2dc2c()
 
    
 --test2d2()
@@ -131,11 +132,11 @@ test2dc2c()
 -- numbers such as 17. Make sure the row/col sizes give the correct answer 
 -- before running experiments.   
 function test_prod()
-   local nMinibatch = math.random(1,10)
-   local nInputPlanes = math.random(1,16)
-   local nOutputPlanes = math.random(1,16)
+   local nMinibatch = 16 --math.random(1,10)
+   local nInputPlanes = 4
+   local nOutputPlanes = 16 --math.random(1,16)
    local nRows = 32
-   local nCols = 11
+   local nCols = 32
 
    local input = torch.CudaTensor(nMinibatch,nInputPlanes,nRows,nCols,2):normal()
    local weight = torch.CudaTensor(nOutputPlanes, nInputPlanes, nRows, nCols, 2):normal()
@@ -144,18 +145,20 @@ function test_prod()
    print('\nTESTING FPROP')
    local timer = torch.Timer()
    timer:reset()
-   cucomplex.prod_fprop(input,weight,output)
-   print('CUDA version took ' .. timer:time().real .. ' sec')
+   libFFTconv.prod_fprop(input,weight,output,true)
+   cutorch.synchronize()
+   print('Fprop CUDA version took ' .. timer:time().real .. ' sec')
    local output2 = torch.CudaTensor(nMinibatch, nOutputPlanes, nRows,nCols,2):zero()
    timer:reset()
    for s=1,nMinibatch do
       for i = 1,nOutputPlanes do
          for j = 1,nInputPlanes do 
-			complex.addcmul(input[s][j],weight[i][j],output2[s][i])
+			--complex.addcmul(input[s][j],weight[i][j],output2[s][i])
          end
       end
    end
-   print('Torch version took ' .. timer:time().real .. ' sec')
+   cutorch.synchronize()
+   print('Fprop Torch version took ' .. timer:time().real .. ' sec')
    output:add(-1,output2)
    print('Norm of difference = ' .. output:norm())
    
@@ -164,7 +167,10 @@ function test_prod()
    local gradInput2 = gradInput:clone()
    local gradOutput = output:normal()
    weight:normal()
-   cucomplex.prod_bprop(gradOutput,weight,gradInput)
+   timer:reset()
+   libFFTconv.prod_bprop(gradOutput,weight,gradInput,false)
+   cutorch.synchronize()
+   print('Bprop CUDA version took ' .. timer:time().real .. ' sec')
    
    for s = 1,nMinibatch do
       for i = 1,nInputPlanes do
@@ -181,7 +187,10 @@ function test_prod()
    local gradWeight2 = gradWeight:clone()
    gradOutput:normal()
    input:normal()
-   cucomplex.prod_accgrad(input, gradOutput, gradWeight)
+   timer:reset()
+   libFFTconv.prod_accgrad(input, gradOutput, gradWeight,false)
+   cutorch.synchronize()
+   print('Accgrad CUDA version took ' .. timer:time().real .. ' sec')
    for j = 1,nOutputPlanes do 
       for i = 1,nInputPlanes do
          for s = 1,nMinibatch do
@@ -194,3 +203,29 @@ function test_prod()
 end
 
 test_prod()
+
+
+
+function test_fill_hermitian()
+   nRows = 64
+   nCols = 64
+   nInputPlanes = 256
+   nMinibatch = 128
+   input = torch.randn(nMinibatch,nInputPlanes,nRows,nCols):cuda()
+   inputP = torch.zeros(nMinibatch,nInputPlanes,nRows,nCols,2):cuda()
+   F1 = torch.CudaTensor(nMinibatch, nInputPlanes, nRows, nCols/2+1,2)
+   F2 = torch.CudaTensor(nMinibatch, nInputPlanes, nRows, nCols,2)
+   F3 = torch.CudaTensor(nMinibatch, nInputPlanes, nRows, nCols,2)
+   local timer = torch.Timer()
+   timer:reset()
+   inputP:select(5,1):copy(input)
+   cufft.fft2d_c2c(inputP,F2,1)
+   print('Pad+C2C: ' .. timer:time().real)
+   timer:reset()
+   cufft.fft2d_r2c(input,F1)
+   cucomplex.fill_hermitian(F1,F3)
+   print('R2C+Fill : ' .. timer:time().real)
+   print(torch.max(torch.abs(F2:float()-F3:float())))
+end
+
+--test_fill_hermitian()

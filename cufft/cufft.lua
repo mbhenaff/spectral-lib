@@ -29,7 +29,7 @@ function cufft.ifft1d(input, output)
 end
 
 function cufft.fft2d_r2c(input,output,debug)
-   local debug = debug or nil
+   local debug = debug or false
    local nSamples = input:size(1)
    local nPlanes = input:size(2)
    local N = input:size(3)
@@ -57,7 +57,7 @@ function cufft.fft2d_r2c(input,output,debug)
 end
 
 function cufft.fft2d_c2r(input, output, debug)
-   local debug = debug or nil
+   local debug = debug or false
    local nSamples = output:size(1)
    local nPlanes = output:size(2)
    local N = output:size(3)
@@ -86,7 +86,8 @@ function cufft.fft2d_c2r(input, output, debug)
 end
 
 function cufft.fft2d_c2c(input,output,dir,debug)
-   local debug = debug or nil
+   local dir = dir or 1
+   local debug = debug or false
    local nSamples = output:size(1)
    local nPlanes = output:size(2)
    local N = output:size(3)
@@ -94,6 +95,7 @@ function cufft.fft2d_c2c(input,output,dir,debug)
    input:resize(nSamples*nPlanes, N, M, 2)
    output:resize(nSamples*nPlanes, N, M, 2)
    if debug then
+      print('warning, slow')
       local dft1 = cufft.dftmatrix(N,dir)
       local dft2 = cufft.dftmatrix(M,dir)
       for i = 1,input:size(1) do

@@ -148,9 +148,9 @@ end
 
 -- performance metrics
 function accuracy(targets,predictions)
-   correct=0
-   incorrect=0
-   predictions=torch.lt(predictions,0.5)
+   local correct=0
+   local incorrect=0
+   local predictions=torch.lt(predictions,0.5)
    correct=torch.sum(torch.eq(targets,predictions:type('torch.DoubleTensor')))
    return correct/targets:size()[1]
 end

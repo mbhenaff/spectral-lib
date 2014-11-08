@@ -15,7 +15,7 @@ __global__ void cuda_fourier_prod(const cuComplex* inputF,
 				  const int nRows, const int nCols,
 				  const int M, const int ism, const int osm,
 				  const int F, const int isf, const int ksf,
-				  const int G, const int ksg, const int osg) {
+                  const int G, const int ksg, const int osg,const bool conj_kernel ) {
   //const int x  = threadIdx.x;
   //const int y  = blockIdx.x * blockDim.y + threadIdx.y;
   const int m0 = blockIdx.y * nCache;
@@ -38,7 +38,10 @@ __global__ void cuda_fourier_prod(const cuComplex* inputF,
   for (int f = 0; f < F; ++f, inputF += isf, kernelF += ksf) {
     for (int a = 0; a < nCache; ++a) {
       inputCache [a] = inputF [a*ism];
-      kernelCache[a] = kernelF[a*ksg];
+      if(conj_kernel)
+        kernelCache[a] = cuConjf(kernelF[a*ksg]);
+      else
+        kernelCache[a] = kernelF[a*ksg];
     }
     for (int m = 0; m < nCache; ++m)
       for (int g = 0; g < nCache; ++g)
@@ -59,8 +62,8 @@ void fourier_prod(const cuComplex* inputF,
 		  const int nRows, const int nCols,
 		  const int M, const int ism, const int osm,
 		  const int F, const int isf, const int ksf,
-		  const int G, const int ksg, const int osg) {
-  const int nCache = 1;
+          const int G, const int ksg, const int osg, const bool conj_kernel) {
+  const int nCache = 4;
   //assert(nRows % nCache == 0);
   //assert(nCols % nCache == 0);
   assert(M % nCache == 0);
@@ -73,6 +76,6 @@ void fourier_prod(const cuComplex* inputF,
   dim3 threads(nRows, nColPerBlock);
   cuda_fourier_prod<nCache><<<blocks, threads>>>(inputF, kernelF, outputF,
 						 nRows,nCols, M, ism, osm, F, isf, ksf,
-						 G, ksg, osg);
+                         G, ksg, osg,conj_kernel);
   CUDA_LOOK_FOR_ERROR();
 }
