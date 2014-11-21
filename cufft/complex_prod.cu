@@ -5,6 +5,7 @@
 #include "fill_hermitian.cu"
 #include "modulus.cu"
 #include "complexInterp.cu"
+#include "bias.cu"
 
 /* Performs the equivalent of the following Torch code:
 for s=1,nMinibatch do
@@ -115,6 +116,7 @@ static int prod_accgrad(lua_State *L) {
 }
 
 
+
 static int fill_hermitian(lua_State *L) {
   THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
   THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -147,6 +149,8 @@ static const struct luaL_reg cucomplex [] = {
     {"fill_hermitian",fill_hermitian},
     {"modulus_updateGradInput",modulus_updateGradInput},
     {"complexInterp_interpolate",complexInterp_interpolate},
+    {"bias_updateOutput", bias_updateOutput},
+    {"bias_accGradParameters", bias_accGradParameters},
 	{NULL, NULL}
 };
 

@@ -1,6 +1,6 @@
 
-function round(x)
-   local p = 4
+function round(x,p)
+   local p = p or 4
    local mult = 10^p
    return math.floor(x*mult+0.5)/mult
 end

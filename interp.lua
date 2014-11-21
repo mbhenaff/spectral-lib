@@ -3,23 +3,32 @@ require 'image'
 dofile('utils.lua')
 
 -- N is the input size, M is the output size
-function interpKernel(N,M)
-	if N == M then
-		return torch.eye(N)
-	else
-		local out = torch.zeros(N,M)
-		local aux = torch.zeros(N)
-		local x = torch.linspace(0,1,N)
-		local y = torch.linspace(0,1,M)
-		for i = 1,N do
+function interpKernel(N, M, type)
+   if type == 'spline' then
+      return torch.load('spline_kernels/spline_' .. N .. '_' .. M .. '.th'):float()
+   elseif type == 'spline_border' then
+      return torch.load('spline_kernels/spline_border_' .. N .. '_' .. M .. '.th'):float()
+   elseif type == 'dyadic_spline' then
+      return torch.load('spline_kernels/dyadic_spline_' .. N .. '_' .. M .. '.th'):float()
+   elseif type == 'bilinear' then
+      if N == M then
+         return torch.eye(N)
+      else
+         local out = torch.zeros(N,M)
+         local aux = torch.zeros(N)
+         local x = torch.linspace(0,1,N)
+         local y = torch.linspace(0,1,M)
+         for i = 1,N do
 			aux:zero()
 			aux[i] = 1
 			out[{i,{}}]:copy(linterp(x,aux,y))
-		end
-		return out
-	end
+         end
+         return out
+      end
+   else
+      error('unrecognized type')
+   end
 end
-
 
 -- linear interpolation
 function linterp(x1,y1,x2)

@@ -63,7 +63,7 @@ void fourier_prod(const cuComplex* inputF,
 		  const int M, const int ism, const int osm,
 		  const int F, const int isf, const int ksf,
           const int G, const int ksg, const int osg, const bool conj_kernel) {
-  const int nCache = 4;
+  const int nCache = 1;
   //assert(nRows % nCache == 0);
   //assert(nCols % nCache == 0);
   assert(M % nCache == 0);

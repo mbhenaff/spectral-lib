@@ -47,6 +47,7 @@ __global__ void batch_interpolate_kernel_forward(cuComplex* input, cuComplex* ou
   }
   output[ty*oW + tx].x = real;
   output[ty*oW + tx].y = imag;
+  __syncthreads();
 }
     
 
@@ -64,37 +65,41 @@ __global__ void batch_interpolate_kernel_backward(cuComplex* input, cuComplex* o
   const int plane = blockIdx.x;
   if (plane >= nPlanes)
     return;
-
-  input += plane * iH * iW;
-  output += plane * oH * oW;
+  const int N = iH;
+  const int K = oH;
+  input += plane * N * N;
+  output += plane * K * K;
   const int tx = threadIdx.x;
   const int ty = threadIdx.y;
   
   // copy the interpolation kernels and input to shared memory  
   if (ty < oH) { 
-    R[ty*oH + tx] = kernelRows[ty*oH + tx];
-    C[ty*oW + tx] = kernelCols[ty*oW + tx];
+    R[ty*N + tx] = kernelRows[ty*N + tx];
+    C[ty*N + tx] = kernelCols[ty*N + tx];
   }
   __syncthreads();
 
-  if (tx <  iW && ty < iH)
-    S[ty*iW + tx] = input[ty*iW + tx];
+  if (tx <  N && ty < N) {
+    S[ty*N + tx] = input[ty*N + tx];
+  }
   __syncthreads();
   
-  if (tx < oW && ty < oH) {
+  if (tx < K && ty < K) {
     // compute
     float real = 0;
     float imag = 0;
  
-    for (int i = 0; i < iH; ++i) {
-      for (int j = 0; j < iW; ++j) {
-        real += S[j*iW + i].x * R[ty*iH + j] * C[tx*iW + i];
-        imag += S[j*iW + i].y * R[ty*iH + j] * C[tx*iW + i];
+    for (int i = 0; i < N; ++i) {
+      for (int j = 0; j < N; ++j) {
+        real += S[j*N + i].x * R[ty*N + j] * C[tx*N + i];
+        imag += S[j*N + i].y * R[ty*N + j] * C[tx*N + i];
       }
     }
-    output[ty*oW + tx].x = real;
-    output[ty*oW + tx].y = imag;
+    __syncthreads();
+    output[ty*K + tx].x = real;
+    output[ty*K + tx].y = imag;
   }
+  __syncthreads();
 }
 
 
@@ -103,7 +108,7 @@ static int complexInterp_interpolate(lua_State *L) {
   THCudaTensor *output = (THCudaTensor*)luaT_checkudata(L, 2, "torch.CudaTensor");
   THCudaTensor *kernelRows = (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
   THCudaTensor *kernelCols = (THCudaTensor*)luaT_checkudata(L, 4, "torch.CudaTensor");
-  THCudaTensor *buffer = (THCudaTensor*)luaT_checkudata(L, 5, "torch.CudaTensor");
+  
   const int dim = input->nDimension;
   const long iH = input->size[dim-3];
   const long iW = input->size[dim-2];
@@ -112,8 +117,12 @@ static int complexInterp_interpolate(lua_State *L) {
   long nPlanes, nInputPlanes, nOutputPlanes;
   bool resize = false;
 
+  luaL_argcheck(L, input->nDimension == output->nDimension, 2, "dimension mismatch");
+  luaL_argcheck(L, input->size[0] == output->size[0], 2,"planes mismatch");
+
   if (dim == 5) {
     resize = true;
+    luaL_argcheck(L, input->size[1] == output->size[1], 2,"planes mismatch");
     nOutputPlanes = input->size[0];
     nInputPlanes = input->size[1];
     nPlanes = nInputPlanes*nOutputPlanes;
@@ -123,17 +132,15 @@ static int complexInterp_interpolate(lua_State *L) {
   else {
     nPlanes = input->size[0];
   }
-  THCudaTensor_resize4d(buffer, nPlanes, iH, oW, 2);
 
   cuComplex* input_data = (cuComplex*)THCudaTensor_data(input);
   cuComplex* output_data = (cuComplex*)THCudaTensor_data(output);
-  cuComplex* buffer_data = (cuComplex*)THCudaTensor_data(buffer);
   float* kernelRows_data = THCudaTensor_data(kernelRows);
   float* kernelCols_data = THCudaTensor_data(kernelCols);
   
   assert(iH == iW);
   assert(oH == oW);
-  if (oH >= iH) { 
+  if (oH > iH && oW > iW) { 
     dim3 threads(oH,oW);
     dim3 blocks(nPlanes);
     int size = (iH*oH + iW*oW)*sizeof(float) + iH*iW*sizeof(cuComplex);
@@ -141,7 +148,7 @@ static int complexInterp_interpolate(lua_State *L) {
                                                                kernelRows_data, kernelCols_data,
                                                                iH, iW, oH, oW, nPlanes);
   }
-  else {
+  else if (oH <= iH && oW <= iW) {
     dim3 threads(iH,iW);
     dim3 blocks(nPlanes);
     int size = (iH*oH + iW*oW)*sizeof(float) + iH*iW*sizeof(cuComplex);
@@ -149,9 +156,13 @@ static int complexInterp_interpolate(lua_State *L) {
                                                                 kernelRows_data, kernelCols_data,
                                                                 iH, iW, oH, oW, nPlanes);
   }
+  else {
+    printf("error, WTF\n");
+  }
+
   if (resize) {
-    THCudaTensor_resize5d(input, nInputPlanes, nOutputPlanes, iH, iW, 2);
-    THCudaTensor_resize5d(output, nInputPlanes, nOutputPlanes, oH, oW, 2);
+    THCudaTensor_resize5d(input, nOutputPlanes, nInputPlanes, iH, iW, 2);
+    THCudaTensor_resize5d(output, nOutputPlanes, nInputPlanes, oH, oW, 2);
   }
 
   CUDA_LOOK_FOR_ERROR();
