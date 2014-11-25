@@ -3,6 +3,7 @@
 require 'cunn'
 require 'cucomplex'
 require 'HermitianInterp'
+require 'Interp'
 require 'ComplexInterp'
 require 'Modulus'
 require 'Bias'
@@ -13,7 +14,7 @@ dofile('utils.lua')
 cufft = dofile('cufft/cufft.lua')
 
 torch.manualSeed(123)
-cutorch.setDevice(1)
+cutorch.setDevice(4)
 local test_correctness = true
 local test_time = true
 local mytester = torch.Tester()
@@ -80,6 +81,23 @@ function nntest.ComplexInterp()
     print('\n')
 end
 --nntest.ComplexInterp()
+
+function nntest.Interp()
+    print('\n')
+	local iW = 8
+	local iH = 8
+	local oW = 32
+	local oH = 32
+	local nInputs = 6
+    local nSamples = 2
+	local model = nn.Interp(iH, iW, oH, oW, 'bilinear')
+	model = model:cuda()
+	local input = torch.CudaTensor(nSamples,nInputs,iH,iW,2):normal()
+	local err,jfc,jbc = jac.testJacobian(model, input)
+	print('error on state =' .. err)
+	mytester:assertlt(err,precision, 'error on state')
+    print('\n')
+end
 
 function nntest.Modulus()
    print('\n')
@@ -195,6 +213,22 @@ function run_timing()
 
     print('\n------COMPLEX_INTERP------')
 	model3 = nn.ComplexInterp(sH,sW,iH,iW,'bilinear'):cuda()
+    weights = torch.CudaTensor(nOutputPlanes, nInputPlanes, sH, sW, 2)
+    for i = 1,ntrials do
+       timer:reset()
+       model3:updateOutput(weights)
+       cutorch.synchronize()
+       print('updateOutput : ' .. timer:time().real)
+       gradWeights = model3.output:clone()
+       timer:reset()
+       model3:updateGradInput(weights,gradWeights)
+       cutorch.synchronize()
+       print('updateGradInput : ' .. timer:time().real)
+    end
+
+
+    print('\n------INTERP------')
+	model3 = nn.Interp(sH,sW,iH,iW,'bilinear'):cuda()
     weights = torch.CudaTensor(nOutputPlanes, nInputPlanes, sH, sW, 2)
     for i = 1,ntrials do
        timer:reset()
