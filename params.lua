@@ -7,7 +7,7 @@ require 'nn'
 require 'cunn'
 require 'cucomplex'
 require 'SpectralConvolution'
-require 'Modulus'
+require 'Real'
 require 'Crop'
 require 'Bias'
 require 'ComplexInterp'
@@ -17,7 +17,9 @@ cufft = dofile('cufft/cufft.lua')
 
 
 cmd = torch.CmdLine()
+cmd:option('-dataset','cifar')
 cmd:option('-type','spectral','spatial | spectral')
+cmd:option('-real','real','must be real or mod')
 cmd:option('-nhidden',32)
 cmd:option('-kH',5)
 cmd:option('-kW',5)
@@ -34,11 +36,28 @@ cutorch.setDevice(opt.gpunum)
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.manualSeed(321)
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/'
-opt.modelFile = opt.type .. '-' .. opt.interp 
-                         .. '-nhidden=' .. opt.nhidden 
-                         .. '-k=' .. opt.kH .. 'x' .. opt.kW 
-                         .. '-learningRate=' .. opt.learningRate
+if opt.real == 'real' then
+   opt.realKernels = true
+else 
+   opt.realKernels = false
+end
+
+opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/'
+if opt.type == 'spectral' then
+   opt.modelFile = 'dataset=' .. opt.dataset
+      .. '-conv=' .. opt.type
+      .. '-interp=' .. opt.interp 
+      .. '-real=' .. opt.real
+      .. '-nhidden=' .. opt.nhidden 
+      .. '-k=' .. opt.kH .. 'x' .. opt.kW 
+      .. '-learningRate=' .. opt.learningRate
+else
+   opt.modelFile = 'dataset=' .. opt.dataset
+      .. '-conv=' .. opt.type
+      .. '-nhidden=' .. opt.nhidden 
+      .. '-k=' .. opt.kH .. 'x' .. opt.kW 
+      .. '-learningRate=' .. opt.learningRate
+end
 
 opt.saveFile = opt.savePath .. opt.modelFile
 

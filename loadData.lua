@@ -15,8 +15,10 @@ function loadData(dataset,split)
    elseif dataset == 'mnist' then
       if split == 'train' then
          f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/train_28x28.th7nn')
+         --f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/train_32x32.th7n')
       elseif split == 'test' then
          f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/test_28x28.th7nn')
+         --f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/test_32x32.th7n')
       else
          error('set should be train or test')
       end

@@ -1,6 +1,7 @@
 require 'interp'
 require 'complex' 
 require 'image'
+require 'Interp'
 require 'HermitianInterp'
 require 'libFFTconv'
 
@@ -8,7 +9,7 @@ local cufft = dofile('cufft/cufft.lua')
 
 local SpectralConvolution, parent = torch.class('nn.SpectralConvolution','nn.Module')
 
-function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType)
+function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType,realKernels)
    parent.__init(self)
 
    if not (iW % 2 == 0 and iH % 2 == 0) then
@@ -18,6 +19,7 @@ function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, 
    self.batchSize = batchSize
    self.nInputPlanes = nInputPlanes
    self.nOutputPlanes = nOutputPlanes
+   self.realKernels = realKernels or false
 
    -- width/height of inputs
    self.iW = iW
@@ -28,8 +30,6 @@ function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, 
    -- representations in original domain
    self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
    self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-   self.bias = torch.Tensor(nOutputPlanes)
-   self.gradBias = torch.Tensor(nOutputPlanes)
 
    -- buffers in spectral domain
    if false then
@@ -51,8 +51,6 @@ function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, 
       -- representations in original domain
       self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
       self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-      self.bias = torch.Tensor(nOutputPlanes)
-      self.gradBias = torch.Tensor(nOutputPlanes)
       -- buffers in spectral domain (TODO: use single global buffer)
       self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
       self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
@@ -63,9 +61,13 @@ function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, 
       self.output = self.outputSpectral:clone()
    end
 
-
    -- weight transformation
-   local weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)
+   local weightTransform
+   if interpType == 'spatial' then
+      weightTransform = nn.Interp(sH,sW,iH,iW,self.interpType)
+   else 
+      weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)
+   end
    self:setWeightTransform(weightTransform,torch.LongStorage({nOutputPlanes,nInputPlanes,sH,sW,2}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
@@ -78,8 +80,9 @@ function SpectralConvolution:reset(stdv)
    self.weightPreimage:uniform(-stdv,stdv)
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
-   self.bias:uniform(-stdv,stdv)
-   self.weight:select(5,2):zero()
+   if self.realKernels then
+      self.weightPreimage:select(5,2):zero()
+   end
 end
 
 function SpectralConvolution:updateOutput(input) 
@@ -115,9 +118,9 @@ function SpectralConvolution:accGradParameters(input, gradOutput, scale)
    --cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
 
    libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
-   --self.gradWeight:select(5,2):zero()
    self.gradWeight:div(self.iW * self.iH)
    cutorch.synchronize()
+   --self:printNorms()
 end
 
 -------------------------------------
@@ -163,18 +166,13 @@ function SpectralConvolution:printNorms()
    print('weightPreimage norm = ' .. self.weightPreimage:norm())
    print('gradWeightPreimage norm = ' .. self.gradWeightPreimage:norm())
    print('weight norm = ' .. self.weight:norm())
-   print('bias norm = ' .. self.bias:norm())
    print('gradWeight norm = ' .. self.gradWeight:norm())
-   print('gradBias norm = ' .. self.gradBias:norm())
    print('-------------------')
 end
 
 function SpectralConvolution:checkForErrors()
    if isnan(self.output:norm()) then
       error('self.output has nan')
-   end
-   if isnan(self.bias) then
-      error('self.bias has nan')
    end
    if isnan(self.gradInput:norm()) then
       error('self.gradInput has nan')

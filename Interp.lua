@@ -11,9 +11,8 @@ function Interp:__init(iH, iW, oH, oW, interpType)
    self.iW = iW
    self.oH = oH
    self.oW = oW
-   self.kernel = torch.randn(iH*iW*2, oH*oW*2)
+   self.kernel = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/interp_kernels/spatial_kernel_' .. iH .. '_' .. oH .. '.th'):float()
    self.kernelT = self.kernel:t():clone()
-   self.gradInput = torch.Tensor(1,1,iH*iW*2)
 end
 
 function Interp:updateOutput(input)

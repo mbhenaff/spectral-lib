@@ -2,14 +2,15 @@
 require 'image'
 dofile('utils.lua')
 
+kernels_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/interp_kernels/'
 -- N is the input size, M is the output size
 function interpKernel(N, M, type)
    if type == 'spline' then
-      return torch.load('spline_kernels/spline_' .. N .. '_' .. M .. '.th'):float()
+      return torch.load(kernels_path .. '/spline_kernel_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'spline_border' then
-      return torch.load('spline_kernels/spline_border_' .. N .. '_' .. M .. '.th'):float()
+      return torch.load(kernels_path .. '/spline_border_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'dyadic_spline' then
-      return torch.load('spline_kernels/dyadic_spline_' .. N .. '_' .. M .. '.th'):float()
+      return torch.load(kernels_path .. '/dyadic_spline_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'bilinear' then
       if N == M then
          return torch.eye(N)

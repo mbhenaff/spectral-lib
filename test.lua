@@ -5,7 +5,7 @@ require 'cucomplex'
 require 'HermitianInterp'
 require 'Interp'
 require 'ComplexInterp'
-require 'Modulus'
+require 'Real'
 require 'Bias'
 require 'Crop'
 dofile('SpectralConvolution.lua')
@@ -99,13 +99,13 @@ function nntest.Interp()
     print('\n')
 end
 
-function nntest.Modulus()
+function nntest.Real()
    print('\n')
    local iW = 8
    local iH = 8
    local nInputPlanes = 3
    local batchSize = 2
-   local model = nn.Modulus()
+   local model = nn.Real('mod')
    model = model:cuda()
    local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW,2)
    local err,jf,jb = jac.testJacobian(model, input)
@@ -195,8 +195,8 @@ function run_timing()
        print('Time for accGradParameters : ' .. timer:time().real)
     end
 
-    print('\n------MODULUS------\n')
-    model2 = nn.Modulus():cuda()
+    print('\n------REAL------\n')
+    model2 = nn.Real('mod'):cuda()
     input2 = model.output:clone()
     gradOutput2 = torch.CudaTensor(batchSize, nOutputPlanes, iH, iW):zero()
     for i = 1,ntrials do
