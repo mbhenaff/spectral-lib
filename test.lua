@@ -1,4 +1,4 @@
--- test frequency convolution module
+-- Unit tests and speed tests for all the modules. 
 
 require 'cunn'
 require 'cucomplex'
@@ -8,9 +8,9 @@ require 'ComplexInterp'
 require 'Real'
 require 'Bias'
 require 'Crop'
-dofile('SpectralConvolution.lua')
-dofile('Jacobian2.lua')
-dofile('utils.lua')
+require 'SpectralConvolution'
+require 'Jacobian2'
+require 'utils'
 cufft = dofile('cufft/cufft.lua')
 
 torch.manualSeed(123)
@@ -52,7 +52,6 @@ function nntest.Bias()
    local input = torch.CudaTensor(batchSize, nPlanes, iH, iW)
    local err,jf,jb = jac.testJacobian(model, input)
    print('error on state = ' .. err)
-
    local param,gradParam = model:parameters()
    local bias = param[1]
    local gradBias = gradParam[1]
@@ -80,7 +79,6 @@ function nntest.ComplexInterp()
 	mytester:assertlt(err,precision, 'error on state')
     print('\n')
 end
---nntest.ComplexInterp()
 
 function nntest.Interp()
     print('\n')

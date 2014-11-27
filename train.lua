@@ -9,14 +9,14 @@ iW = trdata:size(4)
 nclasses = 10
 
 model = nn.Sequential()
-if opt.type == 'spatial' then
+if opt.conv == 'spatial' then
    model:add(nn.SpatialConvolutionBatch(nChannels,opt.nhidden,opt.kH,opt.kW))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(2,2,2,2))
    local d = math.floor((iH-opt.kH+1)/2)*math.floor((iW-opt.kW+1)/2)*opt.nhidden
    model:add(nn.Reshape(d))
    model:add(nn.Linear(d,10))
-elseif opt.type == 'spectral' then
+elseif opt.conv == 'spectral' then
    model:add(nn.SpectralConvolution(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
    if opt.ncrop > 0 then
       model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop,true))
@@ -40,8 +40,10 @@ optimState = {
    learningRateDecay = 1/trdata:size(1)
 }
 
-logFile = assert(io.open(logFileName,'w'))
-logFile:write(opt.modelFile)
+if opt.log then
+   logFile = assert(io.open(logFileName,'w'))
+   logFile:write(opt.modelFile)
+end
 
 -- these will record performance
 trloss = torch.Tensor(opt.epochs)
@@ -115,12 +117,15 @@ for i = 1,opt.epochs do
    teloss[i] = testLoss
    tracc[i] = trainAcc
    teacc[i] = testAcc
-   logFile:write(outString)
+   if opt.log then
+      logFile:write(outString)
+   end
 end
 
-logFile:close()
-torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model:float(),opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc})
-
+if opt.log then
+   logFile:close()
+   torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model:float(),opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc})
+end
 
 
 

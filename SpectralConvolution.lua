@@ -4,9 +4,12 @@ require 'image'
 require 'Interp'
 require 'HermitianInterp'
 require 'libFFTconv'
-
 local cufft = dofile('cufft/cufft.lua')
 
+-- Module for performing convolution in the frequency domain. 
+-- interpType refers to the type of interpolation kernel we use on the subsampled weights,
+-- to make them as large as the input image.
+-- realKernels specifies whether we want our kernels to be real (in the frequency domain)
 local SpectralConvolution, parent = torch.class('nn.SpectralConvolution','nn.Module')
 
 function SpectralConvolution:__init(batchSize, nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType,realKernels)
@@ -127,6 +130,8 @@ end
 -- DEBUG
 -------------------------------------
 
+-- apply inverse FFT to the weights and return the real/imaginary parts in the spatial domain
+-- as well the complex modulus in the frequency domain. 
 function SpectralConvolution:printFilters()
    local spatial_real = {}
    local spatial_imag = {}
@@ -149,7 +154,8 @@ function isnan(x)
    return x ~= x
 end
 
--- x is a square 2d image
+-- reshape filter to that its center frequency is in the middle of the image 
+-- instead of at the corners.
 function reshapeFilter(x)
    local r = x:size(1)
    local c = x:size(2)

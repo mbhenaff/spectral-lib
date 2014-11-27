@@ -18,18 +18,19 @@ cufft = dofile('cufft/cufft.lua')
 
 cmd = torch.CmdLine()
 cmd:option('-dataset','cifar')
-cmd:option('-type','spectral','spatial | spectral')
-cmd:option('-real','real','must be real or mod')
+cmd:option('-conv','spectral','spatial | spectral')
+cmd:option('-real','real','how to make output of spectral conv real (real | mod)')
 cmd:option('-nhidden',32)
 cmd:option('-kH',5)
 cmd:option('-kW',5)
-cmd:option('-interp', 'spline')
+cmd:option('-interp', 'spline','bilinear | spline | dyadic_spline | spatial')
 cmd:option('-gpunum',1)
 cmd:option('-batchSize',128)
 cmd:option('-learningRate',0.1)
 cmd:option('-weightDecay',0)
 cmd:option('-ncrop',0, 'number of rows/cols to crop on each side after spectral conv')
 cmd:option('-epochs',20)
+cmd:option('-log',true)
 opt = cmd:parse(arg or {})
 
 cutorch.setDevice(opt.gpunum)
@@ -43,9 +44,9 @@ else
 end
 
 opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/'
-if opt.type == 'spectral' then
+if opt.conv == 'spectral' then
    opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-conv=' .. opt.type
+      .. '-conv=' .. opt.conv
       .. '-interp=' .. opt.interp 
       .. '-real=' .. opt.real
       .. '-nhidden=' .. opt.nhidden 
@@ -53,7 +54,7 @@ if opt.type == 'spectral' then
       .. '-learningRate=' .. opt.learningRate
 else
    opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-conv=' .. opt.type
+      .. '-conv=' .. opt.conv
       .. '-nhidden=' .. opt.nhidden 
       .. '-k=' .. opt.kH .. 'x' .. opt.kW 
       .. '-learningRate=' .. opt.learningRate

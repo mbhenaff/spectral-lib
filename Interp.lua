@@ -1,8 +1,6 @@
 -- General interpolation module. Images and weights are resized to be n^2 and k^2 respectively. 
 -- The interpolation map is a n^2 x k^2 matrix. 
 
-
-
 local Interp, parent = torch.class('nn.Interp', 'nn.Module')
 
 function Interp:__init(iH, iW, oH, oW, interpType)
