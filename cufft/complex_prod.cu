@@ -6,6 +6,7 @@
 #include "modulus.cu"
 #include "complexInterp.cu"
 #include "bias.cu"
+#include "crop.cu"
 
 /* Performs the equivalent of the following Torch code:
 for s=1,nMinibatch do
@@ -151,6 +152,7 @@ static const struct luaL_reg cucomplex [] = {
     {"complexInterp_interpolate",complexInterp_interpolate},
     {"bias_updateOutput", bias_updateOutput},
     {"bias_accGradParameters", bias_accGradParameters},
+    {"crop_zeroborders",crop_zeroborders},
 	{NULL, NULL}
 };
 

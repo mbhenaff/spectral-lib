@@ -2,8 +2,9 @@ require 'nn'
 
 local Crop, parent = torch.class('nn.Crop','nn.Module')
 
-function Crop:__init(iH,iW,rows,cols,complex)
-   self.complex = complex or false
+-- For a set of images of size [iH x iW], set the borders to zero. 
+-- The size of the border on each side is specified by the rows/cols arguments. 
+function Crop:__init(iH,iW,rows,cols)
    self.iH = iH
    self.iW = iW
    self.rows = rows
@@ -12,29 +13,23 @@ function Crop:__init(iH,iW,rows,cols,complex)
    self.gradInput = torch.Tensor()
 end
 
--- assuming input is 4D
-function Crop:updateOutput(input)
-   if self.complex then
-      self.output:resize(input:size(1),input:size(2),input:size(3)-2*self.rows,input:size(4)-2*self.cols,2)
-      self.output:copy(input[{{},{},{self.rows+1,self.iH-self.rows},{self.cols+1,self.iW-self.cols},{}}])
-   else
-      self.output:resize(input:size(1),input:size(2),input:size(3)-2*self.rows,input:size(4)-2*self.cols)
-      self.output:copy(input[{{},{},{self.rows+1,self.iH-self.rows},{self.cols+1,self.iW-self.cols}}])
-   end
-
+function Crop:updateOutput(input)   
+   self.output:resize(input:size())
+   self.output:copy(input)
+   cucomplex.crop_zeroborders(self.output, self.rows, self.cols)
    return self.output
 end
 
 function Crop:updateGradInput(input, gradOutput)
-   self.gradInput:resize(input:size())
-   self.gradInput:zero()
-   if self.complex then
-      self.gradInput[{{},{},{self.rows+1,self.iH-self.rows},{self.cols+1,self.iW-self.cols},{}}]:copy(gradOutput)
-   else
-      self.gradInput[{{},{},{self.rows+1,self.iH-self.rows},{self.cols+1,self.iW-self.cols}}]:copy(gradOutput)
-   end
+   self.gradInput:resize(gradOutput:size())
+   self.gradInput:copy(gradOutput)
+   cucomplex.crop_zeroborders(self.gradInput, self.rows, self.cols)
    return self.gradInput
 end
+
+
+
+
 
 
 

@@ -18,10 +18,10 @@ if opt.conv == 'spatial' then
    model:add(nn.Linear(d,10))
 elseif opt.conv == 'spectral' then
    model:add(nn.SpectralConvolution(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop,true))
-   end
    model:add(nn.Real(opt.real))
+   if opt.ncrop > 0 then
+      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop,false))
+   end
    model:add(nn.Bias(opt.nhidden))
    --model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(2,2,2,2))
