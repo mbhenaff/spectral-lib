@@ -8,7 +8,7 @@ require 'ComplexInterp'
 require 'Real'
 require 'Bias'
 require 'Crop'
-require 'SpectralConvolution'
+require 'SpectralConvolutionImage'
 require 'Jacobian2'
 require 'utils'
 cufft = dofile('cufft/cufft.lua')
@@ -18,11 +18,11 @@ cutorch.setDevice(4)
 
 local test_correctness = true
 local test_crop = true
-local test_bias = false
-local test_interp = false
-local test_real = false
-local test_complex_interp = false
-local test_spectralconv = false
+local test_bias = true
+local test_interp = true
+local test_real = true
+local test_complex_interp = true
+local test_spectralconv = true
 local test_time = true
 
 local mytester = torch.Tester()
@@ -120,7 +120,7 @@ if test_real then
       local iH = 8
       local nInputPlanes = 3
       local batchSize = 2
-      local model = nn.Real('mod')
+      local model = nn.Real('real')
       model = model:cuda()
       local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW,2)
       local err,jf,jb = jac.testJacobian(model, input)
@@ -132,7 +132,7 @@ end
 
 
 if test_spectralconv then
-   function nntest.SpectralConvolution()
+   function nntest.SpectralConvolutionImage()
       print('\n')
       torch.manualSeed(123)
       local interpType = 'bilinear'
@@ -143,9 +143,7 @@ if test_spectralconv then
       local batchSize = 2
       local sW = 4	
       local sH = 4
-      global_debug1 = false
-      global_debug2 = false
-      local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
+      local model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
       model = model:cuda()
       model:reset()
       local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
@@ -192,7 +190,7 @@ function run_timing()
    print('batchSize = ' .. batchSize)
 
    if test_spectralconv then
-      model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
+      model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
       model = model:cuda()
       input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):zero()
       gradOutput = torch.CudaTensor(batchSize,nOutputPlanes,iH,iW)

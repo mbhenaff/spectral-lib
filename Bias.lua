@@ -12,7 +12,7 @@ end
 function Bias:reset(stdv)
    if stdv then
       stdv = stdv * math.sqrt(3)
-   else
+   else     
       stdv = 1./math.sqrt(self.bias:size(1))
    end
    self.bias:uniform(-stdv, stdv)

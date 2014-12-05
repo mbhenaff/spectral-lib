@@ -6,7 +6,7 @@ require 'optim'
 require 'nn'
 require 'cunn'
 require 'cucomplex'
-require 'SpectralConvolution'
+require 'SpectralConvolutionImage'
 require 'Real'
 require 'Crop'
 require 'Bias'
@@ -30,7 +30,7 @@ cmd:option('-learningRate',0.1)
 cmd:option('-weightDecay',0)
 cmd:option('-ncrop',0, 'number of rows/cols to crop on each side after spectral conv')
 cmd:option('-epochs',20)
-cmd:option('-log',true)
+cmd:option('-log',1)
 opt = cmd:parse(arg or {})
 
 cutorch.setDevice(opt.gpunum)
@@ -41,6 +41,11 @@ if opt.real == 'real' then
    opt.realKernels = true
 else 
    opt.realKernels = false
+end
+if opt.log == 0 then
+   opt.log = false
+else
+   opt.log = true
 end
 
 opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/'

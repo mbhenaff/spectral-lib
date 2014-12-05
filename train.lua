@@ -17,16 +17,18 @@ if opt.conv == 'spatial' then
    model:add(nn.Reshape(d))
    model:add(nn.Linear(d,10))
 elseif opt.conv == 'spectral' then
-   model:add(nn.SpectralConvolution(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
+   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
    model:add(nn.Real(opt.real))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop,false))
-   end
    model:add(nn.Bias(opt.nhidden))
-   --model:add(nn.Threshold())
+   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
+   if opt.ncrop > 0 then
+      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop))
+   end
+   
+   model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(2,2,2,2))
-   model:add(nn.Reshape(((iH-opt.ncrop*2)/2)*((iW-opt.ncrop*2)/2)*opt.nhidden))
-   model:add(nn.Linear(((iH-opt.ncrop*2)/2)*((iW-opt.ncrop*2)/2)*opt.nhidden,10))
+   model:add(nn.Reshape((iH/2)*(iW/2)*opt.nhidden))
+   model:add(nn.Linear((iH/2)*(iW/2)*opt.nhidden,10))
 end
 model:add(nn.LogSoftMax())
 criterion = nn.ClassNLLCriterion()
@@ -81,8 +83,10 @@ for i = 1,opt.epochs do
                        return L, dL_dw
                     end
       optim.sgd(feval,w,optimState)
+   --local p1,g1 = model:get(1):getParameters()
+   --print('grad norm = ' .. g1:norm())
    end
-
+   
    function computePerf(data,labels)
       local nSamples = data:size(1)
       local loss = 0
@@ -124,7 +128,7 @@ end
 
 if opt.log then
    logFile:close()
-   torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model:float(),opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc})
+   torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc})
 end
 
 
