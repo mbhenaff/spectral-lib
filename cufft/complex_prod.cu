@@ -7,6 +7,7 @@
 #include "complexInterp.cu"
 #include "bias.cu"
 #include "crop.cu"
+#include "prod.cu"
 
 /* Performs the equivalent of the following Torch code:
 for s=1,nMinibatch do
@@ -29,7 +30,36 @@ Note this operation is used during fprop, updateGradInput and accGradParameters 
 training in Fourier domain.
 */
 
-static int prod_fprop(lua_State *L) {
+
+
+static int prod_fprop_real(lua_State *L) {
+	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
+	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
+	THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
+
+	luaL_argcheck(L, input->nDimension == 3, 2, "input should be 3D tensor");
+	luaL_argcheck(L, output->nDimension == 3, 2, "output should be 3D tensor");
+	luaL_argcheck(L, weight->nDimension == 3, 2, "kernel should be 3D tensor");
+
+	long nMinibatch = input->size[0];
+	long nOutputMaps = weight->size[0];
+	long nInputMaps = weight->size[1];
+	long dim = input->size[2];
+
+	// raw pointers
+	float *input_data = (float*)THCudaTensor_data(input);
+	float *weight_data = (float*)THCudaTensor_data(weight);
+	float *output_data = (float*)THCudaTensor_data(output);
+	
+	spectral_prod(input_data, weight_data, output_data, dim,
+				nMinibatch, nInputMaps*dim, nOutputMaps*dim,
+				nInputMaps, dim, dim, 
+                nOutputMaps, nInputMaps*dim, dim);
+
+	return 0;
+}
+
+static int prod_fprop_complex(lua_State *L) {
 	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
 	THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
@@ -58,7 +88,36 @@ static int prod_fprop(lua_State *L) {
 	return 0;
 }
 
-static int prod_bprop(lua_State *L) {
+
+static int prod_bprop_real(lua_State *L) {
+	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
+	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
+	THCudaTensor *gradInput = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
+
+	luaL_argcheck(L, gradInput->nDimension == 3, 2, "gradInput should be 3D tensor");
+	luaL_argcheck(L, weight->nDimension == 3, 2, "weight should be 3D tensor");
+	luaL_argcheck(L, gradOutput->nDimension == 3, 2, "gradOutput should be 3D tensor");
+
+	long nMinibatch = gradInput->size[0];
+	long nOutputMaps = weight->size[0];
+	long nInputMaps = weight->size[1];
+	long dim = gradInput->size[2];
+
+	// raw pointers
+	float *gradOutput_data = (float*)THCudaTensor_data(gradOutput);
+	float *weight_data = (float*)THCudaTensor_data(weight);
+	float *gradInput_data = (float*)THCudaTensor_data(gradInput);
+	
+	spectral_prod(gradOutput_data, weight_data, gradInput_data, dim,
+				nMinibatch, nOutputMaps*dim, nInputMaps*dim,
+				nOutputMaps, dim, dim*nInputMaps, 
+                nInputMaps, dim, dim);
+
+	return 0;
+}
+
+
+static int prod_bprop_complex(lua_State *L) {
 	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
 	THCudaTensor *gradInput = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
@@ -87,7 +146,47 @@ static int prod_bprop(lua_State *L) {
 	return 0;
 }
 
-static int prod_accgrad(lua_State *L) {
+
+static int prod_accgrad_real(lua_State *L) {
+	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
+	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
+	THCudaTensor *gradWeight = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
+
+	luaL_argcheck(L, input->nDimension == 3, 2, "input should be 3D tensor");
+	luaL_argcheck(L, gradOutput->nDimension == 3, 2, "gradOutput should be 3D tensor");
+	luaL_argcheck(L, gradWeight->nDimension == 3, 2, "gradWeight should be 3D tensor");
+
+	long nMinibatch = input->size[0];
+	long nOutputMaps = gradWeight->size[0];
+	long nInputMaps = gradWeight->size[1];
+	long dim = input->size[2];
+
+	// raw pointers
+	float *input_data = (float*)THCudaTensor_data(input);
+	float *gradOutput_data = (float*)THCudaTensor_data(gradOutput);
+	float *gradWeight_data = (float*)THCudaTensor_data(gradWeight);
+	
+	spectral_prod(input_data, gradOutput_data, gradWeight_data, dim,
+				nInputMaps, dim, dim,
+				nMinibatch, nInputMaps*dim, nOutputMaps*dim, 
+                nOutputMaps, dim, nInputMaps*dim);
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int prod_accgrad_complex(lua_State *L) {
 	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
 	THCudaTensor *gradWeight = (THCudaTensor *)luaT_checkudata(L, 3, "torch.CudaTensor");
@@ -116,8 +215,6 @@ static int prod_accgrad(lua_State *L) {
 	return 0;
 }
 
-
-
 static int fill_hermitian(lua_State *L) {
   THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
   THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -144,9 +241,12 @@ static int fill_hermitian(lua_State *L) {
 
 
 static const struct luaL_reg cucomplex [] = {
-	{"prod_fprop", prod_fprop},
-	{"prod_bprop", prod_bprop},
-	{"prod_accgrad",prod_accgrad},
+  {"prod_fprop_real", prod_fprop_real},
+  {"prod_bprop_real", prod_bprop_real},
+  {"prod_accgrad_real", prod_accgrad_real},
+	{"prod_fprop_complex", prod_fprop_complex},
+	{"prod_bprop_complex", prod_bprop_complex},
+	{"prod_accgrad_complex",prod_accgrad_complex},
     {"fill_hermitian",fill_hermitian},
     {"modulus_updateGradInput",modulus_updateGradInput},
     {"complexInterp_interpolate",complexInterp_interpolate},

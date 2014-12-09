@@ -67,7 +67,7 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    -- weight transformation
    local weightTransform
    if interpType == 'spatial' then
-      weightTransform = nn.Interp(sH,sW,iH,iW,self.interpType)
+      weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
    else 
       weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)
    end
@@ -81,8 +81,6 @@ function SpectralConvolutionImage:reset(stdv)
    -- TODO: find appropriate initialization range?
    stdv = 1/math.sqrt(self.nInputPlanes*self.sW*self.sH)
    self.weightPreimage:uniform(-stdv,stdv)
-   --self.weightPreimage:select(5,2):zero()
-   --cufft.fft2d_c2c(self.weightPreimage,self.weightPreimage)
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
    if self.realKernels then

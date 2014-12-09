@@ -127,11 +127,90 @@ end
 
 
 
+
+
+
+
+function test_prod_real()
+   local nMinibatch = 128 --math.random(1,10)
+   local nInputPlanes = 96
+   local nOutputPlanes = 256 --math.random(1,16)
+   local dim = 2000
+
+   local input = torch.CudaTensor(nMinibatch,nInputPlanes,dim):normal()
+   local weight = torch.CudaTensor(nOutputPlanes, nInputPlanes, dim):normal()
+   local output = torch.CudaTensor(nMinibatch, nOutputPlanes, dim):zero()
+   print('testing real prod')
+   print('\nTESTING FPROP')
+   local timer = torch.Timer()
+   timer:reset()
+   cucomplex.prod_fprop_real(input,weight,output)
+   cutorch.synchronize()
+   print('Fprop CUDA version took ' .. timer:time().real .. ' sec')
+   local output2 = torch.CudaTensor(nMinibatch, nOutputPlanes, dim):zero()
+   timer:reset()
+   for s=1,nMinibatch do
+      for i = 1,nOutputPlanes do
+         for j = 1,nInputPlanes do 
+			output2[s][i]:addcmul(input[s][j],weight[i][j])
+         end
+      end
+   end
+   cutorch.synchronize()
+   print('Fprop Torch version took ' .. timer:time().real .. ' sec')
+   output:add(-1,output2)
+   print('Norm of difference = ' .. output:norm())
+   
+   print('\nTESTING BPROP')
+   local gradInput = input:zero()
+   local gradInput2 = gradInput:clone()
+   local gradOutput = output:normal()
+   weight:normal()
+   timer:reset()
+   cucomplex.prod_bprop_real(gradOutput,weight,gradInput)
+   cutorch.synchronize()
+   print('Bprop CUDA version took ' .. timer:time().real .. ' sec')
+   
+   for s = 1,nMinibatch do
+      for i = 1,nInputPlanes do
+         for j = 1,nOutputPlanes do 
+            gradInput2[s][i]:addcmul(gradOutput[s][j],weight[j][i])
+         end
+      end
+   end
+   gradInput:add(-1,gradInput2)
+   print('Norm of difference = ' .. gradInput:norm())
+      
+   print('\nTESTING ACCGRAD')
+   local gradWeight = weight:zero()
+   local gradWeight2 = gradWeight:clone()
+   gradOutput:normal()
+   input:normal()
+   timer:reset()
+   cucomplex.prod_accgrad_real(input, gradOutput, gradWeight)
+   cutorch.synchronize()
+   print('Accgrad CUDA version took ' .. timer:time().real .. ' sec')
+   for j = 1,nOutputPlanes do 
+      for i = 1,nInputPlanes do
+         for s = 1,nMinibatch do
+            gradWeight2[j][i]:addcmul(gradOutput[s][j],input[s][i])
+         end
+      end
+   end
+   gradWeight:add(-1,gradWeight2)
+   print('Norm of difference = ' .. gradWeight:norm())
+end
+
+
+test_prod_real()
+
+
+
 -- test the complex product/accumulation used in fprop, bprop and accGrad
 -- WARNING/TODO: this seems to work for powers of 2, but not for certain column 
 -- numbers such as 17. Make sure the row/col sizes give the correct answer 
 -- before running experiments.   
-function test_prod()
+function test_prod_complex()
    local nMinibatch = 16 --math.random(1,10)
    local nInputPlanes = 4
    local nOutputPlanes = 16 --math.random(1,16)
@@ -202,7 +281,7 @@ function test_prod()
    print('Norm of difference = ' .. gradWeight:norm())
 end
 
-test_prod()
+--test_prod()
 
 
 

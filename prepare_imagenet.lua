@@ -6,7 +6,7 @@ require("image")
 -- Dataset settings for training
 data_dir = '/misc/vlgscratch3/LecunGroup/provodin/lagr/pp'
 image_dir = data_dir..'/quality9075/LAGR2014_img_train/'
-save_dir = '/misc/vlgscratch3/LecunGroup/mbhenaff/data/'
+save_dir = '/misc/vlgscratch3/LecunGroup/mbhenaff/'
 list = torch.load(data_dir.."/index/train.t7b")
 
 --options
