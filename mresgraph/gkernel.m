@@ -1,7 +1,7 @@
 function [ker,ndata]=gkernel(data,options)
 
-NN=getoptions(options,'gNN',0.3);
-NNA=getoptions(options,'NNA',16);
+NN=getoptions(options,'gNN',0.0);
+NNA=getoptions(options,'NNA',0.2);
 
 ker=kernelization(data);
 
@@ -20,7 +20,7 @@ ndata = data ./ (neighbs*ones(1,size(data,2)));
 
 fprintf('sigma is estimated at %f \n',sigma)
 
-ker=exp(-ker/(2*sigma^2));
+ker=exp(-ker/(1*sigma^2));
 %ndata=data;
 
 
