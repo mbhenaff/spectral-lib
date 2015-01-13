@@ -6,8 +6,7 @@ D = diag(sum(W).^(-1/2));
 L = eye(size(W,1)) - D * W * D;
 [ee,ev]=eig(L);
 V=ee;
-X=ee(:,1:n);
-
+X=ee(:,end-n+1:end);
 
 %renormalize rows
 X=X./repmat(sqrt(sum(X.^2,2)),1,size(X,2));

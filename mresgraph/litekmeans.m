@@ -9,7 +9,7 @@ n = size(X,2);
 last = 0;
 
 minener = 1e+20;
-outiters=10;
+outiters=5;
 maxiters=1000;
 
 if nargin < 4

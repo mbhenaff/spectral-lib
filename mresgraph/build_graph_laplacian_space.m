@@ -9,7 +9,7 @@ vl_setup
 %% build a spatial hierarchical clustering
 tree=vl_kdtreebuild(T);
 frac = stride / poolsize;
-j1 = round(poolsize * frac);
+j1 = poolsize;%round(poolsize * frac);
 j2 = poolsize;
 depth = 2;
 psize = poolsize * ones(1,depth);
