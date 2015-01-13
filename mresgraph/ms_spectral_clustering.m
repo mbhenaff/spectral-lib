@@ -6,7 +6,8 @@ WF{1} = wfat;
 for j=1:depth
 n = round(frac*size(W{j},1));
 %1) spectral clustering 
-[V{j}, anchors, clusters] = spectral_clustering(W{j}, n, psize(j)-1);
+fprintf('doing scale %d \n', j)
+[V{j}, anchors, clusters] = spectral_clustering(W{j}, n, psize(j));
 for i=1:n
 slice = WF{j}(:,anchors(i));
 [~,inds] = sort(slice,'descend');
