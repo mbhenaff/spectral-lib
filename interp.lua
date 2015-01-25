@@ -3,7 +3,8 @@ require 'image'
 dofile('utils.lua')
 
 kernels_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/interp_kernels/'
--- N is the input size, M is the output size
+-- for all except spatial2D, N is the input size, M is the output size
+-- for spatial2D, we are assuming inputs are NxN images and outputs are MxM
 function interpKernel(N, M, type)
    if type == 'spline' then
       return torch.load(kernels_path .. '/spline_kernel_' .. N .. '_' .. M .. '.th'):float()
@@ -11,6 +12,8 @@ function interpKernel(N, M, type)
       return torch.load(kernels_path .. '/spline_border_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'dyadic_spline' then
       return torch.load(kernels_path .. '/dyadic_spline_' .. N .. '_' .. M .. '.th'):float()
+   elseif type == 'spatial2D' then 
+      return torch.load(kernels_path .. '/spatial_kernel_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'bilinear' then
       if N == M then
          return torch.eye(N)
@@ -24,7 +27,7 @@ function interpKernel(N, M, type)
 			aux[i] = 1
 			out[{i,{}}]:copy(linterp(x,aux,y))
          end
-         return out
+         return out:float()
       end
    else
       error('unrecognized type')

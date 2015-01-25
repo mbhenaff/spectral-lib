@@ -30,7 +30,7 @@ function nn.Jacobian.backward (module, input, param, dparam)
 	  if doparam == 1 then
 		  module:backward(input,dout)
 		  jacobian:select(2,i):copy(dparam)
-	  else
+       else
 		  module:zeroGradParameters()
 		  local din = module:updateGradInput(input, dout)
 		  module:accGradParameters(input, dout)
@@ -212,7 +212,7 @@ end
 
 function nn.Jacobian.forwardUpdate(module, input, param)
    -- perturbation amount
-   local small = 1e-3
+   local small = 1e-4
    -- 1D view of input
    local sin =  param.new(param):resize(param:nElement())
    -- jacobian matrix to calculate

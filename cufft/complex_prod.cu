@@ -8,6 +8,7 @@
 #include "bias.cu"
 #include "crop.cu"
 #include "prod.cu"
+#include "graph_pool.cu"
 
 /* Performs the equivalent of the following Torch code:
 for s=1,nMinibatch do
@@ -175,17 +176,6 @@ static int prod_accgrad_real(lua_State *L) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 static int prod_accgrad_complex(lua_State *L) {
 	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -215,6 +205,7 @@ static int prod_accgrad_complex(lua_State *L) {
 	return 0;
 }
 
+
 static int fill_hermitian(lua_State *L) {
   THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
   THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -238,22 +229,22 @@ static int fill_hermitian(lua_State *L) {
 }
 
 
-
-
 static const struct luaL_reg cucomplex [] = {
   {"prod_fprop_real", prod_fprop_real},
   {"prod_bprop_real", prod_bprop_real},
   {"prod_accgrad_real", prod_accgrad_real},
-	{"prod_fprop_complex", prod_fprop_complex},
-	{"prod_bprop_complex", prod_bprop_complex},
-	{"prod_accgrad_complex",prod_accgrad_complex},
-    {"fill_hermitian",fill_hermitian},
-    {"modulus_updateGradInput",modulus_updateGradInput},
-    {"complexInterp_interpolate",complexInterp_interpolate},
-    {"bias_updateOutput", bias_updateOutput},
-    {"bias_accGradParameters", bias_accGradParameters},
-    {"crop_zeroborders",crop_zeroborders},
-	{NULL, NULL}
+  {"prod_fprop_complex", prod_fprop_complex},
+  {"prod_bprop_complex", prod_bprop_complex},
+  {"prod_accgrad_complex",prod_accgrad_complex},
+  {"fill_hermitian",fill_hermitian},
+  {"modulus_updateGradInput",modulus_updateGradInput},
+  {"complexInterp_interpolate",complexInterp_interpolate},
+  {"bias_updateOutput", bias_updateOutput},
+  {"bias_accGradParameters", bias_accGradParameters},
+  {"crop_zeroborders",crop_zeroborders},
+  {"graph_pool_fprop", graph_pool_fprop},
+  {"graph_pool_bprop", graph_pool_bprop},
+  {NULL, NULL}
 };
 
 LUA_EXTERNC int luaopen_cucomplex(lua_State *L) {

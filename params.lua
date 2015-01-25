@@ -6,63 +6,78 @@ require 'optim'
 require 'nn'
 require 'cunn'
 require 'cucomplex'
-require 'SpectralConvolutionImage'
-require 'Real'
-require 'Crop'
 require 'Bias'
+require 'Interp'
+require 'SpectralConvolution'
+require 'SpectralConvolutionImage'
+require 'InterpImage'
 require 'ComplexInterp'
+require 'Real'
+require 'GraphMaxPooling'
 require 'loadData'
 require 'FFTconv'
 cufft = dofile('cufft/cufft.lua')
 
 
 cmd = torch.CmdLine()
-cmd:option('-dataset','cifar')
-cmd:option('-conv','spectral','spatial | spectral')
-cmd:option('-real','real','how to make output of spectral conv real (real | mod)')
+cmd:option('-dataset','mnist')
+cmd:option('-model','gconv','mlp | gconv')
 cmd:option('-nhidden',32)
-cmd:option('-kH',5)
-cmd:option('-kW',5)
-cmd:option('-interp', 'spline','bilinear | spline | dyadic_spline | spatial')
+cmd:option('-k',25)
+cmd:option('-rfreq',0,'reduction factor for freq bands')
+cmd:option('-interp', 'bilinear','bilinear | spline | dyadic_spline | spatial')
 cmd:option('-gpunum',1)
-cmd:option('-batchSize',128)
+cmd:option('-batchSize',64)
 cmd:option('-learningRate',0.1)
 cmd:option('-weightDecay',0)
-cmd:option('-ncrop',0, 'number of rows/cols to crop on each side after spectral conv')
 cmd:option('-epochs',20)
 cmd:option('-log',1)
+cmd:option('-dropout',0)
+cmd:option('-suffix','')
 opt = cmd:parse(arg or {})
 
 cutorch.setDevice(opt.gpunum)
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.manualSeed(321)
 
-if opt.real == 'real' then
-   opt.realKernels = true
-else 
-   opt.realKernels = false
-end
-if opt.log == 0 then
-   opt.log = false
+if opt.log == 0 then 
+   opt.log = false 
 else
    opt.log = true
 end
 
+if opt.dropout == 0 then 
+   opt.dropout = false 
+else 
+   opt.dropout = true
+end
+
 opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/'
-if opt.conv == 'spectral' then
+if opt.model == 'gconv' or opt.model == 'spectral' or opt.model == 'spectral2' then
    opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-conv=' .. opt.conv
+      .. '-model=' .. opt.model
       .. '-interp=' .. opt.interp 
-      .. '-real=' .. opt.real
       .. '-nhidden=' .. opt.nhidden 
-      .. '-k=' .. opt.kH .. 'x' .. opt.kW 
+      .. '-k=' .. opt.k
       .. '-learningRate=' .. opt.learningRate
 else
    opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-conv=' .. opt.conv
+      .. '-model=' .. opt.model
       .. '-nhidden=' .. opt.nhidden 
-      .. '-k=' .. opt.kH .. 'x' .. opt.kW 
+      .. '-k=' .. opt.k
       .. '-learningRate=' .. opt.learningRate
+end
+
+if opt.weightDecay ~= 0 then 
+   opt.modelFile = opt.modelFile .. '-weightDecay=' .. opt.weightDecay
+end
+
+if opt.dropout then 
+   opt.modelFile = opt.modelFile .. '-dropout'
+end
+
+if opt.suffix ~= '' then
+   opt.modelFile = opt.modelFile .. '-' .. opt.suffix
 end
 
 opt.saveFile = opt.savePath .. opt.modelFile

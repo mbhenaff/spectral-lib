@@ -4,16 +4,13 @@
 
 local SpectralConvolution, parent = torch.class('nn.SpectralConvolution','nn.Module')
 
-function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, subdim, transform)
+function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, subdim, GFTMatrix)
    parent.__init(self)
    self.dim = dim
    self.subdim = subdim
    self.nInputMaps = nInputMaps
    self.nOutputMaps = nOutputMaps
-   local r = torch.randn(dim,dim)
-   r = (r + r:t()/2)
-   local val,vec = torch.symeig(r,'V')
-   self.GFTMatrix = vec
+   self.GFTMatrix = GFTMatrix or torch.eye(dim,dim)
    self.iGFTMatrix = self.GFTMatrix:t():clone()
    self.interpType = 'bilinear'
    -- buffers in spectral domain (TODO: use global buffer)
@@ -39,6 +36,13 @@ function SpectralConvolution:reset(stdv)
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
 end
+
+-- use this after sending to GPU
+function SpectralConvolution:resetPointers()
+   self.weight = self.transformWeight:updateOutput(self.weightPreimage)
+   self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
+end
+
 
 -- apply graph fourier transform on the input, store result in output
 function SpectralConvolution:batchGFT(input, output, dir) 
@@ -85,6 +89,14 @@ function SpectralConvolution:accGradParameters(inputs, gradOutput, scale)
 end
 
   
+function SpectralConvolution:printNorms()
+   print('-------------------')
+   print('weightPreimage norm = ' .. self.weightPreimage:norm())
+   print('gradWeightPreimage norm = ' .. self.gradWeightPreimage:norm())
+   print('weight norm = ' .. self.weight:norm())
+   print('gradWeight norm = ' .. self.gradWeight:norm())
+   print('-------------------')
+end
 
       
       

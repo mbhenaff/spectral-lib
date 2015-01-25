@@ -16,9 +16,9 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    parent.__init(self)
 
    if not (iW % 2 == 0 and iH % 2 == 0) then
-      error('input width should be even. Best if a power of 2')
+      error('input width should be even. Best if a power of 2. Now iW=' .. iW .. ', iH=' .. iH)
    end
-   self.interpType = interpType or 'linear'
+   self.interpType = interpType or 'bilinear'
    self.batchSize = batchSize
    self.nInputPlanes = nInputPlanes
    self.nOutputPlanes = nOutputPlanes
@@ -66,7 +66,7 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
 
    -- weight transformation
    local weightTransform
-   if interpType == 'spatial' then
+   if true then --interpType == 'spatial' then
       weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
    else 
       weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)

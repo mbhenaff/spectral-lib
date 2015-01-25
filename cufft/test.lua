@@ -202,7 +202,7 @@ function test_prod_real()
 end
 
 
-test_prod_real()
+--test_prod_real()
 
 
 
@@ -283,8 +283,6 @@ end
 
 --test_prod()
 
-
-
 function test_fill_hermitian()
    nRows = 64
    nCols = 64
@@ -308,3 +306,91 @@ function test_fill_hermitian()
 end
 
 --test_fill_hermitian()
+
+
+
+function test_graph_pool()
+   dim = 2000
+   nMaps = 200
+   poolsize = 4
+   clusters = torch.randperm(dim)
+   clusters:resize(dim/poolsize,poolsize)
+   clusters = clusters:cuda()
+   input = torch.randn(nMaps,dim):cuda()
+   output = torch.CudaTensor(nMaps,dim/poolsize):fill(-99)
+   indices = torch.CudaTensor(nMaps,dim/poolsize):fill(-99)
+   timer = torch.Timer():reset()
+   cucomplex.graph_pool_fprop(input, output, clusters, indices, nMaps, dim, poolsize)
+   cutorch.synchronize()
+   print('fprop took ' .. timer:time().real)
+   output2=torch.FloatTensor(output:size())
+   indices2 = torch.FloatTensor(indices:size())
+   for i = 1,nMaps do
+      local out, ind = graph_pool_cpu(input[i], clusters)
+      output2[i]:copy(out)
+      indices2[i]:copy(ind)
+   end
+   output=output:float()
+   indices = indices:float()
+   cutorch.synchronize()
+   print(torch.norm(output-output2))
+   print(torch.norm(indices-indices2))
+
+
+   -- bprop
+   gradOutput = output:clone():normal():cuda()
+   gradInput = input:clone():zero():cuda()
+   indices = indices:cuda()
+   timer:reset()
+   cucomplex.graph_pool_bprop(gradInput, gradOutput, indices)
+   cutorch.synchronize()
+   print('bprop took ' .. timer:time().real)
+   gradInput2 = gradInput:clone():fill(1):float()
+   for i = 1,nMaps do 
+      graph_pool_bprop_cpu(gradInput2[i], gradOutput[i], indices[i])
+   end
+   print(torch.norm(gradInput:float()-gradInput2))
+
+
+end
+
+function graph_pool_cpu(input, clusters)
+   local input = input:float()
+   local clusters = clusters:float()
+   local nClusters = clusters:size(1)
+   local poolsize = clusters:size(2)
+   local output = torch.FloatTensor(nClusters)
+   local indices = torch.FloatTensor(nClusters)
+   for i = 1,nClusters do 
+      local pool=torch.Tensor(poolsize)
+      for j = 1,poolsize do 
+         pool[j] = input[clusters[i][j]]
+      end
+      local s,indx=torch.sort(pool,true)
+      indx = indx[1]
+      output[i] = pool[indx]
+      indices[i] = clusters[i][indx]
+   end
+   return output, indices
+end
+
+
+
+function graph_pool_bprop_cpu(gradInput, gradOutput, indices)
+   gradInput:zero()
+   for i=1,indices:size(1) do 
+      gradInput[indices[i]] = gradOutput[i]
+   end
+   return gradInput
+end
+
+test_graph_pool()
+
+      
+
+
+
+
+
+
+

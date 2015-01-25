@@ -10,22 +10,24 @@ require 'Bias'
 require 'Crop'
 require 'SpectralConvolutionImage'
 require 'SpectralConvolution'
+require 'GraphMaxPooling'
 require 'Jacobian2'
 require 'utils'
 cufft = dofile('cufft/cufft.lua')
 
-torch.manualSeed(123)
-cutorch.setDevice(4)
+--torch.manualSeed(123)
+cutorch.setDevice(1)
 
 local test_correctness = true
 local test_crop = false
 local test_bias = false
-local test_interp = true
+local test_interp = false
 local test_real = false
 local test_complex_interp = false
 local test_spectralconv_img = false
-local test_spectralconv = true
-local test_time = true
+local test_spectralconv = false
+local test_graphpool = true
+local test_time = false
 
 local mytester = torch.Tester()
 local jac = nn.Jacobian
@@ -56,12 +58,13 @@ if test_bias then
    function nntest.Bias()
       print('\n')
       local iW = 16
-      local iH = 16
+      local iH = 1
       local nPlanes = 3
       local batchSize = 8 
       local model = nn.Bias(nPlanes)
       model = model:cuda()
-      local input = torch.CudaTensor(batchSize, nPlanes, iH, iW)
+      --local input = torch.CudaTensor(batchSize, nPlanes, iH, iW)
+      local input = torch.CudaTensor(batchSize, nPlanes, iW)
       local err,jf,jb = jac.testJacobian(model, input)
       print('error on state = ' .. err)
       local param,gradParam = model:parameters()
@@ -114,13 +117,6 @@ if test_interp then
 end
 
 
-
-
-
-
-
-
-
 if test_interp_img then
    function nntest.InterpImage()
       print('\n')
@@ -158,21 +154,23 @@ if test_real then
 end
 
 
-
-
-
-
 if test_spectralconv then
    function nntest.SpectralConvolution()
       print('\n')
       torch.manualSeed(123)
       local interpType = 'bilinear'
-      local dim = 200
-      local subdim = 8
+      local dim = 500
+      local subdim = 5
       local nInputPlanes = 8
-      local nOutputPlanes = 26
+      local nOutputPlanes = 12
       local batchSize = 3
-      local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,dim, subdim, interpType)
+      local L = torch.load('mresgraph/reuters_GFT_pool4.th')
+      local GFTMatrix = torch.eye(dim,dim)--L.V2
+      local X = torch.randn(dim,dim)
+      X = (X + X:t())/2
+      local _,GFTMatrix = torch.eye(dim,dim)--torch.symeig(X,'V')
+      
+      local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,dim, subdim, GFTMatrix)
       model = model:cuda()
       model:reset()
       local input = torch.CudaTensor(batchSize,nInputPlanes,dim):normal()
@@ -191,16 +189,47 @@ if test_spectralconv then
 end
 
 
-
-
-
-
-
-
-
-
-
-
+if test_graphpool then
+   function nntest.GraphMaxPool()
+      torch.manualSeed(313)
+      local dim = 784
+      local poolsize = 9
+      local stride = 4
+      local nClusters = dim/stride
+      local nMaps = 2
+      local batchSize = 3
+      for i = 1,20 do 
+         local clusters
+         if false then
+            clusters = torch.randperm(dim)
+            clusters:resize(nClusters, poolsize)
+         else
+            clusters = torch.Tensor(nClusters,poolsize)
+            for j = 1,nClusters do 
+               clusters[j]:copy(torch.randperm(dim)[{{1,poolsize}}])
+            end
+         end
+         model = nn.GraphMaxPooling(clusters)
+         model = model:cuda()
+         model:reset()      
+         local input = torch.CudaTensor(batchSize, nMaps, dim):normal()
+         --print(model.clusters)
+         err,jf,jb = jac.testJacobian(model, input, -100,100)
+         diff = jf:float() - jb:float()
+         print('error on state = ' .. err)
+         if err > precision then 
+            for i = 1,diff:size(1) do 
+               for j = 1,diff:size(2) do 
+                  if diff[i][j] == err then 
+                     print(i,j)
+                  end
+               end
+            end
+            break 
+         end
+      end
+   end
+end
 
 
 if test_spectralconv_img then

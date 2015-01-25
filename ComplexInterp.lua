@@ -14,6 +14,8 @@ function ComplexInterp:__init(iH, iW, oH, oW, interpType)
     self.oW = oW
     self.kernelRows = interpKernel(iH, oH, interpType)
     self.kernelCols = interpKernel(iW, oW, interpType)
+    --self.kernelRows:mul(2)
+    --self.kernelCols:mul(2)
     self.gradInput = torch.Tensor(1,1,iH,iW,2) 
 end
 	
@@ -68,7 +70,7 @@ function interpolateBatch(iH, iW, oH, oW, input, output, kernelRows, kernelCols)
 	output:zero()
     local buffer
     if input:type() ~= 'torch.CudaTensor' then
-       buffer = torch.Tensor(oH,iW)
+       buffer = torch.FloatTensor(oH,iW)
     else 
        buffer = torch.CudaTensor(oH,iW)
     end
