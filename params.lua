@@ -6,6 +6,7 @@ require 'optim'
 require 'nn'
 require 'cunn'
 require 'cucomplex'
+require 'Crop'
 require 'Bias'
 require 'Interp'
 require 'SpectralConvolution'
@@ -22,11 +23,15 @@ cufft = dofile('cufft/cufft.lua')
 cmd = torch.CmdLine()
 cmd:option('-dataset','mnist')
 cmd:option('-model','gconv','mlp | gconv')
+cmd:option('-optim','sgd')
 cmd:option('-nhidden',32)
-cmd:option('-k',25)
+cmd:option('-k',5)
 cmd:option('-rfreq',0,'reduction factor for freq bands')
 cmd:option('-interp', 'bilinear','bilinear | spline | dyadic_spline | spatial')
+cmd:option('-poolsize',4)
+cmd:option('-poolstride',4)
 cmd:option('-gpunum',1)
+cmd:option('-printNorms',0)
 cmd:option('-batchSize',64)
 cmd:option('-learningRate',0.1)
 cmd:option('-weightDecay',0)
@@ -53,20 +58,28 @@ else
 end
 
 opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/'
-if opt.model == 'gconv' or opt.model == 'spectral' or opt.model == 'spectral2' then
-   opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-model=' .. opt.model
+
+opt.modelFile = 'dataset=' .. opt.dataset .. '-model=' .. opt.model .. '-batchSize-' .. opt.batchSize
+if string.match(opt.model,'gconv') or string.match(opt.model,'spectral') then 
+   opt.modelFile = opt.modelFile
       .. '-interp=' .. opt.interp 
       .. '-nhidden=' .. opt.nhidden 
       .. '-k=' .. opt.k
-      .. '-learningRate=' .. opt.learningRate
-else
-   opt.modelFile = 'dataset=' .. opt.dataset
-      .. '-model=' .. opt.model
+      .. '-poolsize-' .. opt.poolsize
+      .. '-poolstride-' .. opt.poolstride
+elseif string.match(opt.model,'spatial') then
+   opt.modelFile = opt.modelFile 
       .. '-nhidden=' .. opt.nhidden 
-      .. '-k=' .. opt.k
-      .. '-learningRate=' .. opt.learningRate
+      .. '-k=' .. opt.k  
+      .. '-poolsize-' .. opt.poolsize
+      .. '-poolstride-' .. opt.poolstride
+elseif opt.model == 'mlp' then
+   opt.modelFile = opt.modelFile 
+      .. '-nhidden=' .. opt.nhidden 
 end
+
+opt.modelFile = opt.modelFile .. '-optim=' .. opt.optim
+opt.modelFile = opt.modelFile .. '-learningRate=' .. opt.learningRate
 
 if opt.weightDecay ~= 0 then 
    opt.modelFile = opt.modelFile .. '-weightDecay=' .. opt.weightDecay

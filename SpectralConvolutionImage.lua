@@ -22,8 +22,7 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    self.batchSize = batchSize
    self.nInputPlanes = nInputPlanes
    self.nOutputPlanes = nOutputPlanes
-   self.realKernels = realKernels or false
-
+   self.realKernels = realKernels or true
    -- width/height of inputs
    self.iW = iW
    self.iH = iH
@@ -31,54 +30,23 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    self.sW = sW
    self.sH = sH
    -- representations in original domain
-   self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
    self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-
-   -- buffers in spectral domain
-   if false then
-      -- TODO: need separate buffers for data which needs to be put in the spectral domain at the same time
-      local maxPlanes = math.max(batchSize*nInputPlanes,batchSize*nOutputPlanes,nOutputPlanes*nInputPlanes)
-      local imgSize = iH * iW * 2
-      self.buffer = torch.Tensor(maxPlanes * imgSize)
-      self.inputSpectral = self.buffer[{{1,batchSize * nInputPlanes * imgSize}}]
-      self.outputSpectral = self.buffer[{{1,batchSize * nOutputPlanes * imgSize}}]
-      self.gradInputSpectral = self.buffer[{{1,batchSize * nInputPlanes * imgSize}}]
-      self.gradWeight = self.buffer[{{1,nOutputPlanes * nInputPlanes * imgSize}}]
-      self.gradOutputSpectral = self.buffer[{{1,batchSize * nOutputPlanes * imgSize}}]
-      self.inputSpectral:resize(batchSize, nInputPlanes, iH, iW, 2)
-      self.outputSpectral:resize(batchSize, nOutputPlanes, iH, iW, 2)
-      self.gradInputSpectral:resize(batchSize, nInputPlanes, iH, iW, 2)
-      self.gradWeight:resize(nOutputPlanes, nInputPlanes, iH, iW, 2)
-      self.gradOutputSpectral:resize(batchSize, nOutputPlanes, iH, iW,2)	
-   else
-      -- representations in original domain
-      self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
-      self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-      -- buffers in spectral domain (TODO: use single global buffer)
-      self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
-      self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
-      self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW,2)
-      self.gradOutputSpectralHermitian = torch.Tensor(batchSize, nOutputPlanes, iH, iW/2+1,2)
-      self.output = self.outputSpectral:clone()
-   end
-
+   -- buffers in spectral domain (TODO: use single global buffer)
+   self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
+   self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
+   self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
+   self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
+   self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW,2)
+   self.output = self.outputSpectral:clone()
    -- weight transformation
-   local weightTransform
-   if true then --interpType == 'spatial' then
-      weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
-   else 
-      weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)
-   end
+   local weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
    self:setWeightTransform(weightTransform,torch.LongStorage({nOutputPlanes,nInputPlanes,sH,sW,2}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
-   --self:reset()
+   self:reset()
 end
 
 function SpectralConvolutionImage:reset(stdv)
-   -- TODO: find appropriate initialization range?
    stdv = 1/math.sqrt(self.nInputPlanes*self.sW*self.sH)
    self.weightPreimage:uniform(-stdv,stdv)
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
@@ -108,7 +76,7 @@ function SpectralConvolutionImage:updateGradInput(input, gradOutput)
    libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
    -- inverse FFT
    cufft.fft2d_c2c(self.gradInputSpectral,self.gradInputSpectral,-1)
-   self.gradInput = self.gradInputSpectral:select(5,1)
+   self.gradInput = self.gradInputSpectral:select(5,1):contiguous()
    return self.gradInput
 end
 
@@ -119,11 +87,9 @@ function SpectralConvolutionImage:accGradParameters(input, gradOutput, scale)
    --self.inputSpectral:zero()
    --self.inputSpectral:select(5,1):copy(input)
    --cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
-
    libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
    self.gradWeight:div(self.iW * self.iH)
    cutorch.synchronize()
-   --self:printNorms()
 end
 
 -------------------------------------

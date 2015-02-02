@@ -11,7 +11,7 @@ function interpKernel(N, M, type)
    elseif type == 'spline_border' then
       return torch.load(kernels_path .. '/spline_border_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'dyadic_spline' then
-      return torch.load(kernels_path .. '/dyadic_spline_' .. N .. '_' .. M .. '.th'):float()
+      return torch.load(kernels_path .. '/dyadic_spline_kernel_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'spatial2D' then 
       return torch.load(kernels_path .. '/spatial_kernel_' .. N .. '_' .. M .. '.th'):float()
    elseif type == 'bilinear' then

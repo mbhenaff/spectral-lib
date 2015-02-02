@@ -3,6 +3,7 @@
 require 'cunn'
 require 'cucomplex'
 require 'HermitianInterp'
+require 'InterpImage'
 require 'Interp'
 require 'ComplexInterp'
 require 'Real'
@@ -16,17 +17,17 @@ require 'utils'
 cufft = dofile('cufft/cufft.lua')
 
 --torch.manualSeed(123)
-cutorch.setDevice(1)
+cutorch.setDevice(2)
 
 local test_correctness = true
-local test_crop = false
+local test_crop = true
 local test_bias = false
 local test_interp = false
-local test_real = false
+local test_real = true
 local test_complex_interp = false
-local test_spectralconv_img = false
+local test_spectralconv_img = true
 local test_spectralconv = false
-local test_graphpool = true
+local test_graphpool = false
 local test_time = false
 
 local mytester = torch.Tester()
@@ -236,11 +237,12 @@ if test_spectralconv_img then
    function nntest.SpectralConvolutionImage()
       print('\n')
       torch.manualSeed(123)
-      local interpType = 'bilinear'
+      torch.setdefaulttensortype('torch.FloatTensor')
+      local interpType = 'spatial'
       local iW = 32
       local iH = 32
-      local nInputPlanes = 2
-      local nOutputPlanes = 2
+      local nInputPlanes = 3
+      local nOutputPlanes = 16
       local batchSize = 2
       local sW = 4	
       local sH = 4

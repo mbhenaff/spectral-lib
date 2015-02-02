@@ -1,7 +1,4 @@
 
-
-
-
 local SpectralConvolution, parent = torch.class('nn.SpectralConvolution','nn.Module')
 
 function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, subdim, GFTMatrix)

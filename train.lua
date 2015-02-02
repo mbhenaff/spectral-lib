@@ -1,9 +1,12 @@
 dofile('params.lua')
 
 if opt.model == 'gconv1' or opt.model == 'gconv2' then
+   poolneighbs = opt.poolsize
+   L = torch.load('mresgraph/' .. opt.dataset .. '_laplacian_poolsize_' .. opt.poolsize .. '_stride_' .. opt.poolstride .. '_neighbs_' .. poolneighbs .. '.th')
+ 
    --L = torch.load('mresgraph/mnist_laplacian_spatialsim_poolsize_9_stride_4_neighbs_9.th')
    --L = torch.load('mresgraph/mnist_laplacian_spatialsim_poolsize_4_stride_4_neighbs_4.th')
-   L = torch.load('mresgraph/mnist_laplacian_poolsize_4_stride_4.th')
+   --L = torch.load('mresgraph/mnist_laplacian_poolsize_4_stride_4.th')
    V1 = L.V[1]:float()
    V2 = L.V[2]:float()
    trdata,trlabels = loadData(opt.dataset,'train')
@@ -30,6 +33,8 @@ torch.manualSeed(314)
 model = nn.Sequential()
 if opt.model == 'linear' then
    model:add(nn.Linear(dim, nclasses))
+   model:add(nn.LogSoftMax())
+   model = model:cuda()
 elseif opt.model == 'mlp' then
    model:add(nn.Linear(dim, opt.nhidden))
    model:add(nn.Threshold())
@@ -70,7 +75,7 @@ elseif opt.model == 'gconv1' then
    model = model:cuda()
    model:get(2):resetPointers()
 elseif opt.model == 'gconv2' then
-   local poolsize = 4
+   local poolsize = opt.poolsize
    -- scale GFT matrices
    --local s1 = math.sqrt(math.sqrt(dim))
    --local s2 = math.sqrt(math.sqrt(dim/poolsize))
@@ -211,8 +216,11 @@ cutorch.synchronize()
                        model:backward(inputs,dL_do)
                        return L, dL_dw
                     end
-      optim.sgd(feval,w,optimState)
-      --optim.adagrad(feval, w, optimState)
+      if opt.optim == 'sgd' then
+         optim.sgd(feval,w,optimState)
+      else
+         optim.adagrad(feval, w, optimState)
+      end
       --model:get(2):printNorms()
    end
    

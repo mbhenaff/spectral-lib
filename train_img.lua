@@ -19,7 +19,10 @@ else
 end
 
 model = nn.Sequential()
-if opt.model == 'spatial1' then
+if opt.model == 'linear' then 
+   model:add(nn.Reshape(iH*iW*nChannels))
+   model:add(nn.Linear(iH*iW*nChannels, nclasses))
+elseif opt.model == 'spatial1' then
    model:add(nn.SpatialConvolutionBatch(nChannels,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(2,2,2,2))
@@ -28,14 +31,12 @@ if opt.model == 'spatial1' then
    model:add(nn.Linear(d,nclasses))
 elseif opt.model == 'spatial2' then
    pool = 2
-   --model:add(nn.SpatialContrastiveNormalization(nChannels,image.gaussian(opt.k)))
    model:add(nn.SpatialConvolutionBatch(nChannels,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
    local oH1 = math.floor((iH-opt.k+1)/pool)
    local oW1 = math.floor((iW-opt.k+1)/pool)
    local d = oH1*oW1*opt.nhidden
-   --model:add(nn.SpatialContrastiveNormalization(opt.nhidden,image.gaussian(math.floor(opt.k/3))))
    model:add(nn.SpatialConvolutionBatch(opt.nhidden,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))   
@@ -46,51 +47,90 @@ elseif opt.model == 'spatial2' then
       model:add(nn.Dropout())
    end
    model:add(nn.Linear(oH2*oW2*opt.nhidden,nclasses))
+
+elseif opt.model == 'spectral2' then
+   opt.real = 'real'
+   opt.realKernels = true
+   opt.kH = opt.k
+   opt.kW = opt.k
+   print(opt)
+   pool = 2
+
+   local oH1 = math.floor((iH-opt.k+1)/pool)
+   local oW1 = math.floor((iW-opt.k+1)/pool)
+   local oH2 = math.floor((oH1-opt.k+1)/pool)
+   local oW2 = math.floor((oW1-opt.k+1)/pool)
+
+   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
+   model:add(nn.Real(opt.real))
+   model:add(nn.Bias(opt.nhidden))
+   model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
+   model:add(nn.Threshold())
+   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
+
+   model:add(nn.SpectralConvolutionImage(opt.batchSize, opt.nhidden, opt.nhidden, oH1, oW1, opt.kH, opt.kW, opt.interp, opt.realKernels))
+   model:add(nn.Real(opt.real))
+   model:add(nn.Bias(opt.nhidden))
+   model:add(nn.Crop(oH1,oW1,oH1-opt.kH+1,oW1-opt.kW+1))
+   model:add(nn.Threshold())
+   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
+
+   model:add(nn.Reshape(oH2*oW2*opt.nhidden))
+   if opt.dropout then 
+      model:add(nn.Dropout())
+   end
+   model:add(nn.Linear(oH2*oW2*opt.nhidden,nclasses))
+
+   -- initialize biases properly
+   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
+   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+
 elseif opt.model == 'spectral1' then
    opt.real = 'real'
    opt.kH = opt.k
    opt.kW = opt.k
    opt.ncrop = 0
    pool = 2
+   local oH1 = math.floor((iH-opt.k+1)/pool)
+   local oW1 = math.floor((iW-opt.k+1)/pool)
+
    model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
    model:add(nn.Real(opt.real))
    model:add(nn.Bias(opt.nhidden))
    model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop))
-   end   
+   model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
 
-   model:add(nn.Reshape((iH/pool)*(iW/pool)*opt.nhidden))
-   model:add(nn.Linear((iH/pool)*(iW/pool)*opt.nhidden,nclasses))
-elseif opt.model == 'spectral2' then
+   model:add(nn.Reshape(oH1*oW1*opt.nhidden))
+   model:add(nn.Linear(oH1*oW1*opt.nhidden,nclasses))
+
+elseif opt.model == 'spectral2nocrop' then
    opt.real = 'real'
+   opt.realKernels = true
    opt.kH = opt.k
    opt.kW = opt.k
-   opt.ncrop = 0
+   opt.ncrop = 0 
+   print(opt)
    pool = 2
    model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
    model:add(nn.Real(opt.real))
    model:add(nn.Bias(opt.nhidden))
    model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop))
-   end   
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
 
    model:add(nn.SpectralConvolutionImage(opt.batchSize, opt.nhidden, opt.nhidden, iH/pool, iW/pool, opt.kH, opt.kW, opt.interp, opt.realKernels))
    model:add(nn.Real(opt.real))
    model:add(nn.Bias(opt.nhidden))
-   model:get(3):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop))
-   end   
+   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
 
    model:add(nn.Reshape((iH/pool^2)*(iW/pool^2)*opt.nhidden))
+   if opt.dropout then 
+      model:add(nn.Dropout())
+   end
    model:add(nn.Linear((iH/pool^2)*(iW/pool^2)*opt.nhidden,nclasses))
 end
 model:add(nn.LogSoftMax())
@@ -99,7 +139,11 @@ model = model:cuda()
 model:reset()
 criterion = criterion:cuda()
 
---model:get(1):printNorms()
+
+if opt.model == 'spectral22' or opt.model == 'spectral2' then
+model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
+model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+end
 
 optimState = {
    learningRate = opt.learningRate,
@@ -117,6 +161,8 @@ trloss = torch.Tensor(opt.epochs)
 teloss = torch.Tensor(opt.epochs)
 tracc = torch.Tensor(opt.epochs)
 teacc = torch.Tensor(opt.epochs)
+norms1 = torch.zeros(math.floor((trdata:size(1)-opt.batchSize)/opt.batchSize))
+norms2 = torch.zeros(math.floor((trdata:size(1)-opt.batchSize)/opt.batchSize))
 
 chunk = 1
 for i = 1,opt.epochs do
@@ -134,22 +180,23 @@ for i = 1,opt.epochs do
    w,dL_dw = model:getParameters()
    local shuffle = torch.randperm(trsize)
    -- train!
+   iter = 1
    for t = 1,(trsize-opt.batchSize),opt.batchSize do
       xlua.progress(t,trsize)
       -- create minibatch
-      inputs:copy(trdata[{{t,t+opt.batchSize-1}}])
-      targets:copy(trlabels[{{t,t+opt.batchSize-1}}])
-      if false then
-      for i = 1,opt.batchSize do 
-         inputs[i]:add(-inputs[i]:mean())
-         inputs[i]:mul(math.max(1/inputs[i]:std(),1e-4))
-      end
-      end
-
-      if false then
+      if opt.dataset == 'imagenet' or true then
+         inputs:copy(trdata[{{t,t+opt.batchSize-1}}])
+         targets:copy(trlabels[{{t,t+opt.batchSize-1}}])
+      else
          for i = 1,opt.batchSize do
             inputs[i]:copy(trdata[shuffle[t+i]])
             targets[i]=trlabels[shuffle[t+i]]
+         end
+      end
+      if false then
+         for i = 1,opt.batchSize do 
+            inputs[i]:add(-inputs[i]:mean())
+            inputs[i]:mul(math.max(1/inputs[i]:std(),1e-4))
          end
       end
       
@@ -165,10 +212,33 @@ for i = 1,opt.epochs do
                        model:backward(inputs,dL_do)
                        return L, dL_dw
                     end
-      optim.sgd(feval,w,optimState)
-   --local p1,g1 = model:get(1):getParameters()
-      --model:get(1):printNorms()
-   --print('grad norm = ' .. g1:norm())
+
+      if opt.optim == 'sgd' then
+         optim.sgd(feval,w,optimState)
+      elseif opt.optim == 'adagrad' then
+         optim.adagrad(feval,w,optimState)
+      else 
+         error('unknown optimizer')
+      end
+
+      
+      if opt.printNorms == 1 then
+         if opt.model == 'spatial1' or opt.model == 'spatial2' then
+            --print('\nweight1 norm = ' .. model:get(1).weight:norm())
+            --print('grad1 norm = ' .. model:get(1).gradWeight:norm())
+            --print('\nweight2 norm = ' .. model:get(4).weight:norm())
+            --print('grad2 norm = ' .. model:get(4).gradWeight:norm())
+            norms1[iter] = model:get(1).gradWeight:norm()
+            norms2[iter] = model:get(4).gradWeight:norm()
+         elseif opt.model == 'spectral1' or opt.model == 'spectral22' then
+            --print('\n')
+            --model:get(1):printNorms()
+            --model:get(7):printNorms()
+            norms1[iter] = model:get(1).gradWeightPreimage:norm()
+            norms2[iter] = model:get(7).gradWeightPreimage:norm()
+         end
+         iter = iter + 1
+      end
       collectgarbage()
    end
    
@@ -196,7 +266,7 @@ for i = 1,opt.epochs do
                correct = correct + 1
             end
          end
-         --collectgarbage()
+         collectgarbage()
       end
       local acc = correct / data:size(1)
       --return loss/data:size(1), acc

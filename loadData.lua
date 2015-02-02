@@ -15,7 +15,7 @@ function loadData(dataset,split, indx)
       end
       labels = f.labels
       data = f.data
-      data:resize(data:size(1), data:size(2)*data:size(3)*data:size(4))
+      --data:resize(data:size(1), data:size(2)*data:size(3)*data:size(4))
    elseif dataset == 'mnist' then
       if split == 'train' then
          f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/train_28x28.th7nn')
