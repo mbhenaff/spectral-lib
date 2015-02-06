@@ -6,7 +6,8 @@ function [permut,invpermut,tmpP,W,V,P]=haarpartition_graph(W0,options)
 W{1} = W0;
 V{1} = ones(size(W0,1),1);
 
-maxscale=getoptions(options,'maxscale',0);
+%maxscale=getoptions(options,'maxscale',0);
+maxscale = 0;
 
 j=1;
 while (size(W{j},1) > 1 & (maxscale==0 | j<= maxscale)) 
