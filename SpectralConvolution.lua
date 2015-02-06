@@ -64,7 +64,7 @@ function SpectralConvolution:updateOutput(input)
    -- forward GFT
    self:batchGFT(input, self.inputSpectral, 1)
    -- product in spectral domain
-   cucomplex.prod_fprop_real(self.inputSpectral, self.weight, self.outputSpectral) 
+   spectralcuda.prod_fprop_real(self.inputSpectral, self.weight, self.outputSpectral) 
    -- inverse GFT
    self:batchGFT(self.outputSpectral, self.output, -1)
    return self.output
@@ -74,7 +74,7 @@ function SpectralConvolution:updateGradInput(input, gradOutput)
    -- forward GFT
    self:batchGFT(gradOutput, self.gradOutputSpectral, 1)
    -- product 
-   cucomplex.prod_bprop_real(self.gradOutputSpectral, self.weight, self.gradInputSpectral)
+   spectralcuda.prod_bprop_real(self.gradOutputSpectral, self.weight, self.gradInputSpectral)
    -- inverse GFT
    self:batchGFT(self.gradInputSpectral, self.gradInput, -1) 
    return self.gradInput
@@ -82,7 +82,7 @@ end
 
 function SpectralConvolution:accGradParameters(inputs, gradOutput, scale)
    local scale = scale or 1
-   cucomplex.prod_accgrad_real(self.inputSpectral, self.gradOutputSpectral, self.gradWeight)
+   spectralcuda.prod_accgrad_real(self.inputSpectral, self.gradOutputSpectral, self.gradWeight)
 end
 
   

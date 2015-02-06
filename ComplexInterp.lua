@@ -32,7 +32,7 @@ function ComplexInterp:updateOutput(input)
      else
         error('invalid input size')
      end
-     cucomplex.complexInterp_interpolate(input, self.output, self.kernelRows, self.kernelCols)
+     spectralcuda.complexInterp_interpolate(input, self.output, self.kernelRows, self.kernelCols)
   end
   -- only keep real part
   self.output:select(input:nDimension(),2):zero()
@@ -51,7 +51,7 @@ function ComplexInterp:updateGradInput(input, gradOutput)
       else
          error('invalid gradOutput size')
       end      
-      cucomplex.complexInterp_interpolate(gradOutput, self.gradInput, self.kernelRows, self.kernelCols)
+      spectralcuda.complexInterp_interpolate(gradOutput, self.gradInput, self.kernelRows, self.kernelCols)
    end
    -- only keep real part
    self.gradInput:select(input:nDimension(),2):zero()

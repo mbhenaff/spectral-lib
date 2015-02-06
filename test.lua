@@ -1,7 +1,7 @@
 -- Unit tests and speed tests for all the modules. 
 
 require 'cunn'
-require 'cucomplex'
+require 'spectralcuda'
 require 'HermitianInterp'
 require 'InterpImage'
 require 'Interp'

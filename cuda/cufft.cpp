@@ -242,13 +242,3 @@ LUA_EXTERNC int luaopen_libcufft(lua_State *L) {
 }
 
 
-// this is what we need to require 
-/*
-void cufft_init(lua_State *L)
-{
-  luaT_pushmetatable(L, "torch.CudaTensor");
-  luaT_registeratname(L, __, "nn");
-  lua_pop(L,1);
-}
-*/
-
