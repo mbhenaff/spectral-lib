@@ -17,7 +17,7 @@ require 'Real'
 require 'GraphMaxPooling'
 require 'loadData'
 require 'FFTconv'
-cufft = dofile('cufft/cufft.lua')
+cufft = dofile('cuda/cufft.lua')
 
 
 cmd = torch.CmdLine()

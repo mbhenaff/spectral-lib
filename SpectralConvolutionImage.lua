@@ -4,7 +4,7 @@ require 'image'
 require 'Interp'
 require 'HermitianInterp'
 require 'libFFTconv'
-local cufft = dofile('cufft/cufft.lua')
+local cufft = dofile('cuda/cufft.lua')
 
 -- Module for performing convolution in the frequency domain. 
 -- interpType refers to the type of interpolation kernel we use on the subsampled weights,
