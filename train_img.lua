@@ -48,6 +48,26 @@ elseif opt.model == 'spatial2' then
    end
    model:add(nn.Linear(oH2*oW2*opt.nhidden,nclasses))
 
+elseif opt.model == 'spectral1' then
+   opt.real = 'real'
+   opt.kH = opt.k
+   opt.kW = opt.k
+   opt.ncrop = 0
+   pool = 2
+   local oH1 = math.floor((iH-opt.k+1)/pool)
+   local oW1 = math.floor((iW-opt.k+1)/pool)
+
+   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
+   model:add(nn.Real(opt.real))
+   model:add(nn.Bias(opt.nhidden))
+   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
+   model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
+   model:add(nn.Threshold())
+   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
+
+   model:add(nn.Reshape(oH1*oW1*opt.nhidden))
+   model:add(nn.Linear(oH1*oW1*opt.nhidden,nclasses))
+
 elseif opt.model == 'spectral2' then
    opt.real = 'real'
    opt.realKernels = true
@@ -85,71 +105,23 @@ elseif opt.model == 'spectral2' then
       model:add(nn.Dropout())
    end
    model:add(nn.Linear(oH2*oW2*opt.nhidden,nclasses))
-
    -- initialize biases properly
    model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
    model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
-
-elseif opt.model == 'spectral1' then
-   opt.real = 'real'
-   opt.kH = opt.k
-   opt.kW = opt.k
-   opt.ncrop = 0
-   pool = 2
-   local oH1 = math.floor((iH-opt.k+1)/pool)
-   local oW1 = math.floor((iW-opt.k+1)/pool)
-
-   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
-   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
-
-   model:add(nn.Reshape(oH1*oW1*opt.nhidden))
-   model:add(nn.Linear(oH1*oW1*opt.nhidden,nclasses))
-
-elseif opt.model == 'spectral2nocrop' then
-   opt.real = 'real'
-   opt.realKernels = true
-   opt.kH = opt.k
-   opt.kW = opt.k
-   opt.ncrop = 0 
-   print(opt)
-   pool = 2
-   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
-   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
-
-   model:add(nn.SpectralConvolutionImage(opt.batchSize, opt.nhidden, opt.nhidden, iH/pool, iW/pool, opt.kH, opt.kW, opt.interp, opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
-   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
-
-   model:add(nn.Reshape((iH/pool^2)*(iW/pool^2)*opt.nhidden))
-   if opt.dropout then 
-      model:add(nn.Dropout())
-   end
-   model:add(nn.Linear((iH/pool^2)*(iW/pool^2)*opt.nhidden,nclasses))
 end
+
 model:add(nn.LogSoftMax())
 criterion = nn.ClassNLLCriterion()
 model = model:cuda()
 model:reset()
 criterion = criterion:cuda()
 
-
-if opt.model == 'spectral2' then 
+-- initialize biases properly
+if opt.model == 'spectral1' then
+   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
+elseif opt.model == 'spectral2' then 
    model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
    model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
-elseif opt.model == 'spectral1' then
-   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
 end
 
 optimState = {
@@ -229,16 +201,9 @@ for i = 1,opt.epochs do
       
       if opt.printNorms == 1 then
          if opt.model == 'spatial1' or opt.model == 'spatial2' then
-            --print('\nweight1 norm = ' .. model:get(1).weight:norm())
-            --print('grad1 norm = ' .. model:get(1).gradWeight:norm())
-            --print('\nweight2 norm = ' .. model:get(4).weight:norm())
-            --print('grad2 norm = ' .. model:get(4).gradWeight:norm())
             norms1[iter] = model:get(1).gradWeight:norm()
             norms2[iter] = model:get(4).gradWeight:norm()
          elseif opt.model == 'spectral1' or opt.model == 'spectral22' then
-            --print('\n')
-            --model:get(1):printNorms()
-            --model:get(7):printNorms()
             norms1[iter] = model:get(1).gradWeightPreimage:norm()
             norms2[iter] = model:get(7).gradWeightPreimage:norm()
          end
@@ -268,7 +233,6 @@ for i = 1,opt.epochs do
          collectgarbage()
       end
       local acc = correct / data:size(1)
-      --return loss/data:size(1), acc
       setDropoutParam(model,0.5)
       return round(loss/data:size(1),8), round(acc,6)
    end
