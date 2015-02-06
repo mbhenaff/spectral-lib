@@ -61,27 +61,11 @@ function loadData(dataset,split, indx)
          error('unrecognized split')
       end
       f.data:resize(100000,3,128,128)
-      if false then
-      local dict = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/imagenet_small/labels_dict.th')
-      for i = 1,f.labels:size(1) do 
-         f.labels[i] = dict[f.labels[i]]
-      end
-      end
       --f.labels=f.labels[{{1,1000}}]
       --f.data=f.data[{{1,1000}}]
    end
    local labels = f.labels
    local data = f.data
-
-   if false then
-      for i = 1,data:size(1) do 
-         if i % 1000 then 
-            print(i)
-         end
-         data[i]:add(-data[i]:mean())
-         data[i]:mul(math.max(1/data[i]:std(),0.00001))
-      end
-   end
 
    if indx ~= nil then
       print('reordering')

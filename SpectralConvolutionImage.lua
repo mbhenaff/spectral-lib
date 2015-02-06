@@ -29,6 +29,9 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    -- width/height of subsampled weights
    self.sW = sW
    self.sH = sH
+   -- make buffers to store spectral representations 
+   global_buffer1 = global_buffer1 or torch.CudaTensor()
+   global_buffer2 = global_buffer2 or torch.CudaTensor()
    -- weight transformation
    self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
    self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)

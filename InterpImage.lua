@@ -63,7 +63,6 @@ function compute_interpolation_matrix(k,n,interpType)
    -- scale so it has similar norm to FFT matrix
    local FFTmat = interpKernel(k,n,'spatial2D')
    local scale = estimate_scaling(FFTmat, K)
-   --scale = 1
    print('scaling factor: ' .. scale)
    K:mul(scale)
    return K

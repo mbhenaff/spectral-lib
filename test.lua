@@ -6,10 +6,12 @@ require 'HermitianInterp'
 require 'InterpImage'
 require 'Interp'
 require 'ComplexInterp'
+require 'Interp3D'
 require 'Real'
 require 'Bias'
 require 'Crop'
 require 'SpectralConvolutionImage'
+require 'SpectralConvolutionImageAndFeatures'
 require 'SpectralConvolution'
 require 'GraphMaxPooling'
 require 'Jacobian2'
@@ -17,15 +19,17 @@ require 'utils'
 cufft = dofile('cufft/cufft.lua')
 
 --torch.manualSeed(123)
-cutorch.setDevice(2)
+cutorch.setDevice(3)
 
 local test_correctness = true
-local test_crop = true
+local test_crop = false
 local test_bias = false
 local test_interp = false
-local test_real = true
+local test_interp_feat = true
+local test_real = false
 local test_complex_interp = false
-local test_spectralconv_img = true
+local test_spectralconv_img = false
+local test_spectralconv_img_feat = true
 local test_spectralconv = false
 local test_graphpool = false
 local test_time = false
@@ -137,6 +141,47 @@ if test_interp_img then
    end
 end
 
+
+if test_interp_feat then
+   function nntest.Interp3D()
+      print('\n')
+      local iF = 5
+      local iW = 5
+      local iH = 5
+      local oW = 16
+      local oH = 16
+      local oF = 16
+      local nInputPlanes = 5
+      local nOutputPlanes = 32
+      local nSamples = 3
+      model = nn.Interp3D(iF, iH, iW, oF, oH, oW, 'bilinear')
+      model = model:cuda()
+      local input = torch.CudaTensor(nSamples,iF,iH,iW,2):normal()
+      local timer = torch.Timer()
+      model:forward(input)
+      cutorch.synchronize()
+      print(timer:time().real)
+      g=model.output:clone()
+      timer:reset()
+      model:updateGradInput(input, g)
+      cutorch.synchronize()
+      print(timer:time().real)
+
+      local err,jfc,jbc = jac.testJacobian(model, input)
+      print('error on state =' .. err)
+      mytester:assertlt(err,precision, 'error on state')
+      print('\n')
+   end
+end
+
+
+
+
+
+
+
+
+
 if test_real then
    function nntest.Real()
       print('\n')
@@ -214,7 +259,6 @@ if test_graphpool then
          model = model:cuda()
          model:reset()      
          local input = torch.CudaTensor(batchSize, nMaps, dim):normal()
-         --print(model.clusters)
          err,jf,jb = jac.testJacobian(model, input, -100,100)
          diff = jf:float() - jb:float()
          print('error on state = ' .. err)
@@ -272,6 +316,64 @@ if test_spectralconv_img then
       print('\n')
    end
 end
+
+
+if test_spectralconv_img_feat then
+   function nntest.SpectralConvolutionImageAndFeatures()
+      print('\n')
+      torch.manualSeed(123)
+      torch.setdefaulttensortype('torch.FloatTensor')
+      local interpType = 'bilinear'
+      local iW = 16
+      local iH = 16
+      local nInputPlanes = 10
+      local nOutputPlanes = 10
+      local batchSize = 1
+      local sF = 5
+      local sW = 5	
+      local sH = 5
+      model = nn.SpectralConvolutionImageAndFeatures(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sF,sH,sW,interpType)
+      model = model:cuda()
+      model:reset()
+      input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
+      timer = torch.Timer():reset()
+      model:updateOutput(input)
+      cutorch.synchronize()
+      print(timer:time().real)
+      g = model.output:clone()
+      timer:reset()
+      model:updateGradInput(input, g)
+      cutorch.synchronize()
+      print(timer:time().real)
+      err,jf,jb = jac.testJacobian(model, input)
+      print('error on state =' .. err)
+      mytester:assertlt(err,precision, 'error on state')
+      
+      local param,gradParam = model:parameters()
+      local weight = param[1]
+      local gradWeight = gradParam[1]
+      local err,jfp,jbp = jac.testJacobianParameters(model, input, weight, gradWeight)
+      print('error on weight = ' .. err)
+      mytester:assertlt(err,precision, 'error on weight')
+      print('\n')
+   end
+nntest.SpectralConvolutionImageAndFeatures()
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function run_timing()
    print('\n')
