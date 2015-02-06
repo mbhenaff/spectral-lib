@@ -31,7 +31,7 @@ elseif opt.model == 'spatial1' then
    model:add(nn.Linear(d,nclasses))
 elseif opt.model == 'spatial2' then
    pool = 2
-   model:add(nn.SpatialConvolutionBatch(nChannels,opt.nhidden,opt.k,opt.k))
+   model:add(nn.SpatialConvolutionRing(nChannels,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
    local oH1 = math.floor((iH-opt.k+1)/pool)
@@ -58,13 +58,18 @@ elseif opt.model == 'spectral2' then
 
    local oH1 = math.floor((iH-opt.k+1)/pool)
    local oW1 = math.floor((iW-opt.k+1)/pool)
+--   oH1 = 2.*math.floor(oH1/2)
+--   oW1 = 2.*math.floor(oW1/2)
    local oH2 = math.floor((oH1-opt.k+1)/pool)
    local oW2 = math.floor((oW1-opt.k+1)/pool)
+--   oH2 = 2.*math.floor(oH2/2)
+--   oW2 = 2.*math.floor(oW2/2)
 
    model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
    model:add(nn.Real(opt.real))
    model:add(nn.Bias(opt.nhidden))
    model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
+  -- model:add(nn.Crop(iH,iW,oH1*2,oW1*2))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
 
@@ -140,9 +145,11 @@ model:reset()
 criterion = criterion:cuda()
 
 
-if opt.model == 'spectral22' or opt.model == 'spectral2' then
-model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
-model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+if opt.model == 'spectral2' then 
+   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
+   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+elseif opt.model == 'spectral1' then
+   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
 end
 
 optimState = {
@@ -164,6 +171,10 @@ teacc = torch.Tensor(opt.epochs)
 norms1 = torch.zeros(math.floor((trdata:size(1)-opt.batchSize)/opt.batchSize))
 norms2 = torch.zeros(math.floor((trdata:size(1)-opt.batchSize)/opt.batchSize))
 
+-- these will store intermediate frequency representations
+global_buffer1 = torch.CudaTensor()
+global_buffer2 = torch.CudaTensor()
+
 chunk = 1
 for i = 1,opt.epochs do
    if opt.dataset == 'imagenet' then
@@ -171,7 +182,7 @@ for i = 1,opt.epochs do
       trdata,trlabels = loadData(opt.dataset,'train' .. chunk)
       chunk = chunk % 4 + 1
    end
-      
+   
    local trsize = trdata:size(1)
    inputs = torch.CudaTensor(opt.batchSize, trdata:size(2),trdata:size(3), trdata:size(4)):zero()
    targets = torch.CudaTensor(opt.batchSize)
@@ -184,19 +195,13 @@ for i = 1,opt.epochs do
    for t = 1,(trsize-opt.batchSize),opt.batchSize do
       xlua.progress(t,trsize)
       -- create minibatch
-      if opt.dataset == 'imagenet' or true then
+      if opt.dataset == 'imagenet' then
          inputs:copy(trdata[{{t,t+opt.batchSize-1}}])
          targets:copy(trlabels[{{t,t+opt.batchSize-1}}])
       else
          for i = 1,opt.batchSize do
             inputs[i]:copy(trdata[shuffle[t+i]])
             targets[i]=trlabels[shuffle[t+i]]
-         end
-      end
-      if false then
-         for i = 1,opt.batchSize do 
-            inputs[i]:add(-inputs[i]:mean())
-            inputs[i]:mul(math.max(1/inputs[i]:std(),1e-4))
          end
       end
       
@@ -250,12 +255,6 @@ for i = 1,opt.epochs do
       for t = 1,(nSamples-opt.batchSize),opt.batchSize do
          xlua.progress(t,nSamples)
          inputs:copy(data[{{t,t+opt.batchSize-1}}])
-         if false then
-         for i = 1,inputs:size(1) do 
-            inputs[i]:add(-inputs[i]:mean())
-            inputs[i]:mul(math.max(1/inputs[i]:std(),1e-4))
-         end
-         end
          targets:copy(labels[{{t,t+opt.batchSize-1}}])
          local out = model:updateOutput(inputs)
          loss = loss + criterion:forward(out,targets)[1]
