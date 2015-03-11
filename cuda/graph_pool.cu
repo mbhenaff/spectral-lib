@@ -154,25 +154,25 @@ static int graph_pool_fprop(lua_State *L) {
       resize = true;
       nSamples = input->size[0];
       nMaps = nSamples*nInputMaps;
-      THCudaTensor_resize2d(input, nMaps, dim);
-      THCudaTensor_resize2d(output, nMaps, nClusters);
-      THCudaTensor_resize2d(maxIndices, nMaps, nClusters);
+      THCudaTensor_resize2d(NULL,input, nMaps, dim);
+      THCudaTensor_resize2d(NULL,output, nMaps, nClusters);
+      THCudaTensor_resize2d(NULL,maxIndices, nMaps, nClusters);
     }
     else {
       nMaps = nInputMaps;
     }
   
-	float *input_data = (float*)THCudaTensor_data(input);
-	float *output_data = (float*)THCudaTensor_data(output);
-	float *clusterIndx_data = (float*)THCudaTensor_data(clusterIndx);
-	float *maxIndices_data = (float*)THCudaTensor_data(maxIndices);
+	float *input_data = (float*)THCudaTensor_data(NULL,input);
+	float *output_data = (float*)THCudaTensor_data(NULL,output);
+	float *clusterIndx_data = (float*)THCudaTensor_data(NULL,clusterIndx);
+	float *maxIndices_data = (float*)THCudaTensor_data(NULL,maxIndices);
 
     graph_pool_fprop_call(input_data, clusterIndx_data, output_data, maxIndices_data, nMaps, dim, poolsize, nClusters);
     
     if (resize) {
-      THCudaTensor_resize3d(input, nSamples, nInputMaps, dim);
-      THCudaTensor_resize3d(output, nSamples, nInputMaps, nClusters);
-      THCudaTensor_resize3d(maxIndices, nSamples, nInputMaps, nClusters);
+      THCudaTensor_resize3d(NULL,input, nSamples, nInputMaps, dim);
+      THCudaTensor_resize3d(NULL,output, nSamples, nInputMaps, nClusters);
+      THCudaTensor_resize3d(NULL,maxIndices, nSamples, nInputMaps, nClusters);
     }
     return 0;
 }
@@ -196,24 +196,24 @@ static int graph_pool_bprop(lua_State *L) {
       resize = true;
       nSamples = gradInput->size[0];
       nMaps = nInputMaps*nSamples;
-      THCudaTensor_resize2d(gradInput, nMaps, dim); 
-      THCudaTensor_resize2d(gradOutput, nMaps, nClusters);
-      THCudaTensor_resize2d(maxIndices, nMaps, nClusters);
+      THCudaTensor_resize2d(NULL,gradInput, nMaps, dim); 
+      THCudaTensor_resize2d(NULL,gradOutput, nMaps, nClusters);
+      THCudaTensor_resize2d(NULL,maxIndices, nMaps, nClusters);
     }
     else {
       nMaps = nInputMaps;
     }
 
-	float *gradInput_data = (float*)THCudaTensor_data(gradInput);
-	float *gradOutput_data = (float*)THCudaTensor_data(gradOutput);
-	float *maxIndices_data = (float*)THCudaTensor_data(maxIndices);
+	float *gradInput_data = (float*)THCudaTensor_data(NULL,gradInput);
+	float *gradOutput_data = (float*)THCudaTensor_data(NULL,gradOutput);
+	float *maxIndices_data = (float*)THCudaTensor_data(NULL,maxIndices);
 
     graph_pool_bprop_call(gradInput_data, gradOutput_data, maxIndices_data, nMaps, dim, nClusters);
 
     if (resize) {
-      THCudaTensor_resize3d(gradInput, nSamples, nInputMaps, dim); 
-      THCudaTensor_resize3d(gradOutput, nSamples, nInputMaps, nClusters);
-      THCudaTensor_resize3d(maxIndices, nSamples, nInputMaps, nClusters);
+      THCudaTensor_resize3d(NULL,gradInput, nSamples, nInputMaps, dim); 
+      THCudaTensor_resize3d(NULL,gradOutput, nSamples, nInputMaps, nClusters);
+      THCudaTensor_resize3d(NULL,maxIndices, nSamples, nInputMaps, nClusters);
     }
     return 0;
 }

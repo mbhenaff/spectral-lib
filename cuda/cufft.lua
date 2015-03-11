@@ -104,7 +104,7 @@ function cufft.fft2d_c2c(input,output,dir,debug)
          input2 = complex.mm(dft1,input2)
          output[i]:copy(input2)
       end
-  else
+   else
       libcufft.fft2d_c2c(input,output,dir)
    end
    input:resize(nSamples, nPlanes, N, M, 2)

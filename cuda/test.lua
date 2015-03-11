@@ -1,8 +1,9 @@
-require 'fftw'
-require 'cunn'
+--require 'fftw'
+--require 'cunn'
+require 'cutorch'
 require 'libcufft'
 require 'spectralcuda'
-require 'libFFTconv'
+--require 'libFFTconv'
 dofile('../complex.lua')
 cufft = dofile('cufft.lua')
 
@@ -45,23 +46,31 @@ function test1d()
    print('reconstruction:') print(x)
 end
 
+--test1d()
+
 function test2d()
-   nInputPlanes = 128*96
-   N = 32
-   M = 32
+   nInputPlanes = 1 --128*96
+   N = 8
+   M = 8
    -- real to complex
    x = torch.randn(nInputPlanes,N,M):cuda()
    f = torch.CudaTensor(nInputPlanes,N,M/2+1,2)
    r = torch.CudaTensor(nInputPlanes,N,M)
    t = torch.Timer()
    t:reset()
+   print('cats')
+   --print(x)
+   --print(f)
    libcufft.fft2d_r2c(x,f)
+   print('hex')
    libcufft.fft2d_c2r(f,r)
    r:div(N*M)
    print('time elapse: ' .. t:time().real)
    err = torch.max(torch.abs(x:float()-r:float()))
    print('error=' .. err)
 end
+
+--test2d()
 
 function testHermitian()
    local precision = 1e-5
@@ -113,13 +122,13 @@ function test2dc2c()
    f1 = torch.Tensor(nSamples,nInputPlanes,N,N):cuda()
    f2 = torch.Tensor(nSamples,nInputPlanes,N,N):cuda()
    cufft.fft2d_c2c(x,f1,1,false)
-   cufft.fft2d_c2c(x,f2,1,true)
+   --cufft.fft2d_c2c(x,f2,1,true)
    err = torch.max(torch.abs(f1:float()-f2:float()))
    print('error=' .. err)
 end
 
 
---test2dc2c()
+test2dc2c()
 
    
 --test2d2()

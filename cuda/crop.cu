@@ -41,13 +41,13 @@ static int crop_zeroborders(lua_State *L) {
     nOutputPlanes = input->size[0];
     nInputPlanes = input->size[1];
     nPlanes = nInputPlanes*nOutputPlanes;
-    THCudaTensor_resize3d(input, nPlanes, iH, iW);
+    THCudaTensor_resize3d(NULL,input, nPlanes, iH, iW);
   }
   else {
     nPlanes = input->size[0];
   }
 
-  float* input_data = (float*)THCudaTensor_data(input);
+  float* input_data = (float*)THCudaTensor_data(NULL,input);
   assert(iH == iW);
 
   dim3 threads(iH,iW);
@@ -57,7 +57,7 @@ static int crop_zeroborders(lua_State *L) {
                                          iH, iW, nPlanes);
 
   if (resize) {
-    THCudaTensor_resize4d(input, nOutputPlanes, nInputPlanes, iH, iW);
+    THCudaTensor_resize4d(NULL,input, nOutputPlanes, nInputPlanes, iH, iW);
   }
 
   CUDA_LOOK_FOR_ERROR();

@@ -25,25 +25,25 @@ int modulus_updateGradInput(lua_State *L) {
   const long nOutputPlanes = gradOutput->size[1];
   const long n = nSamples*nInputPlanes*iH*iW;
   
-  THCudaTensor_resize2d(input,n,2);
-  THCudaTensor_resize2d(gradInput,n,2);
-  THCudaTensor_resize1d(output,n);
-  THCudaTensor_resize1d(gradOutput,n);
+  THCudaTensor_resize2d(NULL,input,n,2);
+  THCudaTensor_resize2d(NULL,gradInput,n,2);
+  THCudaTensor_resize1d(NULL,output,n);
+  THCudaTensor_resize1d(NULL,gradOutput,n);
 
-  float* input_data = THCudaTensor_data(input);
-  float* output_data = THCudaTensor_data(output);
-  float* gradInput_data = THCudaTensor_data(gradInput);
-  float* gradOutput_data = THCudaTensor_data(gradOutput);
+  float* input_data = THCudaTensor_data(NULL,input);
+  float* output_data = THCudaTensor_data(NULL,output);
+  float* gradInput_data = THCudaTensor_data(NULL,gradInput);
+  float* gradOutput_data = THCudaTensor_data(NULL,gradOutput);
 
   const int numsPerBlock = 64;
   dim3 threads(numsPerBlock,2);
   dim3 blocks(DIVUP(n,numsPerBlock),1,1);
   modulus_updateGradInput_kernel<<<blocks,threads>>>(input_data, output_data, gradInput_data, gradOutput_data, n);
   
-  THCudaTensor_resize5d(input,nSamples,nInputPlanes,iH,iW,2);
-  THCudaTensor_resize5d(gradInput,nSamples,nInputPlanes,iH,iW,2);
-  THCudaTensor_resize4d(output,nSamples,nOutputPlanes,iH,iW);
-  THCudaTensor_resize4d(gradOutput,nSamples,nOutputPlanes,iH,iW);
+  THCudaTensor_resize5d(NULL,input,nSamples,nInputPlanes,iH,iW,2);
+  THCudaTensor_resize5d(NULL,gradInput,nSamples,nInputPlanes,iH,iW,2);
+  THCudaTensor_resize4d(NULL,output,nSamples,nOutputPlanes,iH,iW);
+  THCudaTensor_resize4d(NULL,gradOutput,nSamples,nOutputPlanes,iH,iW);
 
   return 0;
 }

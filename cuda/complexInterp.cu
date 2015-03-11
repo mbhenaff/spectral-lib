@@ -126,17 +126,17 @@ static int complexInterp_interpolate(lua_State *L) {
     nOutputPlanes = input->size[0];
     nInputPlanes = input->size[1];
     nPlanes = nInputPlanes*nOutputPlanes;
-    THCudaTensor_resize4d(input, nPlanes, iH, iW, 2);
-    THCudaTensor_resize4d(output, nPlanes, oH, oW, 2);
+    THCudaTensor_resize4d(NULL,input, nPlanes, iH, iW, 2);
+    THCudaTensor_resize4d(NULL,output, nPlanes, oH, oW, 2);
   }
   else {
     nPlanes = input->size[0];
   }
 
-  cuComplex* input_data = (cuComplex*)THCudaTensor_data(input);
-  cuComplex* output_data = (cuComplex*)THCudaTensor_data(output);
-  float* kernelRows_data = THCudaTensor_data(kernelRows);
-  float* kernelCols_data = THCudaTensor_data(kernelCols);
+  cuComplex* input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+  cuComplex* output_data = (cuComplex*)THCudaTensor_data(NULL,output);
+  float* kernelRows_data = THCudaTensor_data(NULL,kernelRows);
+  float* kernelCols_data = THCudaTensor_data(NULL,kernelCols);
   
   assert(iH == iW);
   assert(oH == oW);
@@ -161,8 +161,8 @@ static int complexInterp_interpolate(lua_State *L) {
   }
 
   if (resize) {
-    THCudaTensor_resize5d(input, nOutputPlanes, nInputPlanes, iH, iW, 2);
-    THCudaTensor_resize5d(output, nOutputPlanes, nInputPlanes, oH, oW, 2);
+    THCudaTensor_resize5d(NULL,input, nOutputPlanes, nInputPlanes, iH, iW, 2);
+    THCudaTensor_resize5d(NULL,output, nOutputPlanes, nInputPlanes, oH, oW, 2);
   }
 
   CUDA_LOOK_FOR_ERROR();

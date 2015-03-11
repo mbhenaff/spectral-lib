@@ -10,9 +10,9 @@ int bias_updateOutput(lua_State *L) {
 
   luaL_argcheck(L, (input->nDimension == 3) || (input->nDimension == 4), 2,
 		"3D or 4D (batch mode) tensor is expected");
-  luaL_argcheck(L, THCudaTensor_isContiguous(input), 2,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2,
 		"input must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(bias), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,bias), 1,
 		"bias must be contiguous");
 
   const int ndim = input->nDimension;
@@ -27,8 +27,8 @@ int bias_updateOutput(lua_State *L) {
   const long iH = input->size[dimh];
   const long iW = input->size[dimw];
 
-  float* input_p  = THCudaTensor_data(input);
-  const float* bias_p   = THCudaTensor_data(bias);
+  float* input_p  = THCudaTensor_data(NULL,input);
+  const float* bias_p   = THCudaTensor_data(NULL,bias);
   
   _add_bias<<<dim3(nPlanes), dim3(32, 4)>>>(bias_p, input_p,
 						 batchSize, nPlanes,
@@ -46,9 +46,9 @@ int bias_accGradParameters(lua_State *L) {
 
   luaL_argcheck(L, (gradOutput->nDimension == 3) || (gradOutput->nDimension == 4), 2,
 		"3D or 4D (batch mode) tensor is expected");
-  luaL_argcheck(L, THCudaTensor_isContiguous(gradOutput), 3,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,gradOutput), 3,
 		"gradOutput must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(gradBias), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,gradBias), 1,
 		"gradBias must be contiguous");
 
   const int ndim = gradOutput->nDimension;
@@ -61,8 +61,8 @@ int bias_accGradParameters(lua_State *L) {
   const long nPlanes = gradOutput->size[dimp];
   const long iH = gradOutput->size[dimh];
   const long iW = gradOutput->size[dimw];
-  const float* gradOutput_p = THCudaTensor_data(gradOutput);
-  float*       gradBias_p   = THCudaTensor_data(gradBias);
+  const float* gradOutput_p = THCudaTensor_data(NULL,gradOutput);
+  float*       gradBias_p   = THCudaTensor_data(NULL,gradBias);
   
   _fill_gradBias<<<dim3(nPlanes), dim3(32, 4)>>>(gradBias_p, gradOutput_p,
 						       scale, batchSize,
