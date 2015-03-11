@@ -28,6 +28,10 @@ function nn.Jacobian.backward (module, input, param, dparam)
       dout:zero()
       sdout[i] = 1
 	  if doparam == 1 then
+         --gp = dparam
+         --gj = jacobian
+         --print(dparam:size())
+         --print(jacobian:select(2,i):size())
 		  module:backward(input,dout)
 		  jacobian:select(2,i):copy(dparam)
        else

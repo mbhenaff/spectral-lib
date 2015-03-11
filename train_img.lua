@@ -1,5 +1,5 @@
 dofile('params.lua')
-
+--require 'cudnn'
 if opt.dataset == 'imagenet' then
    trdata,trlabels = loadData(opt.dataset,'train1')
    tedata,telabels = loadData(opt.dataset,'test')
@@ -31,13 +31,13 @@ elseif opt.model == 'spatial1' then
    model:add(nn.Linear(d,nclasses))
 elseif opt.model == 'spatial2' then
    pool = 2
-   model:add(nn.SpatialConvolutionRing(nChannels,opt.nhidden,opt.k,opt.k))
+   model:add(nn.SpatialConvolution(nChannels,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
    local oH1 = math.floor((iH-opt.k+1)/pool)
    local oW1 = math.floor((iW-opt.k+1)/pool)
    local d = oH1*oW1*opt.nhidden
-   model:add(nn.SpatialConvolutionBatch(opt.nhidden,opt.nhidden,opt.k,opt.k))
+   model:add(nn.SpatialConvolution(opt.nhidden,opt.nhidden,opt.k,opt.k))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))   
    local oH2 = math.floor((oH1-opt.k+1)/pool)
@@ -222,7 +222,7 @@ for i = 1,opt.epochs do
          inputs:copy(data[{{t,t+opt.batchSize-1}}])
          targets:copy(labels[{{t,t+opt.batchSize-1}}])
          local out = model:updateOutput(inputs)
-         loss = loss + criterion:forward(out,targets)[1]
+         loss = loss + criterion:forward(out,targets)
          for k = 1,opt.batchSize do
             local s,indx = torch.sort(out[k]:float(),true)
             local maxind = indx[1]

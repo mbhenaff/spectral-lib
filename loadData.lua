@@ -4,18 +4,25 @@ require 'image'
 require 'utils'
 require 'memoryMap'
 
-function loadData(dataset,split, indx)
+function loadData(dataset,split,resize)
+   local resize = resize or false
    local f, data, labels
    if dataset == 'cifar' then
-      local cifar = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/cifar-10-batches-t7/cifar_10_norm.t7')
+      local cifar = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/cifar-10-batches-t7/cifar_10_norm.th')
+      --local cifar = torch.load('/misc/vlgscratch3/LecunGroup/CIFAR.t7')
+      f = {}
       if split == 'train' then 
-         f = cifar.train
+         --f = cifar.tr
+         f.data = cifar.trdata
+         f.labels = cifar.trlabels
       elseif split == 'test' then
-         f = cifar.test
+         --f = cifar.test_data
+         f.data = cifar.tedata
+         f.labels = cifar.telabels
       end
-      labels = f.labels
-      data = f.data
-      --data:resize(data:size(1), data:size(2)*data:size(3)*data:size(4))
+      if resize then
+         data:resize(data:size(1), data:size(2), data:size(3)*data:size(4))
+      end
    elseif dataset == 'mnist' then
       if split == 'train' then
          f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/train_28x28.th7nn')
@@ -29,7 +36,9 @@ function loadData(dataset,split, indx)
       labels = f.labels
       data = f.data
       --data:div(255)
-      --data:resize(data:size(1), data:size(2)*data:size(3)*data:size(4))
+      if resize then
+         data:resize(data:size(1), data:size(2)*data:size(3)*data:size(4))
+      end
    elseif dataset == 'reuters' then
       if split == 'train' then
          f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
@@ -60,17 +69,21 @@ function loadData(dataset,split, indx)
       else
          error('unrecognized split')
       end
-      f.data:resize(100000,3,128,128)
-      --f.labels=f.labels[{{1,1000}}]
-      --f.data=f.data[{{1,1000}}]
+      if resize then
+         f.data:resize(100000,3,128,128)
+      end
+   elseif dataset == 'timit' then
+      f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/timit/fbanks/' .. split .. '/data_winsize_15.th')
+      f.data:resize(f.data:size(1),f.data:size(2)*f.data:size(3))
+      f.labels = f.labels + 1
+      local means = torch.mean(f.data,1)
+      local std = torch.std(f.data,1)
+      f.data:add(-1,means:expandAs(f.data))
+      f.data:cdiv(std:expandAs(f.data))
    end
    local labels = f.labels
    local data = f.data
 
-   if indx ~= nil then
-      print('reordering')
-      data = reorder(data, indx)
-   end
    return data:float(),labels:float()
 end
 

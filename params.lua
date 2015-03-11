@@ -16,7 +16,7 @@ require 'ComplexInterp'
 require 'Real'
 require 'GraphMaxPooling'
 require 'loadData'
-require 'FFTconv'
+--require 'FFTconv'
 cufft = dofile('cuda/cufft.lua')
 
 
@@ -30,12 +30,13 @@ cmd:option('-rfreq',0,'reduction factor for freq bands')
 cmd:option('-interp', 'bilinear','bilinear | spline | dyadic_spline | spatial')
 cmd:option('-poolsize',4)
 cmd:option('-poolstride',4)
+cmd:option('-poolneighbs',4)
 cmd:option('-gpunum',1)
 cmd:option('-printNorms',0)
 cmd:option('-batchSize',32)
 cmd:option('-learningRate',0.01)
 cmd:option('-weightDecay',0)
-cmd:option('-epochs',100)
+cmd:option('-epochs',20)
 cmd:option('-log',1)
 cmd:option('-dropout',0)
 cmd:option('-suffix','')
@@ -73,7 +74,7 @@ elseif string.match(opt.model,'spatial') then
       .. '-k=' .. opt.k  
       .. '-poolsize-' .. opt.poolsize
       .. '-poolstride-' .. opt.poolstride
-elseif opt.model == 'mlp' then
+elseif string.match(opt.model,'fc') then
    opt.modelFile = opt.modelFile 
       .. '-nhidden=' .. opt.nhidden 
 end
@@ -98,3 +99,8 @@ opt.saveFile = opt.savePath .. opt.modelFile
 print(opt.modelFile)
 os.execute('mkdir -p ' .. opt.savePath)
 logFileName = opt.savePath .. opt.modelFile .. '.log'
+
+if opt.log then
+   logFile = assert(io.open(logFileName,'w'))
+   logFile:write(opt.modelFile)
+end

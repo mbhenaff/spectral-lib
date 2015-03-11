@@ -1,168 +1,7 @@
 dofile('params.lua')
+dofile('data.lua')
+dofile('model.lua')
 
-if opt.model == 'gconv1' or opt.model == 'gconv2' then
-   poolneighbs = opt.poolsize
-   L = torch.load('mresgraph/' .. opt.dataset .. '_laplacian_poolsize_' .. opt.poolsize .. '_stride_' .. opt.poolstride .. '_neighbs_' .. poolneighbs .. '.th')
- 
-   --L = torch.load('mresgraph/mnist_laplacian_spatialsim_poolsize_9_stride_4_neighbs_9.th')
-   --L = torch.load('mresgraph/mnist_laplacian_spatialsim_poolsize_4_stride_4_neighbs_4.th')
-   --L = torch.load('mresgraph/mnist_laplacian_poolsize_4_stride_4.th')
-   V1 = L.V[1]:float()
-   V2 = L.V[2]:float()
-   trdata,trlabels = loadData(opt.dataset,'train')
-   tedata,telabels = loadData(opt.dataset,'test')
-else
-   trdata,trlabels = loadData(opt.dataset,'train')
-   tedata,telabels = loadData(opt.dataset,'test')
-end
-
-if trdata:nDimension() == 4 then 
-   trdata:resize(trdata:size(1),trdata:size(2)*trdata:size(3)*trdata:size(4))
-   tedata:resize(tedata:size(1),tedata:size(2)*tedata:size(3)*tedata:size(4))
-end
-
-nsamples = trdata:size(1)
-dim = trdata:size(2)
-
-if opt.dataset == 'reuters' then
-   nclasses = 50
-else
-   nclasses = 10
-end
-torch.manualSeed(314)
-model = nn.Sequential()
-if opt.model == 'linear' then
-   model:add(nn.Linear(dim, nclasses))
-   model:add(nn.LogSoftMax())
-   model = model:cuda()
-elseif opt.model == 'mlp' then
-   model:add(nn.Linear(dim, opt.nhidden))
-   model:add(nn.Threshold())
-   for i = 1,opt.nlayers-1 do 
-      model:add(nn.Linear(opt.nhidden, opt.nhidden))
-      model:add(nn.Threshold())
-   end
-   model:add(nn.Linear(opt.nhidden, nclasses))
-elseif opt.model == 'gconv1' then
-   local poolsize = 4
-   -- scale GFT matrices
-   print('V1 norm = ' .. estimate_norm(V1))
-   local s1 = math.sqrt(dim)
-   --V1:mul(s1)
-   print('V1 norm = ' .. estimate_norm(V1))
-   n1 = V1:size(1)
-   if opt.rfreq > 0 then
-      print(opt.rfreq)
-      V1[{{},{math.floor(n1/opt.rfreq)+1,n1}}]:zero()
-   end
-
-   model:add(nn.Reshape(1,dim))
-   -- conv layer 1
-   model:add(nn.SpectralConvolution(opt.batchSize, 1, opt.nhidden, dim, opt.k, V1))
-   model:add(nn.Bias(opt.nhidden))
-   model:add(nn.Threshold())
-   model:add(nn.GraphMaxPooling(L.pools[1]:t():clone()))
-
-   -- classifier layer
-   model:add(nn.Reshape(opt.nhidden*dim/(poolsize)))
-   model:add(nn.Linear(opt.nhidden*dim/(poolsize), nclasses))
-   model:add(nn.LogSoftMax())
-
-   -- initialize biases appropriately
-   model:get(3):reset(1./math.sqrt(opt.k))
-
-   -- send to GPU and reset pointers
-   model = model:cuda()
-   model:get(2):resetPointers()
-elseif opt.model == 'gconv2' then
-   local poolsize = opt.poolsize
-   -- scale GFT matrices
-   --local s1 = math.sqrt(math.sqrt(dim))
-   --local s2 = math.sqrt(math.sqrt(dim/poolsize))
-   print('V1 norm = ' .. estimate_norm(V1))
-   print('V2 norm = ' .. estimate_norm(V2))
-   local s1 = math.sqrt(dim)
-   local s2 = math.sqrt(dim/poolsize)
-   --V1:mul(s1)
-   --V2:mul(s2)
-   print('V1 norm = ' .. estimate_norm(V1))
-   print('V2 norm = ' .. estimate_norm(V2))
-   n1 = V1:size(1)
-   n2 = V2:size(1)   
-   if opt.rfreq > 0 then
-      print(opt.rfreq)
-      V1[{{},{math.floor(n1/opt.rfreq)+1,n1}}]:zero()
-      V2[{{},{math.floor(n2/opt.rfreq)+1,n2}}]:zero()
-   end
-
-   model:add(nn.Reshape(1,dim))
-   -- conv layer 1
-   model:add(nn.SpectralConvolution(opt.batchSize, 1, opt.nhidden, dim, opt.k, V1))
-   model:add(nn.Bias(opt.nhidden))
-   model:add(nn.Threshold())
-   model:add(nn.GraphMaxPooling(L.pools[1]:t():clone()))
-
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim/poolsize, opt.k, V2))
-   model:add(nn.Bias(opt.nhidden))
-   model:add(nn.Threshold())
-   model:add(nn.GraphMaxPooling(L.pools[2]:t():clone()))
-
-   -- classifier layer
-   model:add(nn.Reshape(opt.nhidden*dim/(poolsize^2)))
-   model:add(nn.Linear(opt.nhidden*dim/(poolsize^2), nclasses))
-   model:add(nn.LogSoftMax())
-
-   -- initialize biases appropriately
-   model:get(3):reset(1./math.sqrt(opt.k))
-   model:get(7):reset(1./math.sqrt(opt.nhidden*opt.k))
-
-   -- send to GPU and reset pointers
-   model = model:cuda()
-   model:get(2):resetPointers()
-   model:get(6):resetPointers()
-   
-elseif opt.model == 'gconvperm' then
-   local poolsize = 2
-   model:add(nn.Reshape(1,dim))
-   model:add(nn.SpectralConvolution(opt.batchSize, 1, opt.nhidden, dim, opt.k, L.V[1]:mul(1):t():clone()))
-   model:add(nn.Reshape(opt.nhidden, dim, 1))
-   model:add(nn.Bias(opt.nhidden))
-   --model:add(nn.Identity())
-   model:get(4):reset(1./math.sqrt(opt.k))
-   model:add(nn.Reshape(opt.nhidden, dim)) 
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(poolsize,1,poolsize,1))
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim/poolsize, opt.k, L.V[2]:mul(1):t():clone()))
-   model:add(nn.Reshape(opt.nhidden, dim/poolsize, 1))
-   model:add(nn.Bias(opt.nhidden))
-   --model:add(nn.Identity())
-   model:get(10):reset(1./math.sqrt(opt.nhidden*opt.k))
-   model:add(nn.Reshape(opt.nhidden, dim/poolsize))
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(poolsize,1,poolsize,1))
-   model:add(nn.Reshape(opt.nhidden*dim/(poolsize^2)))
-   model:add(nn.Linear(opt.nhidden*dim/(poolsize^2), nclasses))
-elseif opt.model == 'debug' then
-   local poolsize = 4
-   model:add(nn.Reshape(1,dim))
-   model:add(nn.SpectralConvolution(opt.batchSize, 1, opt.nhidden, dim, opt.k, L.V1))
-   model:add(nn.Reshape(opt.nhidden, dim, 1))
-   model:add(nn.Bias(opt.nhidden))
-   --model:add(nn.Identity())
-   model:get(4):reset(1./math.sqrt(opt.k))
-   model:add(nn.Reshape(opt.nhidden, dim)) 
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(poolsize,1,poolsize,1))
-   model:add(nn.Reshape(opt.nhidden*dim/poolsize))
-   model:add(nn.Linear(opt.nhidden*dim/poolsize, nclasses))
-else
-   error('unrecognized model')
-end
---print(model:getParameters():norm())
-cutorch.synchronize()
-criterion = nn.ClassNLLCriterion()
-criterion = criterion:cuda()
 
 optimState = {
    learningRate = opt.learningRate,
@@ -170,31 +9,22 @@ optimState = {
    learningRateDecay = 1/trdata:size(1)
 }
 
-if opt.log then
-   logFile = assert(io.open(logFileName,'w'))
-   logFile:write(opt.modelFile)
-end
-
 -- these will record performance
 trloss = torch.Tensor(opt.epochs)
 teloss = torch.Tensor(opt.epochs)
 tracc = torch.Tensor(opt.epochs)
 teacc = torch.Tensor(opt.epochs)
---model:get(2):printNorms()
 
 cutorch.synchronize()
 
 for i = 1,opt.epochs do
+
    local trsize = trdata:size(1)
-   inputs = torch.CudaTensor(opt.batchSize, dim):zero()
+   inputs = torch.CudaTensor(opt.batchSize, nChannels,dim):zero()
    targets = torch.CudaTensor(opt.batchSize)
 
    -- get model parameters
    w,dL_dw = model:getParameters()
-cutorch.synchronize()
-   --print(w:norm())
-cutorch.synchronize()
-   --print('# params: ' .. w:nElement())
    local shuffle = torch.randperm(trsize)
    -- train!
    for t = 1,(trsize-opt.batchSize),opt.batchSize do

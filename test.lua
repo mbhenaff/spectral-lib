@@ -16,7 +16,7 @@ require 'SpectralConvolution'
 require 'GraphMaxPooling'
 require 'Jacobian2'
 require 'utils'
-cufft = dofile('cufft/cufft.lua')
+cufft = dofile('cuda/cufft.lua')
 
 --torch.manualSeed(123)
 cutorch.setDevice(3)
@@ -25,7 +25,7 @@ local test_correctness = true
 local test_crop = false
 local test_bias = false
 local test_interp = false
-local test_interp_feat = true
+local test_interp_feat = false
 local test_real = false
 local test_complex_interp = false
 local test_spectralconv_img = false
@@ -175,13 +175,6 @@ if test_interp_feat then
 end
 
 
-
-
-
-
-
-
-
 if test_real then
    function nntest.Real()
       print('\n')
@@ -290,7 +283,7 @@ if test_spectralconv_img then
       local batchSize = 2
       local sW = 4	
       local sH = 4
-      local model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
+      model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
       model = model:cuda()
       model:reset()
       local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
@@ -337,24 +330,24 @@ if test_spectralconv_img_feat then
       model:reset()
       input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
       timer = torch.Timer():reset()
-      model:updateOutput(input)
+      --model:updateOutput(input)
       cutorch.synchronize()
       print(timer:time().real)
       g = model.output:clone()
       timer:reset()
-      model:updateGradInput(input, g)
+      --model:updateGradInput(input, g)
       cutorch.synchronize()
       print(timer:time().real)
       err,jf,jb = jac.testJacobian(model, input)
       print('error on state =' .. err)
-      mytester:assertlt(err,precision, 'error on state')
+      --mytester:assertlt(err,precision, 'error on state')
       
       local param,gradParam = model:parameters()
       local weight = param[1]
       local gradWeight = gradParam[1]
       local err,jfp,jbp = jac.testJacobianParameters(model, input, weight, gradWeight)
       print('error on weight = ' .. err)
-      mytester:assertlt(err,precision, 'error on weight')
+      --mytester:assertlt(err,precision, 'error on weight')
       print('\n')
    end
 nntest.SpectralConvolutionImageAndFeatures()

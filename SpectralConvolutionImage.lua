@@ -3,7 +3,7 @@ require 'complex'
 require 'image'
 require 'Interp'
 require 'HermitianInterp'
-require 'libFFTconv'
+--require 'libFFTconv'
 local cufft = dofile('cuda/cufft.lua')
 
 -- Module for performing convolution in the frequency domain. 
@@ -64,7 +64,8 @@ function SpectralConvolutionImage:updateOutput(input)
    self.inputSpectral:select(5,1):copy(input)
    cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
    -- product
-   libFFTconv.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral,true)
+   --libFFTconv.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral,true)
+   spectralcuda.prod_fprop_complex(self.inputSpectral,self.weight,self.outputSpectral,true)
    -- inverse FFT
    cufft.fft2d_c2c(self.outputSpectral,self.output,-1)
    return self.output
@@ -80,7 +81,8 @@ function SpectralConvolutionImage:updateGradInput(input, gradOutput)
    -- forward FFT
    cufft.fft2d_c2c(gradOutput,self.gradOutputSpectral,1)
    -- product
-   libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
+--   libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
+   spectralcuda.prod_bprop_complex(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
    -- inverse FFT
    cufft.fft2d_c2c(self.gradInputSpectral,self.gradInputSpectral,-1)
    self.gradInput:copy(self.gradInputSpectral:select(5,1))
@@ -99,7 +101,8 @@ function SpectralConvolutionImage:accGradParameters(input, gradOutput, scale)
    self.inputSpectral:select(5,1):copy(input)
    cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
    -- product
-   libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
+   --libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
+   spectralcuda.prod_accgrad_complex(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
    self.gradWeight:div(self.iW * self.iH)
    cutorch.synchronize()
 end
