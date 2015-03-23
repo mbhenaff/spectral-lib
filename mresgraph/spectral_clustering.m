@@ -4,6 +4,7 @@ function [V, anchors, clusters] = spectral_clustering(W, n, maxclustsize)
 %1) build the spectrum
 D = diag(sum(W).^(-1/2));
 L = eye(size(W,1)) - D * W * D;
+L = (L + L')/2;
 [ee,ev]=eig(L);
 V=ee;
 X=ee(:,end-n+1:end);

@@ -5,8 +5,10 @@ if nargin < 3
 		V0=ones(size(W0,1),1);
 end
 
-eta=getoptions(options,'theta',2);
-Q=getoptions(options,'Q',0.4);
+%eta=getoptions(options,'theta',2);
+%Q=getoptions(options,'Q',0.4);
+eta = 2;
+Q = 0.4;
 
 [sizex,res]=size(W0);
 Wsum=sum(W0,2);
@@ -21,7 +23,8 @@ pool = (Vf > eta * mean(Vf));
 
 
 anchors=[];
-anchorsize=getoptions(options,'num_of_anchors',min(sizex/2,512));
+%anchorsize=getoptions(options,'num_of_anchors',min(sizex/2,512));
+anchorsize = min(sizex/2,512);
 
 [res,visit]=sort(Vf,'descend');
 
@@ -52,7 +55,10 @@ end
 
 %build the coarser graph
 %NN=getoptions(options,'NN',.5);
-Nmin=getoptions(options,'Nmin',max(1,round(length(C)*.25)));
+%Nmin=getoptions(options,'Nmin',max(1,round(length(C)*.25)));
+Nmin=max(1,round(length(C)*0.25));
+
+
 %[wrank,wpos]=sort(W0(:),'descend');
 %wth = wrank(wpos(round(sizex*sizex*NN)));
 

@@ -1,4 +1,4 @@
-function [V,pools] = build_graph_laplacian_space(T,poolsize,stride)
+function [V,pools,w,wfat] = build_graph_laplacian_space(T,poolsize,stride,neighbs)
 %T contains the data, in the format [features, examples]. 
 %we construct pools with a hierarchical specrtal clustering. 
 %poolsize: size of each pool
@@ -9,8 +9,8 @@ vl_setup
 %% build a spatial hierarchical clustering
 tree=vl_kdtreebuild(T);
 frac = stride / poolsize;
-j1 = poolsize;%round(poolsize * frac);
-j2 = poolsize;
+j1 = neighbs; %poolsize;%round(poolsize * frac);
+j2 = neighbs; %;poolsize;
 depth = 2;
 psize = poolsize * ones(1,depth);
 

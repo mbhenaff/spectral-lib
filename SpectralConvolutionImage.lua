@@ -3,8 +3,8 @@ require 'complex'
 require 'image'
 require 'Interp'
 require 'HermitianInterp'
-require 'libFFTconv'
-local cufft = dofile('cufft/cufft.lua')
+--require 'libFFTconv'
+local cufft = dofile('cuda/cufft.lua')
 
 -- Module for performing convolution in the frequency domain. 
 -- interpType refers to the type of interpolation kernel we use on the subsampled weights,
@@ -16,69 +16,33 @@ function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes,
    parent.__init(self)
 
    if not (iW % 2 == 0 and iH % 2 == 0) then
-      error('input width should be even. Best if a power of 2')
+      error('input width should be even. Best if a power of 2. Now iW=' .. iW .. ', iH=' .. iH)
    end
-   self.interpType = interpType or 'linear'
+   self.interpType = interpType or 'bilinear'
    self.batchSize = batchSize
    self.nInputPlanes = nInputPlanes
    self.nOutputPlanes = nOutputPlanes
-   self.realKernels = realKernels or false
-
+   self.realKernels = realKernels or true
    -- width/height of inputs
    self.iW = iW
    self.iH = iH
    -- width/height of subsampled weights
    self.sW = sW
    self.sH = sH
-   -- representations in original domain
-   self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
-   self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-
-   -- buffers in spectral domain
-   if false then
-      -- TODO: need separate buffers for data which needs to be put in the spectral domain at the same time
-      local maxPlanes = math.max(batchSize*nInputPlanes,batchSize*nOutputPlanes,nOutputPlanes*nInputPlanes)
-      local imgSize = iH * iW * 2
-      self.buffer = torch.Tensor(maxPlanes * imgSize)
-      self.inputSpectral = self.buffer[{{1,batchSize * nInputPlanes * imgSize}}]
-      self.outputSpectral = self.buffer[{{1,batchSize * nOutputPlanes * imgSize}}]
-      self.gradInputSpectral = self.buffer[{{1,batchSize * nInputPlanes * imgSize}}]
-      self.gradWeight = self.buffer[{{1,nOutputPlanes * nInputPlanes * imgSize}}]
-      self.gradOutputSpectral = self.buffer[{{1,batchSize * nOutputPlanes * imgSize}}]
-      self.inputSpectral:resize(batchSize, nInputPlanes, iH, iW, 2)
-      self.outputSpectral:resize(batchSize, nOutputPlanes, iH, iW, 2)
-      self.gradInputSpectral:resize(batchSize, nInputPlanes, iH, iW, 2)
-      self.gradWeight:resize(nOutputPlanes, nInputPlanes, iH, iW, 2)
-      self.gradOutputSpectral:resize(batchSize, nOutputPlanes, iH, iW,2)	
-   else
-      -- representations in original domain
-      self.output = torch.Tensor(batchSize, nOutputPlanes, iH, iW)
-      self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
-      -- buffers in spectral domain (TODO: use single global buffer)
-      self.inputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.outputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW, 2)
-      self.gradInputSpectral = torch.Tensor(batchSize, nInputPlanes, iH, iW, 2)
-      self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
-      self.gradOutputSpectral = torch.Tensor(batchSize, nOutputPlanes, iH, iW,2)
-      self.gradOutputSpectralHermitian = torch.Tensor(batchSize, nOutputPlanes, iH, iW/2+1,2)
-      self.output = self.outputSpectral:clone()
-   end
-
+   -- make buffers to store spectral representations 
+   global_buffer1 = global_buffer1 or torch.CudaTensor()
+   global_buffer2 = global_buffer2 or torch.CudaTensor()
    -- weight transformation
-   local weightTransform
-   if interpType == 'spatial' then
-      weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
-   else 
-      weightTransform = nn.ComplexInterp(sH,sW,iH,iW,self.interpType)
-   end
+   self.gradInput = torch.Tensor(batchSize, nInputPlanes, iH, iW)
+   self.gradWeight = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2)
+   local weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
    self:setWeightTransform(weightTransform,torch.LongStorage({nOutputPlanes,nInputPlanes,sH,sW,2}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
-   --self:reset()
+   self:reset()
 end
 
 function SpectralConvolutionImage:reset(stdv)
-   -- TODO: find appropriate initialization range?
    stdv = 1/math.sqrt(self.nInputPlanes*self.sW*self.sH)
    self.weightPreimage:uniform(-stdv,stdv)
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
@@ -89,12 +53,19 @@ function SpectralConvolutionImage:reset(stdv)
 end
 
 function SpectralConvolutionImage:updateOutput(input) 
+   -- initialize buffers
+   self.inputSpectral = global_buffer1
+   self.outputSpectral = global_buffer2
+   self.outputSpectral:resize(self.batchSize, self.nOutputPlanes, self.iH, self.iW, 2)
+   self.inputSpectral:resize(self.batchSize, self.nInputPlanes, self.iH, self.iW, 2)
+   self.output:resize(self.outputSpectral:size())
    -- forward FFT
    self.inputSpectral:zero()
    self.inputSpectral:select(5,1):copy(input)
    cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
    -- product
-   libFFTconv.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral,true)
+   --libFFTconv.prod_fprop(self.inputSpectral,self.weight,self.outputSpectral,true)
+   spectralcuda.prod_fprop_complex(self.inputSpectral,self.weight,self.outputSpectral,true)
    -- inverse FFT
    cufft.fft2d_c2c(self.outputSpectral,self.output,-1)
    return self.output
@@ -102,28 +73,38 @@ end
 
 -- note that here gradOutput is the same size as input
 function SpectralConvolutionImage:updateGradInput(input, gradOutput)
+   -- initialize buffers
+   self.gradInputSpectral = global_buffer1
+   self.gradOutputSpectral = global_buffer2
+   self.gradInputSpectral:resize(self.batchSize, self.nInputPlanes, self.iH, self.iW, 2)
+   self.gradOutputSpectral:resize(self.batchSize, self.nOutputPlanes, self.iH, self.iW,2)
    -- forward FFT
    cufft.fft2d_c2c(gradOutput,self.gradOutputSpectral,1)
    -- product
-   libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
+--   libFFTconv.prod_bprop(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
+   spectralcuda.prod_bprop_complex(self.gradOutputSpectral, self.weight, self.gradInputSpectral,false)
    -- inverse FFT
    cufft.fft2d_c2c(self.gradInputSpectral,self.gradInputSpectral,-1)
-   self.gradInput = self.gradInputSpectral:select(5,1)
+   self.gradInput:copy(self.gradInputSpectral:select(5,1))
    return self.gradInput
 end
 
 function SpectralConvolutionImage:accGradParameters(input, gradOutput, scale)
    scale  = scale or 1
+   self.inputSpectral = global_buffer1
+   self.gradOutputSpectral = global_buffer2
+   self.inputSpectral:resize(self.batchSize, self.nInputPlanes, self.iH, self.iW, 2)
+   self.gradOutputSpectral:resize(self.batchSize, self.nOutputPlanes, self.iH, self.iW,2)
    -- forward FFT
    cufft.fft2d_c2c(gradOutput,self.gradOutputSpectral,1)
-   --self.inputSpectral:zero()
-   --self.inputSpectral:select(5,1):copy(input)
-   --cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
-
-   libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
+   self.inputSpectral:zero()
+   self.inputSpectral:select(5,1):copy(input)
+   cufft.fft2d_c2c(self.inputSpectral,self.inputSpectral,1)
+   -- product
+   --libFFTconv.prod_accgrad(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
+   spectralcuda.prod_accgrad_complex(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
    self.gradWeight:div(self.iW * self.iH)
    cutorch.synchronize()
-   --self:printNorms()
 end
 
 -------------------------------------
@@ -144,6 +125,23 @@ function SpectralConvolutionImage:printFilters()
          table.insert(freq_mod,mod:float():squeeze())
          table.insert(spatial_real,reshapeFilter(spatialFilters[i][j]:select(3,1)))
          table.insert(spatial_imag,reshapeFilter(spatialFilters[i][j]:select(3,2)))
+      end
+   end
+   return spatial_real,spatial_imag,freq_mod
+end
+
+function printFilters2(model)
+   local spatial_real = torch.CudaTensor(model.nOutputPlanes, model.nInputPlanes, model.iH, model.iW)
+   local spatial_imag = torch.CudaTensor(model.nOutputPlanes, model.nInputPlanes, model.iH, model.iW)
+   local freq_mod = torch.CudaTensor(model.nOutputPlanes, model.nInputPlanes, model.iH, model.iW)  
+   local spatialFilters = torch.CudaTensor(model.weight:size())
+   cufft.fft2d_c2c(model.weight,spatialFilters,-1)
+   for i = 1,model.nOutputPlanes do
+      for j = 1,model.nInputPlanes do
+         local mod = model.weight[i][j]:norm(2,3)
+         freq_mod[i][j]:copy(mod)
+         spatial_real[i][j]:copy(reshapeFilter(spatialFilters[i][j]:select(3,1)))
+         spatial_imag[i][j]:copy(reshapeFilter(spatialFilters[i][j]:select(3,2)))
       end
    end
    return spatial_real,spatial_imag,freq_mod

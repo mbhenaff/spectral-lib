@@ -1,40 +1,7 @@
 dofile('params.lua')
+dofile('data.lua')
+dofile('model.lua')
 
-trdata,trlabels = loadData(opt.dataset,'train')
-tedata,telabels = loadData(opt.dataset,'test')
-
-nChannels = trdata:size(2)
-iH = trdata:size(3)
-iW = trdata:size(4)
-nclasses = 10
-
-model = nn.Sequential()
-if opt.conv == 'spatial' then
-   model:add(nn.SpatialConvolutionBatch(nChannels,opt.nhidden,opt.kH,opt.kW))
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(2,2,2,2))
-   local d = math.floor((iH-opt.kH+1)/2)*math.floor((iW-opt.kW+1)/2)*opt.nhidden
-   model:add(nn.Reshape(d))
-   model:add(nn.Linear(d,10))
-elseif opt.conv == 'spectral' then
-   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
-   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   if opt.ncrop > 0 then
-      model:add(nn.Crop(iH,iW,opt.ncrop,opt.ncrop))
-   end
-   
-   model:add(nn.Threshold())
-   model:add(nn.SpatialMaxPooling(2,2,2,2))
-   model:add(nn.Reshape((iH/2)*(iW/2)*opt.nhidden))
-   model:add(nn.Linear((iH/2)*(iW/2)*opt.nhidden,10))
-end
-model:add(nn.LogSoftMax())
-criterion = nn.ClassNLLCriterion()
-model = model:cuda()
-model:reset()
-criterion = criterion:cuda()
 
 optimState = {
    learningRate = opt.learningRate,
@@ -42,20 +9,18 @@ optimState = {
    learningRateDecay = 1/trdata:size(1)
 }
 
-if opt.log then
-   logFile = assert(io.open(logFileName,'w'))
-   logFile:write(opt.modelFile)
-end
-
 -- these will record performance
 trloss = torch.Tensor(opt.epochs)
 teloss = torch.Tensor(opt.epochs)
 tracc = torch.Tensor(opt.epochs)
 teacc = torch.Tensor(opt.epochs)
 
+cutorch.synchronize()
+
 for i = 1,opt.epochs do
+
    local trsize = trdata:size(1)
-   inputs = torch.CudaTensor(opt.batchSize, trdata:size(2),trdata:size(3), trdata:size(4)):zero()
+   inputs = torch.CudaTensor(opt.batchSize, nChannels,dim):zero()
    targets = torch.CudaTensor(opt.batchSize)
 
    -- get model parameters
@@ -68,8 +33,7 @@ for i = 1,opt.epochs do
       for i = 1,opt.batchSize do
          inputs[i]:copy(trdata[shuffle[t+i]])
          targets[i]=trlabels[shuffle[t+i]]
-      end		
-      
+      end		      
       -- create closure to evaluate L(w) and dL/dw
       local feval = function(w_)
                        if w_ ~= w then
@@ -82,9 +46,12 @@ for i = 1,opt.epochs do
                        model:backward(inputs,dL_do)
                        return L, dL_dw
                     end
-      optim.sgd(feval,w,optimState)
-   --local p1,g1 = model:get(1):getParameters()
-   --print('grad norm = ' .. g1:norm())
+      if opt.optim == 'sgd' then
+         optim.sgd(feval,w,optimState)
+      else
+         optim.adagrad(feval, w, optimState)
+      end
+      --model:get(2):printNorms()
    end
    
    function computePerf(data,labels)
@@ -93,18 +60,13 @@ for i = 1,opt.epochs do
       local correct = 0
       for t = 1,(nSamples-opt.batchSize),opt.batchSize do
          xlua.progress(t,nSamples)
-         inputs:copy(data[{{t,t+opt.batchSize-1},{},{},{}}])
+         inputs:copy(data[{{t,t+opt.batchSize-1},{}}])
          targets:copy(labels[{{t,t+opt.batchSize-1}}])
          local out = model:updateOutput(inputs)
          loss = loss + criterion:forward(out,targets)[1]
          for k = 1,opt.batchSize do
-            local maxval = torch.max(out[k]:float())
-            local maxind 
-            for j = 1,10 do
-               if out[k][j] == maxval then
-                  maxind = j
-               end
-            end
+            local s,indx = torch.sort(out[k]:float(),true)
+            local maxind = indx[1]
             if maxind == targets[k] then
                correct = correct + 1
             end
@@ -130,12 +92,6 @@ if opt.log then
    logFile:close()
    torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc})
 end
-
-
-
-
-
-
 
 
 

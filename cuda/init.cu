@@ -8,7 +8,9 @@
 #include "bias.cu"
 #include "crop.cu"
 #include "prod.cu"
+#include "graph_pool.cu"
 
+#include "fft_prod_module.cu"
 /* Performs the equivalent of the following Torch code:
 for s=1,nMinibatch do
     for i = 1,nOutputPlanes do
@@ -47,9 +49,9 @@ static int prod_fprop_real(lua_State *L) {
 	long dim = input->size[2];
 
 	// raw pointers
-	float *input_data = (float*)THCudaTensor_data(input);
-	float *weight_data = (float*)THCudaTensor_data(weight);
-	float *output_data = (float*)THCudaTensor_data(output);
+	float *input_data = (float*)THCudaTensor_data(NULL,input);
+	float *weight_data = (float*)THCudaTensor_data(NULL,weight);
+	float *output_data = (float*)THCudaTensor_data(NULL,output);
 	
 	spectral_prod(input_data, weight_data, output_data, dim,
 				nMinibatch, nInputMaps*dim, nOutputMaps*dim,
@@ -59,6 +61,7 @@ static int prod_fprop_real(lua_State *L) {
 	return 0;
 }
 
+/*
 static int prod_fprop_complex(lua_State *L) {
 	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -76,9 +79,9 @@ static int prod_fprop_complex(lua_State *L) {
 	long nCols = input->size[3];
 
 	// raw pointers
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
-	cuComplex *weight_data = (cuComplex*)THCudaTensor_data(weight);
-	cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+	cuComplex *weight_data = (cuComplex*)THCudaTensor_data(NULL,weight);
+	cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
 	
 	fourier_prod(input_data, weight_data, output_data, nRows, nCols,
 				nMinibatch, nInputPlanes*nRows*nCols, nOutputPlanes*nRows*nCols,
@@ -87,6 +90,7 @@ static int prod_fprop_complex(lua_State *L) {
 
 	return 0;
 }
+*/
 
 
 static int prod_bprop_real(lua_State *L) {
@@ -104,9 +108,9 @@ static int prod_bprop_real(lua_State *L) {
 	long dim = gradInput->size[2];
 
 	// raw pointers
-	float *gradOutput_data = (float*)THCudaTensor_data(gradOutput);
-	float *weight_data = (float*)THCudaTensor_data(weight);
-	float *gradInput_data = (float*)THCudaTensor_data(gradInput);
+	float *gradOutput_data = (float*)THCudaTensor_data(NULL,gradOutput);
+	float *weight_data = (float*)THCudaTensor_data(NULL,weight);
+	float *gradInput_data = (float*)THCudaTensor_data(NULL,gradInput);
 	
 	spectral_prod(gradOutput_data, weight_data, gradInput_data, dim,
 				nMinibatch, nOutputMaps*dim, nInputMaps*dim,
@@ -117,6 +121,7 @@ static int prod_bprop_real(lua_State *L) {
 }
 
 
+/*
 static int prod_bprop_complex(lua_State *L) {
 	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *weight = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -134,9 +139,9 @@ static int prod_bprop_complex(lua_State *L) {
 	long nCols = gradInput->size[3];
 
 	// raw pointers
-	cuComplex *gradOutput_data = (cuComplex*)THCudaTensor_data(gradOutput);
-	cuComplex *weight_data = (cuComplex*)THCudaTensor_data(weight);
-	cuComplex *gradInput_data = (cuComplex*)THCudaTensor_data(gradInput);
+	cuComplex *gradOutput_data = (cuComplex*)THCudaTensor_data(NULL,gradOutput);
+	cuComplex *weight_data = (cuComplex*)THCudaTensor_data(NULL,weight);
+	cuComplex *gradInput_data = (cuComplex*)THCudaTensor_data(NULL,gradInput);
 	
 	fourier_prod(gradOutput_data, weight_data, gradInput_data, nRows, nCols,
 				nMinibatch, nOutputPlanes*nRows*nCols, nInputPlanes*nRows*nCols,
@@ -145,6 +150,7 @@ static int prod_bprop_complex(lua_State *L) {
 
 	return 0;
 }
+*/
 
 
 static int prod_accgrad_real(lua_State *L) {
@@ -162,30 +168,19 @@ static int prod_accgrad_real(lua_State *L) {
 	long dim = input->size[2];
 
 	// raw pointers
-	float *input_data = (float*)THCudaTensor_data(input);
-	float *gradOutput_data = (float*)THCudaTensor_data(gradOutput);
-	float *gradWeight_data = (float*)THCudaTensor_data(gradWeight);
+	float *input_data = (float*)THCudaTensor_data(NULL,input);
+	float *gradOutput_data = (float*)THCudaTensor_data(NULL,gradOutput);
+	float *gradWeight_data = (float*)THCudaTensor_data(NULL,gradWeight);
 	
 	spectral_prod(input_data, gradOutput_data, gradWeight_data, dim,
 				nInputMaps, dim, dim,
 				nMinibatch, nInputMaps*dim, nOutputMaps*dim, 
                 nOutputMaps, dim, nInputMaps*dim);
-
 	return 0;
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
+/*
 static int prod_accgrad_complex(lua_State *L) {
 	THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
 	THCudaTensor *gradOutput = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
@@ -203,9 +198,9 @@ static int prod_accgrad_complex(lua_State *L) {
 	long nCols = input->size[3];
 
 	// raw pointers
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
-	cuComplex *gradOutput_data = (cuComplex*)THCudaTensor_data(gradOutput);
-	cuComplex *gradWeight_data = (cuComplex*)THCudaTensor_data(gradWeight);
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+	cuComplex *gradOutput_data = (cuComplex*)THCudaTensor_data(NULL,gradOutput);
+	cuComplex *gradWeight_data = (cuComplex*)THCudaTensor_data(NULL,gradWeight);
 	
 	fourier_prod(input_data, gradOutput_data, gradWeight_data, nRows, nCols,
 				nInputPlanes, nRows*nCols, nRows*nCols,
@@ -214,13 +209,14 @@ static int prod_accgrad_complex(lua_State *L) {
 
 	return 0;
 }
+*/
 
 static int fill_hermitian(lua_State *L) {
   THCudaTensor *input = (THCudaTensor *)luaT_checkudata(L, 1, "torch.CudaTensor");	
   THCudaTensor *output = (THCudaTensor *)luaT_checkudata(L, 2, "torch.CudaTensor");
 
-  luaL_argcheck(L, THCudaTensor_isContiguous(input), 1, "input must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(output),2, "output must be contiguous");
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 1, "input must be contiguous");
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output),2, "output must be contiguous");
   luaL_argcheck(L, input->nDimension == 5, 2, "input should be 4D complex tensor");
   luaL_argcheck(L, output->nDimension == 5, 2, "output should be 4D complex tensor");
   luaL_argcheck(L, input->size[3] == output->size[3]/2+1, 2, "input must have N/2+1 columns");
@@ -229,35 +225,34 @@ static int fill_hermitian(lua_State *L) {
   long nInputPlanes = input->size[1];
   long nRows = output->size[2];
   long nCols = output->size[3];
-  cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
-  cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
+  cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+  cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
    
   fill_hermitian_call(input_data, output_data, nMinibatch*nInputPlanes,nRows,nCols);
 
   return 0;
 }
 
-
-
-
-static const struct luaL_reg cucomplex [] = {
+static const struct luaL_reg spectralcuda_init [] = {
   {"prod_fprop_real", prod_fprop_real},
   {"prod_bprop_real", prod_bprop_real},
   {"prod_accgrad_real", prod_accgrad_real},
-	{"prod_fprop_complex", prod_fprop_complex},
-	{"prod_bprop_complex", prod_bprop_complex},
-	{"prod_accgrad_complex",prod_accgrad_complex},
-    {"fill_hermitian",fill_hermitian},
-    {"modulus_updateGradInput",modulus_updateGradInput},
-    {"complexInterp_interpolate",complexInterp_interpolate},
-    {"bias_updateOutput", bias_updateOutput},
-    {"bias_accGradParameters", bias_accGradParameters},
-    {"crop_zeroborders",crop_zeroborders},
-	{NULL, NULL}
+  {"prod_fprop_complex", prod_fprop_complex},
+  {"prod_bprop_complex", prod_bprop_complex},
+  {"prod_accgrad_complex",prod_accgrad_complex},
+  {"fill_hermitian",fill_hermitian},
+  {"modulus_updateGradInput",modulus_updateGradInput},
+  {"complexInterp_interpolate",complexInterp_interpolate},
+  {"bias_updateOutput", bias_updateOutput},
+  {"bias_accGradParameters", bias_accGradParameters},
+  {"crop_zeroborders",crop_zeroborders},
+  {"graph_pool_fprop", graph_pool_fprop},
+  {"graph_pool_bprop", graph_pool_bprop},
+  {NULL, NULL}
 };
 
-LUA_EXTERNC int luaopen_cucomplex(lua_State *L) {
-	luaL_openlib(L,"cucomplex",cucomplex,0);
+LUA_EXTERNC int luaopen_spectralcuda(lua_State *L) {
+	luaL_openlib(L,"spectralcuda",spectralcuda_init,0);
 	return 1;
 }
 

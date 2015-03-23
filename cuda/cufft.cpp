@@ -18,13 +18,13 @@ static int fft1d_r2c(lua_State *L) {
 	luaL_argcheck(L, (N % 2) == 0, 0, "N should be multiple of 2");
 	luaL_argcheck(L, output->size[1] == N/2+1, 0, "output should be N/2+1");
 	luaL_argcheck(L, output->size[2] == 2, 0, "output should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 2, "output must be contiguous");
 	
 
 	// raw pointers 
-	float *input_data = THCudaTensor_data(input);
-	cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
+	float *input_data = THCudaTensor_data(NULL,input);
+	cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
 	
 	// execute FFT
 	cufftHandle plan;
@@ -53,13 +53,13 @@ static int fft1d_c2r(lua_State *L) {
 	luaL_argcheck(L, (N % 2) == 0, 0, "N should be multiple of 2");
 	luaL_argcheck(L, input->size[1] == N/2+1, 0, "input should be N/2+1");
 	luaL_argcheck(L, input->size[2] == 2, 0, "input should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 2, "output must be contiguous");
 	
 
 	// raw pointers 
-	float *output_data = THCudaTensor_data(output);
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
+	float *output_data = THCudaTensor_data(NULL,output);
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
 	
 	// execute FFT
 	cufftHandle plan;
@@ -88,12 +88,12 @@ static int fft1d_c2c(lua_State *L) {
 	luaL_argcheck(L, output->size[0] == nInputLines, 0, "input and output should have the same number of lines");
 	luaL_argcheck(L, output->size[1] == N, 0, "input and output should have the same dimension");
 	luaL_argcheck(L, (output->size[2] == 2) && (input->size[2] == 2), 0, "input and output should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 2, "output must be contiguous");
 	
 	// raw pointers 
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
-	cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+	cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
 	
 	// execute FFT
 	cufftHandle plan;
@@ -127,13 +127,13 @@ static int fft2d_r2c(lua_State *L) {
 	//luaL_argcheck(L, output->size[1] == N/2+1, 0, "output should be N/2+1");
 	luaL_argcheck(L, output->size[2] == M/2+1, 0, "output should be M/2+1");
 	luaL_argcheck(L, output->size[3] == 2, 0, "output should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 2, "output must be contiguous");
 	
 
 	// raw pointers 
-	float *input_data = THCudaTensor_data(input);
-	cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
+	float *input_data = THCudaTensor_data(NULL,input);
+	cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
 	
 	// execute FFT
 	cufftHandle plan;
@@ -167,12 +167,12 @@ static int fft2d_c2r(lua_State *L) {
 	//luaL_argcheck(L, input->size[1] == N/2+1, 0, "output should be N/2+1");
 	luaL_argcheck(L, input->size[2] == M/2+1, 0, "output should be M/2+1");
 	luaL_argcheck(L, input->size[3] == 2, 0, "output should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 2, "output must be contiguous");
 	
 	// raw pointers 
-	float *output_data = THCudaTensor_data(output);
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
+	float *output_data = THCudaTensor_data(NULL,output);
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
 	
 	// execute FFT
 	cufftHandle plan;
@@ -205,13 +205,12 @@ static int fft2d_c2c(lua_State *L) {
 	luaL_argcheck(L, output->size[1] == N, 0, "input and output should have the same dimension");
 	luaL_argcheck(L, output->size[2] == M, 0, "input and output should have the same dimension");
 	luaL_argcheck(L, (output->size[3] == 2) && (input->size[3] == 2), 0, "input and output should be complex");
-	luaL_argcheck(L, THCudaTensor_isContiguous(input), 2, "input must be contiguous");
-	luaL_argcheck(L, THCudaTensor_isContiguous(output), 2, "output must be contiguous");
-	
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,input), 2, "input must be contiguous");
+	luaL_argcheck(L, THCudaTensor_isContiguous(NULL,output), 1, "output must be contiguous");
 	// raw pointers 
-	cuComplex *input_data = (cuComplex*)THCudaTensor_data(input);
-	cuComplex *output_data = (cuComplex*)THCudaTensor_data(output);
-	
+	cuComplex *input_data = (cuComplex*)THCudaTensor_data(NULL,input);
+	cuComplex *output_data = (cuComplex*)THCudaTensor_data(NULL,output);
+    
 	// execute FFT
 	cufftHandle plan;
 	cufftPlanMany(&plan, 2, size, NULL, 1, 0, NULL, 1, 0, CUFFT_C2C, nInputPlanes);
@@ -241,14 +240,4 @@ LUA_EXTERNC int luaopen_libcufft(lua_State *L) {
 	return 1;
 }
 
-
-// this is what we need to require 
-/*
-void cufft_init(lua_State *L)
-{
-  luaT_pushmetatable(L, "torch.CudaTensor");
-  luaT_registeratname(L, __, "nn");
-  lua_pop(L,1);
-}
-*/
 

@@ -36,12 +36,15 @@ L = eye(size(w,1)) - D * w * D;
 [ee,ev]=eig(L);
 W0=ee;
 
-
+fprintf('here 2\n');
 %compute reordering
 options.null=0;
-[perm, invperm] = haarpartition_graph(w,options);
+perm = 1:size(w,1);
+%[perm, invperm] = haarpartition_graph(w,options);
 V{1} = W0(perm,:);
 w=w(perm,perm);
+
+fprintf('here 3\n');
 
 %compute new similarity
 wpool = aggregate_similarity(w, poolsize, stride);
@@ -50,7 +53,7 @@ D = diag(sum(wpool).^(-1/2));
 L = eye(size(wpool,1)) - D * wpool * D;
 [ee,ev]=eig(L);
 V{2}=ee;
-
+fprintf('here4\n');
 
 
 

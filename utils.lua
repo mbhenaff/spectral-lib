@@ -6,6 +6,21 @@ function round(x,p)
 end
 
 
+function torch.corr(data)
+   local d = data:size(2)
+   local means = torch.mean(data,1)
+   data:add(-1,means:expandAs(data))
+   local cov = data:t() * data
+   local corr = torch.Tensor(d,d)
+   for i = 1,d do 
+      for j = 1,d do 
+         corr[i][j] = cov[i][j]/math.sqrt(cov[i][i]*cov[j][j])
+      end
+   end
+   return corr, cov
+end
+   
+
 
 --------------------------------------------
 -- SET OPERATIONS ON TABLES
@@ -205,6 +220,13 @@ end
 
 
 
+function setDropoutParam(model,p)
+	for i=1,#model.modules do
+		if torch.typename(model.modules[i]) == 'nn.Dropout' then
+			model.modules[i].p = p
+		end
+	end
+end
 
 
 
