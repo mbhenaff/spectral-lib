@@ -11,13 +11,9 @@ local SpectralConvolutionImage, parent = torch.class('nn.SpectralConvolutionImag
 
 function SpectralConvolutionImage:__init(batchSize, nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType,real)
    parent.__init(self)
+   assert(iW % 2 == 0 and iH % 2 == 0, 'input size should be even')
+   assert(sH % 2 == 1 and sW % 2 == 1, 'kernel size should be odd')
 
-   if not (iW % 2 == 0 and iH % 2 == 0) then
-      error('input width should be even, currently iW=' .. iW .. ', iH=' .. iH)
-   end
-   if not (sH % 2 == 1 and sW % 2 == 1) then
-      error('kernel width should be odd')
-   end
    self.interpType = interpType or 'bilinear'
    self.batchSize = batchSize
    self.nInputPlanes = nInputPlanes
@@ -58,16 +54,6 @@ function SpectralConvolutionImage:reset(stdv)
    if self.real == 'realpart' then
       self.weightPreimage:select(5,2):zero()
    end
-end
-
-function SpectralConvolutionImage:resizeBuffers(batchSize)
-   self.gradInput:resize(batchSize, self.nInputPlanes, self.iH, self.iW)
-   self.output:resize(batchSize, self.nOutputPlanes, self.iH, self.iW)
-   self.inputSpectral:resize(batchSize, self.nInputPlanes, self.iH, self.iW, 2)
-   self.outputSpectral:resize(batchSize, self.nOutputPlanes, self.iH, self.iW, 2)
-   self.gradInputSpectral:resize(batchSize, self.nInputPlanes, self.iH, self.iW, 2)
-   self.gradOutputSpectral:resize(batchSize, self.nOutputPlanes, self.iH, self.iW,2)
-   self.gradOutputCropped:resize(batchSize, self.nOutputPlanes, self.iH, self.iW)
 end
 
 
@@ -116,7 +102,7 @@ function SpectralConvolutionImage:updateGradInput(input, gradOutput)
    -- zero borders
    self.gradOutputCropped:copy(gradOutput)
    libspectralnet.crop_zeroborders(self.gradOutputCropped, self.zH, self.zW)
-   -- project into complex plane
+   -- make gradOutput complex
    if self.real == 'realpart' then 
       self.gradOutputSpectral:select(5,1):copy(self.gradOutputCropped)
       self.gradOutputSpectral:select(5,2):zero()
@@ -150,7 +136,7 @@ function SpectralConvolutionImage:accGradParameters(input, gradOutput, scale)
    -- zero borders
    self.gradOutputCropped:copy(gradOutput)
    libspectralnet.crop_zeroborders(self.gradOutputCropped, self.zH, self.zW)
-   -- project into complex plane
+   -- make gradOutput complex
    if self.real == 'realpart' then 
       self.gradOutputSpectral:select(5,1):copy(self.gradOutputCropped)
       self.gradOutputSpectral:select(5,2):zero()
@@ -166,7 +152,6 @@ function SpectralConvolutionImage:accGradParameters(input, gradOutput, scale)
    -- product
    libspectralnet.prod_accgrad_complex(self.inputSpectral,self.gradOutputSpectral,self.gradWeight,true)
    self.gradWeight:div(self.iW * self.iH)
-
    -- bias gradient
    libspectralnet.bias_accGradParameters(self.gradBias, gradOutput, scale)
    cutorch.synchronize()
