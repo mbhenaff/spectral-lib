@@ -1,22 +1,9 @@
 -- Unit tests and speed tests for all the modules. 
 
 require 'cunn'
-require 'spectralcuda'
-require 'HermitianInterp'
-require 'InterpImage'
-require 'Interp'
-require 'ComplexInterp'
-require 'Interp3D'
-require 'Real'
-require 'Bias'
-require 'Crop'
-require 'SpectralConvolutionImage'
-require 'SpectralConvolutionImageAndFeatures'
-require 'SpectralConvolution'
-require 'GraphMaxPooling'
+require 'spectralnet'
 require 'Jacobian2'
-require 'utils'
-cufft = dofile('cuda/cufft.lua')
+--require 'utils'
 
 --torch.manualSeed(123)
 cutorch.setDevice(3)
@@ -28,8 +15,8 @@ local test_interp = false
 local test_interp_feat = false
 local test_real = false
 local test_complex_interp = false
-local test_spectralconv_img = false
-local test_spectralconv_img_feat = true
+local test_spectralconv_img = true
+local test_spectralconv_img_feat = false
 local test_spectralconv = false
 local test_graphpool = false
 local test_time = false
@@ -281,8 +268,8 @@ if test_spectralconv_img then
       local nInputPlanes = 3
       local nOutputPlanes = 16
       local batchSize = 2
-      local sW = 4	
-      local sH = 4
+      local sW = 5	
+      local sH = 5
       model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
       model = model:cuda()
       model:reset()
@@ -297,6 +284,14 @@ if test_spectralconv_img then
       local err,jfp,jbp = jac.testJacobianParameters(model, input, weight, gradWeight)
       print('error on weight = ' .. err)
       mytester:assertlt(err,precision, 'error on weight')
+
+      local bias = param[2]
+      local gradBias = gradParam[2]
+      local err,jfp,jbp = jac.testJacobianParameters(model, input, bias, gradBias)
+      print('error on bias = ' .. err)
+      mytester:assertlt(err,precision, 'error on bias')
+
+
       --[[
       param,gradParam = model:parameters()
       weight = param[1]
@@ -379,8 +374,8 @@ function run_timing()
    local nInputPlanes = 96
    local nOutputPlanes = 256
    local batchSize = 128
-   local sW = 8	
-   local sH = 8
+   local sW = 5	
+   local sH = 5
    local timer = torch.Timer()
    print('image dim = ' .. iH .. ' x ' .. iH)
    print('nInputPlanes = ' .. nInputPlanes)

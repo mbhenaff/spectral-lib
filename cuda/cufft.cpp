@@ -222,7 +222,7 @@ static int fft2d_c2c(lua_State *L) {
 }
 
 
-
+/*
 // table which contains names of functions in Lua and C
 static const struct luaL_reg libcufft [] = {
   {"fft1d_r2c", fft1d_r2c},
@@ -239,5 +239,5 @@ LUA_EXTERNC int luaopen_libcufft(lua_State *L) {
 	luaL_openlib(L, "libcufft", libcufft, 0);
 	return 1;
 }
-
+*/
 

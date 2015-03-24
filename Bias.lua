@@ -29,7 +29,7 @@ function Bias:updateOutput(input)
    end
    self.output:resize(input:size())
    self.output:copy(input)
-   spectralcuda.bias_updateOutput(self.bias, self.output)
+   libspectralnet.bias_updateOutput(self.bias, self.output)
    if resize then 
       input:resize(d1,d2,d3)
       self.output:resize(input:size())
@@ -54,7 +54,7 @@ function Bias:accGradParameters(input, gradOutput, scale)
       resize = true
       gradOutput:resize(d1,d2,d3,1)
    end   
-   spectralcuda.bias_accGradParameters(self.gradBias, gradOutput, scale)
+   libspectralnet.bias_accGradParameters(self.gradBias, gradOutput, scale)
    if resize then 
       gradOutput:resize(d1,d2,d3)
    end

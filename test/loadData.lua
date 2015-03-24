@@ -1,7 +1,7 @@
 -- script to load MNIST or CIFAR
 
 require 'image'
-require 'utils'
+--require 'utils'
 require 'memoryMap'
 
 function loadData(dataset,split,resize)
@@ -74,12 +74,16 @@ function loadData(dataset,split,resize)
       end
    elseif dataset == 'timit' then
       f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/timit/fbanks/' .. split .. '/data_winsize_15.th')
-      f.data:resize(f.data:size(1),f.data:size(2)*f.data:size(3))
+      local nSamples = f.data:size(1)
+      local nFrames = f.data:size(2)
+      local nBands = f.data:size(3)
+      f.data:resize(nSamples,nFrames*nBands)
       f.labels = f.labels + 1
       local means = torch.mean(f.data,1)
       local std = torch.std(f.data,1)
       f.data:add(-1,means:expandAs(f.data))
       f.data:cdiv(std:expandAs(f.data))
+      f.data = f.data:resize(nSamples, nFrames, nBands)
    end
    local labels = f.labels
    local data = f.data

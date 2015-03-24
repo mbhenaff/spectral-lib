@@ -1,4 +1,3 @@
-require 'interp'
 
 local Interp, parent = torch.class('nn.Interp', 'nn.Module')
 

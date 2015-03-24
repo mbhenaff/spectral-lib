@@ -2,43 +2,75 @@
 -- The interpolation map is a n^2 x k^2 matrix. 
 require 'nn'
 
-local InterpImag, parent = torch.class('nn.InterpImage', 'nn.Module')
+local Interp3D, parent = torch.class('nn.Interp3D', 'nn.Module')
 
-function InterpImag:__init(iH, iW, oH, oW, interpType)
+function Interp3D:__init(iF, iH, iW, oF, oH, oW, interpType)
    parent.__init(self)
+   self.iF = iF
    self.iH = iH
    self.iW = iW
+   self.oF = oF
    self.oH = oH
    self.oW = oW
    if interpType == 'spatial' then
       self.kernel = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/interp_kernels/spatial_kernel_' .. iH .. '_' .. oH .. '.th'):float()
    else
+      require 'ComplexInterp'
       self.kernel = compute_interpolation_matrix(iH, oH, interpType)
    end
    self.kernelT = self.kernel:t():clone()
+   self.kernelFeat = interpKernel(iF,oF,interpType)
+   self.kernelFeatT = self.kernelFeat:t():clone()
+   self.bufferIn = torch.FloatTensor()
+   self.bufferOut = torch.FloatTensor()
 end
 
-function InterpImag:updateOutput(input)
+function Interp3D:featureTransform(input, M)
+   local nSamples = input:size(1)
+   local nInputPlanes = input:size(2)
+   local iH = input:size(3)
+   local iW = input:size(4)
+   local nOutputPlanes = M:size(1)
+   self.bufferIn:resize(input:size())
+   self.bufferIn:copy(input)
+   self.bufferIn = self.bufferIn:transpose(1,2):contiguous():resize(nInputPlanes,nSamples*iH*iW*2)
+   self.bufferOut:resize(nOutputPlanes, nSamples*iH*iW*2)
+   self.bufferOut:zero()   
+   self.bufferOut:addmm(M, self.bufferIn)
+   self.bufferOut:resize(nOutputPlanes,nSamples,iH,iW,2)
+   self.bufferOut = self.bufferOut:transpose(1,2):contiguous()
+   return self.bufferOut
+end
+
+function Interp3D:updateOutput(input)
+  -- print(input:size())
    local d1 = input:size(1)
    local d2 = input:size(2)
    input:resize(d1*d2, self.iH*self.iW*2)
    self.output:resize(d1*d2, self.oH*self.oW*2)
    self.output:zero()
    self.output:addmm(input,self.kernel)
-   input:resize(d1,d2,self.iH,self.iW,2)
-   self.output:resize(d1,d2,self.oH,self.oW,2)
+   input:resize(d1,self.iF,self.iH,self.iW,2)
+   self.output:resize(d1,self.iF,self.oH,self.oW,2)
+   self.output = self:featureTransform(self.output, self.kernelFeatT):clone()
+--   print(self.output:size())
    return self.output
 end
    
-function InterpImag:updateGradInput(input, gradOutput)
-   local d1 = input:size(1)
-   local d2 = input:size(2)
+function Interp3D:updateGradInput(input, gradOutput)
+   --print('gradOutput')
+   --print(gradOutput:size())
+   local d1 = gradOutput:size(1)
+   local d2 = gradOutput:size(2)
    gradOutput:resize(d1*d2, self.oH*self.oW*2)
    self.gradInput:resize(d1*d2, self.iH*self.iW*2)
    self.gradInput:zero()
    self.gradInput:addmm(gradOutput, self.kernelT)
    self.gradInput:resize(d1,d2,self.iH,self.iW,2)
    gradOutput:resize(d1,d2,self.oH,self.oW,2)
+   self.gradInput = self:featureTransform(self.gradInput, self.kernelFeat):clone()
+   --print('gradInput')
+   --print(self.gradInput:size())
    return self.gradInput
 end
 
