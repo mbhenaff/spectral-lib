@@ -263,16 +263,20 @@ if test_spectralconv_img then
       torch.manualSeed(123)
       torch.setdefaulttensortype('torch.FloatTensor')
       local interpType = 'spatial'
-      local iW = 32
-      local iH = 32
+      local real = 'modulus'
+      local iW = 16
+      local iH = 16
       local nInputPlanes = 3
-      local nOutputPlanes = 16
+      local nOutputPlanes = 4
       local batchSize = 2
       local sW = 5	
       local sH = 5
-      model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType)
+      model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType,real)
       model = model:cuda()
       model:reset()
+      model.bias:zero()
+      model.zW = 0
+      model.zH = 0
       local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
       local err,jf,jb = jac.testJacobian(model, input)
       print('error on state =' .. err)
