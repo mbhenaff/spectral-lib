@@ -10,7 +10,7 @@ require 'loadData'
 
 cmd = torch.CmdLine()
 cmd:option('-dataset','mnist')
-cmd:option('-model','gconv','mlp | gconv')
+cmd:option('-model','gconv2','linear | gconv1 | gconv2 | fc2 | ... | fc5')
 cmd:option('-optim','sgd')
 cmd:option('-nhidden',64)
 cmd:option('-k',5)
