@@ -14,4 +14,4 @@ th -i train.lua -dataset timit -model fc3 -nhidden 2000
 
 To train on TIMIT with a net consisting of 2 layers of graph conv followed by a fully connected, with 20 feature maps and 20 subsampled weights at each layer:
 
-th -i train.lua -dataset timit -model gconv2 -nhidden 20 -k  
+th -i train.lua -dataset timit -model gconv2 -nhidden 20 -k 20
