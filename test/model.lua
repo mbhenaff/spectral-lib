@@ -67,61 +67,38 @@ elseif opt.model == 'fc5' then
 
 elseif opt.model == 'gconv1' then
    local poolsize = 1
-   -- scale GFT matrices
+   -- check GFT matrices have norm 1
    print('V1 norm = ' .. estimate_norm(V1))
-   local s1 = math.sqrt(dim)
-   V1:mul(s1)
    print('V1 norm = ' .. estimate_norm(V1))
-   n1 = V1:size(1)
-   if opt.rfreq > 0 then
-      print(opt.rfreq)
-      V1[{{},{math.floor(n1/opt.rfreq)+1,n1}}]:zero()
-   end
 
-   model:add(nn.Reshape(1,dim))
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, 1, opt.nhidden, dim, opt.k, V1))
-   model:add(nn.Bias(opt.nhidden))
    model:add(nn.Threshold())
    --model:add(nn.GraphMaxPooling(L.pools[1]:t():clone()))
 
    -- classifier layer
-   model:add(nn.Reshape(opt.nhidden*dim/(poolsize)))
+   model:add(nn.Reshape(opt.nhidden*dim/poolsize))
    model:add(nn.Linear(opt.nhidden*dim/(poolsize), nclasses))
    model:add(nn.LogSoftMax())
 
-   -- initialize biases appropriately
-   model:get(3):reset(1./math.sqrt(opt.k))
-
    -- send to GPU and reset pointers
    model = model:cuda()
-   model:get(2):resetPointers()
+   model:reset()
 
 elseif opt.model == 'gconv2' then
 --   local poolsize = opt.poolsize
    local poolsize = 1
-   -- scale GFT matrices
+   -- check GFT matrices have norm 1
    print('V1 norm = ' .. estimate_norm(V1))
    print('V2 norm = ' .. estimate_norm(V2))
-   n1 = V1:size(1)
-   n2 = V2:size(1)   
-   if opt.rfreq > 0 then
-      print(opt.rfreq)
-      V1[{{},{math.floor(n1/opt.rfreq)+1,n1}}]:zero()
-      V2[{{},{math.floor(n2/opt.rfreq)+1,n2}}]:zero()
-   end
-
-   --model:add(nn.Reshape(1,dim))
 
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1))
-   model:add(nn.Bias(opt.nhidden))
    model:add(nn.Threshold())
    --model:add(nn.GraphMaxPooling(L.pools[1]:t():clone()))
 
    -- conv layer 2
    model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim/poolsize, opt.k, V2))
-   model:add(nn.Bias(opt.nhidden))
    model:add(nn.Threshold())
    --model:add(nn.GraphMaxPooling(L.pools[2]:t():clone()))
 
@@ -130,14 +107,9 @@ elseif opt.model == 'gconv2' then
    model:add(nn.Linear(opt.nhidden*dim/(poolsize^2), nclasses))
    model:add(nn.LogSoftMax())
 
-   -- initialize biases appropriately
-   model:get(2):reset(1./math.sqrt(opt.k))
-   model:get(5):reset(1./math.sqrt(opt.nhidden*opt.k))
-
    -- send to GPU and reset pointers
    model = model:cuda()
-   model:get(1):resetPointers()
-   model:get(4):resetPointers()   
+   model:reset()
 else
    error('unrecognized model')
 end

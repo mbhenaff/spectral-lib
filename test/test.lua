@@ -7,6 +7,8 @@ require 'Jacobian2'
 
 --torch.manualSeed(123)
 cutorch.setDevice(3)
+torch.setdefaulttensortype('torch.FloatTensor')
+
 
 local test_correctness = true
 local test_crop = false
@@ -15,9 +17,9 @@ local test_interp = false
 local test_interp_feat = false
 local test_real = false
 local test_complex_interp = false
-local test_spectralconv_img = true
+local test_spectralconv_img = false
 local test_spectralconv_img_feat = false
-local test_spectralconv = false
+local test_spectralconv = true
 local test_graphpool = false
 local test_time = false
 
@@ -26,6 +28,24 @@ local jac = nn.Jacobian
 local sjac
 local nntest = {}
 local precision = 1e-1
+
+
+
+
+function estimate_norm(M1)
+   local k = M1:size(1) 
+   local n = M1:size(2)
+   local s = 1000
+   local input = torch.rand(s,k):float()
+   for i = 1,s do 
+      input[i]:mul(1/input[i]:norm())
+   end
+   local out1 = input*M1
+   local d1 = out1:norm(2,2)
+   return torch.max(d1)
+end
+
+
 
 if test_crop then 
    function nntest.Crop()
@@ -185,18 +205,21 @@ if test_spectralconv then
       print('\n')
       torch.manualSeed(123)
       local interpType = 'bilinear'
-      local dim = 500
+      local dim = 120
       local subdim = 5
-      local nInputPlanes = 8
-      local nOutputPlanes = 12
+      local nInputPlanes = 3
+      local nOutputPlanes = 2
       local batchSize = 3
-      local L = torch.load('mresgraph/reuters_GFT_pool4.th')
-      local GFTMatrix = torch.eye(dim,dim)--L.V2
+      --local L = torch.load('mresgraph/reuters_GFT_pool4.th')
+      --local GFTMatrix = torch.eye(dim,dim)--L.V2
       local X = torch.randn(dim,dim)
       X = (X + X:t())/2
-      local _,GFTMatrix = torch.eye(dim,dim)--torch.symeig(X,'V')
-      
-      local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,dim, subdim, GFTMatrix)
+      local _,GFTMatrix = torch.symeig(X,'V')
+      local s = estimate_norm(GFTMatrix)
+      print(s)
+      --GFTMatrix = torch.eye(dim,dim)
+      print(GFTMatrix:size())
+      local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,dim, subdim, GFTMatrix:float())
       model = model:cuda()
       model:reset()
       local input = torch.CudaTensor(batchSize,nInputPlanes,dim):normal()
@@ -211,6 +234,13 @@ if test_spectralconv then
       print('error on weight = ' .. err)
       mytester:assertlt(err,precision, 'error on weight')
       print('\n')
+
+      local bias = param[2]
+      local gradBias = gradParam[2]
+      local err,jfp,jbp = jac.testJacobianParameters(model, input, bias, gradBias)
+      print('error on bias = ' .. err)
+      mytester:assertlt(err,precision, 'error on bias')
+
    end
 end
 
