@@ -34,7 +34,7 @@ end
 
 function Real:updateGradInput(input, gradOutput)
    if self.modulus then
-      spectralcuda.modulus_updateGradInput(input, self.output, self.gradInput, gradOutput)
+      libspectralnet.modulus_updateGradInput(input, self.output, self.gradInput, gradOutput)
    else
       local b = input:size(1)
       local p = input:size(2)

@@ -2,8 +2,9 @@ require 'nn'
 
 local Bias, parent = torch.class('nn.Bias', 'nn.Module')
 
-function Bias:__init(nPlanes)
+function Bias:__init(nPlanes,stdv)
    parent.__init(self)
+   self.stdv = stdv
    self.bias = torch.Tensor(nPlanes)
    self.gradBias = torch.Tensor(nPlanes)
    self:reset()
@@ -12,6 +13,8 @@ end
 function Bias:reset(stdv)
    if stdv then
       stdv = stdv * math.sqrt(3)
+   elseif self.stdv then 
+      stdv = self.stdv
    else     
       stdv = 1./math.sqrt(self.bias:size(1))
    end
@@ -29,7 +32,7 @@ function Bias:updateOutput(input)
    end
    self.output:resize(input:size())
    self.output:copy(input)
-   spectralcuda.bias_updateOutput(self.bias, self.output)
+   libspectralnet.bias_updateOutput(self.bias, self.output)
    if resize then 
       input:resize(d1,d2,d3)
       self.output:resize(input:size())
@@ -54,7 +57,7 @@ function Bias:accGradParameters(input, gradOutput, scale)
       resize = true
       gradOutput:resize(d1,d2,d3,1)
    end   
-   spectralcuda.bias_accGradParameters(self.gradBias, gradOutput, scale)
+   libspectralnet.bias_accGradParameters(self.gradBias, gradOutput, scale)
    if resize then 
       gradOutput:resize(d1,d2,d3)
    end

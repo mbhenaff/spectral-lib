@@ -21,7 +21,8 @@ elseif opt.dataset == 'timit' then
    nclasses = 185
    trdata,trlabels = loadData(opt.dataset,'train')
    tedata,telabels = loadData(opt.dataset,'dev')
-   dim = trdata:size(2)
+   nChannels = trdata:size(2)
+   dim = trdata:size(3)
 end
 
 if trdata:nDimension() == 4 then 

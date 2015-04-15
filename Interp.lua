@@ -1,15 +1,14 @@
-require 'interp'
 
 local Interp, parent = torch.class('nn.Interp', 'nn.Module')
 
-function Interp:__init(k, n, interpType)
+function Interp:__init(k, n, interpType, scale)
    parent.__init(self)
    self.k = k
    self.n = n
    self.kernel = interpKernel(k,n,'bilinear')
    local norm = estimate_norm(self.kernel)
    -- scale this so gradients are comparable with spatial kernel
-   local scale = math.sqrt(2)*math.sqrt(n) / norm
+   local scale = scale or math.sqrt(2)*math.sqrt(n) / norm
    print('scaling factor: ' .. scale)
    self.kernel:mul(scale)
    self.kernelT = self.kernel:t():clone()

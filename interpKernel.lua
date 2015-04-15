@@ -1,6 +1,5 @@
--- make linear interpolation kernel (TODO: do cubic splines)
+-- make interpolation kernel, which can be linear, spline, dyadic spline or spatial
 require 'image'
-dofile('utils.lua')
 
 kernels_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/interp_kernels/'
 -- for all except spatial2D, N is the input size, M is the output size
@@ -52,8 +51,21 @@ function linterp(x1,y1,x2)
 	end
 	return y2
 end
+
 		
 		
+function torch.find(x)
+   if x:nDimension() > 1 then
+		error('torch.find is only defined for 1D tensors')
+	end
+   local indx={}
+   for i=1,(#x)[1] do
+      if x[i]>0 then
+         table.insert(indx,i)
+      end
+   end
+   return torch.IntTensor(indx)
+end
 			
 			
 

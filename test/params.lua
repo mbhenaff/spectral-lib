@@ -5,24 +5,12 @@ require 'gnuplot'
 require 'optim'
 require 'nn'
 require 'cunn'
-require 'spectralcuda'
-require 'Crop'
-require 'Bias'
-require 'Interp'
-require 'SpectralConvolution'
-require 'SpectralConvolutionImage'
-require 'InterpImage'
-require 'ComplexInterp'
-require 'Real'
-require 'GraphMaxPooling'
+require 'spectralnet'
 require 'loadData'
---require 'FFTconv'
-cufft = dofile('cuda/cufft.lua')
-
 
 cmd = torch.CmdLine()
 cmd:option('-dataset','mnist')
-cmd:option('-model','gconv','mlp | gconv')
+cmd:option('-model','gconv2','linear | gconv1 | gconv2 | fc2 | ... | fc5')
 cmd:option('-optim','sgd')
 cmd:option('-nhidden',64)
 cmd:option('-k',5)

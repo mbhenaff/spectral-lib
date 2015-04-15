@@ -1,7 +1,7 @@
 -- Lua wrapper for cufft functions
-require 'libcufft'
+require 'libspectralnet'
 
-local cufft = cufft or {}
+cufft = cufft or {}
 
 function cufft.fft1d(input, output)
    local nSamples = input:size(1)
@@ -10,7 +10,7 @@ function cufft.fft1d(input, output)
    local M = input:size(4)
    input:resize(nSamples*nPlanes*N, M)
    output:resize(nSamples*nPlanes*N, M/2+1, 2)
-   libcufft.fft1d_r2c(input, output)
+   libspectralnet.fft1d_r2c(input, output)
    input:resize(nSamples, nPlanes, N, M)
    output:resize(nSamples, nPlanes, N, M/2+1, 2)
 end
@@ -22,7 +22,7 @@ function cufft.ifft1d(input, output)
    local M = output:size(4)
    input:resize(nSamples*nPlanes*N, M/2+1, 2)
    output:resize(nSamples*nPlanes*N, M)
-   libcufft.fft1d_c2r(input,output)
+   libspectralnet.fft1d_c2r(input,output)
    output:div(M)
    input:resize(nSamples, nPlanes, N, M/2+1, 2)
    output:resize(nSamples, nPlanes, N, M)
@@ -49,7 +49,7 @@ function cufft.fft2d_r2c(input,output,debug)
       output:resize(nSamples, nPlanes, N, M, 2)
    else
       output:resize(nSamples*nPlanes, N, M/2+1, 2)
-      libcufft.fft2d_r2c(input, output)
+      libspectralnet.fft2d_r2c(input, output)
       output:resize(nSamples, nPlanes, N, M/2+1, 2)
    end
    input:resize(nSamples, nPlanes, N, M)
@@ -78,7 +78,7 @@ function cufft.fft2d_c2r(input, output, debug)
       input:resize(nSamples,nPlanes, N, M, 2)
    else
       input:resize(nSamples*nPlanes, N, M/2+1, 2)
-      libcufft.fft2d_c2r(input,output)
+      libspectralnet.fft2d_c2r(input,output)
       input:resize(nSamples, nPlanes, N, M/2+1, 2)
    end
    output:div(M*N)
@@ -105,7 +105,7 @@ function cufft.fft2d_c2c(input,output,dir,debug)
          output[i]:copy(input2)
       end
    else
-      libcufft.fft2d_c2c(input,output,dir)
+      libspectralnet.fft2d_c2c(input,output,dir)
    end
    input:resize(nSamples, nPlanes, N, M, 2)
    if dir == -1 then
@@ -146,6 +146,6 @@ function cufft.dftmatrix(n,dir)
    return dft
 end
 
-return cufft
+
 
 

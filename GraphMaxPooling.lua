@@ -25,7 +25,7 @@ function GraphMaxPooling:updateOutput(input)
    self.output:zero()
    self.indices:zero()
    --fprop_cpu(input, self.output, self.clusters, self.indices)
-   spectralcuda.graph_pool_fprop(input, self.output, self.clusters, self.indices) 
+   libspectralnet.graph_pool_fprop(input, self.output, self.clusters, self.indices) 
    return self.output
 end
 
@@ -33,7 +33,7 @@ function GraphMaxPooling:updateGradInput(input, gradOutput)
    self.gradInput:resize(input:size())
    self.gradInput:zero()
    --bprop_cpu(self.gradInput, gradOutput, self.indices)
-   spectralcuda.graph_pool_bprop(self.gradInput, gradOutput, self.indices)
+   libspectralnet.graph_pool_bprop(self.gradInput, gradOutput, self.indices)
    return self.gradInput
 end
 

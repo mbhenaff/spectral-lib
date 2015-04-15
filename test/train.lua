@@ -63,7 +63,7 @@ for i = 1,opt.epochs do
          inputs:copy(data[{{t,t+opt.batchSize-1},{}}])
          targets:copy(labels[{{t,t+opt.batchSize-1}}])
          local out = model:updateOutput(inputs)
-         loss = loss + criterion:forward(out,targets)[1]
+         loss = loss + criterion:forward(out,targets)
          for k = 1,opt.batchSize do
             local s,indx = torch.sort(out[k]:float(),true)
             local maxind = indx[1]

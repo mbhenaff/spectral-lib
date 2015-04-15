@@ -69,8 +69,7 @@ elseif opt.model == 'spectral1' then
    model:add(nn.Linear(oH1*oW1*opt.nhidden,nclasses))
 
 elseif opt.model == 'spectral2' then
-   opt.real = 'real'
-   opt.realKernels = true
+   opt.real = 'realpart'
    opt.kH = opt.k
    opt.kW = opt.k
    print(opt)
@@ -78,24 +77,19 @@ elseif opt.model == 'spectral2' then
 
    local oH1 = math.floor((iH-opt.k+1)/pool)
    local oW1 = math.floor((iW-opt.k+1)/pool)
---   oH1 = 2.*math.floor(oH1/2)
---   oW1 = 2.*math.floor(oW1/2)
    local oH2 = math.floor((oH1-opt.k+1)/pool)
    local oW2 = math.floor((oW1-opt.k+1)/pool)
---   oH2 = 2.*math.floor(oH2/2)
---   oW2 = 2.*math.floor(oW2/2)
 
-   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
+   model:add(nn.SpectralConvolutionImage(opt.batchSize,nChannels,opt.nhidden,iH,iW,opt.kH,opt.kW,opt.interp,opt.real))
+   --model:add(nn.Real(opt.real))
+   --model:add(nn.Bias(opt.nhidden))
    model:add(nn.Crop(iH,iW,iH-opt.kH+1,iW-opt.kW+1))
-  -- model:add(nn.Crop(iH,iW,oH1*2,oW1*2))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
 
-   model:add(nn.SpectralConvolutionImage(opt.batchSize, opt.nhidden, opt.nhidden, oH1, oW1, opt.kH, opt.kW, opt.interp, opt.realKernels))
-   model:add(nn.Real(opt.real))
-   model:add(nn.Bias(opt.nhidden))
+   model:add(nn.SpectralConvolutionImage(opt.batchSize, opt.nhidden, opt.nhidden, oH1, oW1, opt.kH, opt.kW, opt.interp, opt.real))
+   --model:add(nn.Real(opt.real))
+   --model:add(nn.Bias(opt.nhidden))
    model:add(nn.Crop(oH1,oW1,oH1-opt.kH+1,oW1-opt.kW+1))
    model:add(nn.Threshold())
    model:add(nn.SpatialMaxPooling(pool,pool,pool,pool))
@@ -106,8 +100,8 @@ elseif opt.model == 'spectral2' then
    end
    model:add(nn.Linear(oH2*oW2*opt.nhidden,nclasses))
    -- initialize biases properly
-   model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
-   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+   --model:get(3):reset(1./math.sqrt(nChannels*opt.kH*opt.kW))
+   --model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
 end
 
 model:add(nn.LogSoftMax())
@@ -118,10 +112,10 @@ criterion = criterion:cuda()
 
 -- initialize biases properly
 if opt.model == 'spectral1' then
-   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
+   --model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
 elseif opt.model == 'spectral2' then 
-   model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
-   model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
+   --model:get(3):reset(1./math.sqrt(nChannels*opt.k*opt.k))
+   --model:get(9):reset(1./math.sqrt(opt.nhidden*opt.kH*opt.kW))
 end
 
 optimState = {
