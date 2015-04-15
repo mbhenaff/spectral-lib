@@ -2,8 +2,9 @@ require 'nn'
 
 local Bias, parent = torch.class('nn.Bias', 'nn.Module')
 
-function Bias:__init(nPlanes)
+function Bias:__init(nPlanes,stdv)
    parent.__init(self)
+   self.stdv = stdv
    self.bias = torch.Tensor(nPlanes)
    self.gradBias = torch.Tensor(nPlanes)
    self:reset()
@@ -12,6 +13,8 @@ end
 function Bias:reset(stdv)
    if stdv then
       stdv = stdv * math.sqrt(3)
+   elseif self.stdv then 
+      stdv = self.stdv
    else     
       stdv = 1./math.sqrt(self.bias:size(1))
    end

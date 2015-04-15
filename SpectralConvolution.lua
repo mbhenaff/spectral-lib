@@ -1,7 +1,7 @@
 
 local SpectralConvolution, parent = torch.class('nn.SpectralConvolution','nn.Module')
 
-function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, subdim, GFTMatrix)
+function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, subdim, GFTMatrix, interpScale)
    parent.__init(self)
    self.dim = dim
    self.subdim = subdim
@@ -10,6 +10,7 @@ function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, sub
    self.GFTMatrix = GFTMatrix or torch.eye(dim,dim)
    self.iGFTMatrix = self.GFTMatrix:t():clone()
    self.interpType = 'bilinear'
+   self.interpScale = interpScale 
    -- bias
    self.bias = torch.Tensor(nOutputMaps)
    self.gradBias = torch.Tensor(nOutputMaps)
@@ -23,7 +24,7 @@ function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, sub
    self.gradWeight = torch.Tensor(nOutputMaps, nInputMaps, dim)
 
    -- weight transformation (interpolation)
-   local weightTransform = nn.Interp(self.subdim, self.dim, self.interpType)
+   local weightTransform = nn.Interp(self.subdim, self.dim, self.interpType, self.interpScale)
    self:setWeightTransform(weightTransform, torch.LongStorage({nOutputMaps, nInputMaps, self.subdim}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)
@@ -53,12 +54,11 @@ function SpectralConvolution:batchGFT(input, output, dir)
    input:resize(b*f, d)
    output:resize(b*f, d)
    output:zero()
+   assert(dir == 1 or dir == -1)
    if dir == 1 then
       output:addmm(input, self.GFTMatrix)
    elseif dir == -1 then
       output:addmm(input, self.iGFTMatrix)
-   else
-      error('dir should be 1 or -1')
    end
    input:resize(b, f, d)
    output:resize(b, f, d)
