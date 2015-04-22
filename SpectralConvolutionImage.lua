@@ -5,7 +5,7 @@
 -- realKernels specifies whether we want our kernels to be real (in the frequency domain)
 local SpectralConvolutionImage, parent = torch.class('nn.SpectralConvolutionImage','nn.Module')
 
-function SpectralConvolutionImage:__init(nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType, real)
+function SpectralConvolutionImage:__init(nInputPlanes, nOutputPlanes, iH, iW, sH, sW, interpType, real, adaptiveKernel)
    parent.__init(self)
    assert(iW % 2 == 0 and iH % 2 == 0, 'input size should be even')
    assert(sH % 2 == 1 and sW % 2 == 1, 'kernel size should be odd')
@@ -14,6 +14,7 @@ function SpectralConvolutionImage:__init(nInputPlanes, nOutputPlanes, iH, iW, sH
    self.nInputPlanes = nInputPlanes
    self.nOutputPlanes = nOutputPlanes
    self.makeReal = real or 'realpart'
+   self.adaptiveKernel = adaptiveKernel or true
    -- width/height of images
    self.iW = iW
    self.iH = iH
@@ -35,7 +36,13 @@ function SpectralConvolutionImage:__init(nInputPlanes, nOutputPlanes, iH, iW, sH
    -- weight transformation
    self.gradInput = torch.Tensor()
    self.gradWeight = torch.Tensor()
-   local weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
+   local weightTransform
+   if self.adaptiveKernel then
+      weightTransform = nn.LearnableInterp2D(sH,sW,iH,iW,self.interpType)
+   else 
+      weightTransform = nn.InterpImage(sH,sW,iH,iW,self.interpType)
+   end
+
    self:setWeightTransform(weightTransform,torch.LongStorage({nOutputPlanes,nInputPlanes,sH,sW,2}))
    self.weight = self.transformWeight:updateOutput(self.weightPreimage)
    self.gradWeightPreimage = self.transformWeight:updateGradInput(self.weightPreimage,self.gradWeight)

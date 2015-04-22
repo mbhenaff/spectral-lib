@@ -34,7 +34,7 @@ function LocallyConnected:reset(stdv)
 end
 
 function LocallyConnected:updateOutput(input)
-  -- self.weight:cmul(self.connTable)
+   self.weight:cmul(self.connTable)
    if input:dim() == 1 then
       self.output:resize(self.bias:size(1))
       self.output:copy(self.bias)
@@ -62,7 +62,7 @@ function LocallyConnected:updateOutput(input)
 end
 
 function LocallyConnected:updateGradInput(input, gradOutput)
-  -- self.weight:cmul(self.connTable)
+   self.weight:cmul(self.connTable)
    if self.gradInput then
 
       local nElement = self.gradInput:nElement()
@@ -99,7 +99,7 @@ function LocallyConnected:accGradParameters(input, gradOutput, scale)
          self.gradBias:addmv(scale, gradOutput:t(), self.addBuffer)
       end
    end
---   self.gradWeight:cmul(self.connTable)
+   self.gradWeight:cmul(self.connTable)
 
 end
 
