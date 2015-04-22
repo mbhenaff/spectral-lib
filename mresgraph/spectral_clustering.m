@@ -12,6 +12,7 @@ X=ee(:,end-n+1:end);
 %renormalize rows
 X=X./repmat(sqrt(sum(X.^2,2)),1,size(X,2));
 
+keyboard
 
 
 %2) kmeans using balanced clusters
