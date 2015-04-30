@@ -3,7 +3,7 @@
 require 'cunn'
 require 'spectralnet'
 require 'Jacobian2'
---require 'utils'
+matio = require 'matio'
 
 --torch.manualSeed(123)
 cutorch.setDevice(3)
@@ -17,10 +17,12 @@ local test_interp = false
 local test_interp_feat = false
 local test_real = false
 local test_complex_interp = false
+local test_locallyConnected = false
 local test_spectralconv_img = false
 local test_spectralconv_img_feat = false
-local test_spectralconv = true
+local test_spectralconv = false
 local test_graphpool = false
+local test_learnable_interp = true
 local test_time = false
 
 local mytester = torch.Tester()
@@ -46,6 +48,35 @@ function estimate_norm(M1)
 end
 
 
+if test_learnable_interp then 
+   function nntest.LearnableInterp2D()
+      print('\n')
+      local iH = 5
+      local iW = 5
+      local oH = 32
+      local oW = 32
+      local nInputPlanes = 2
+      local nOutputPlanes = 3
+
+      local input = torch.Tensor(nOutputPlanes, nInputPlanes, iH, iW, 2):cuda():zero()
+
+      --local model = nn.Linear(nInputs, nOutputs)
+      local model = nn.LearnableInterp2D(iH, iW, oH, oW, 'bilinear'):cuda()
+      local err,jf,jb = jac.testJacobian(model, input)
+      print('error on state = ' .. err)
+
+      err,jfp,jbp = jac.testJacobianParameters(model, input, model.weight, model.gradWeight)
+      print('error on weight = ' .. err)
+      --mytester:assertlt(err,precision, 'error on weight')
+      print('\n')
+   end
+end
+   
+nntest.LearnableInterp2D()
+
+
+
+
 
 if test_crop then 
    function nntest.Crop()
@@ -66,6 +97,44 @@ if test_crop then
    end
 end
 
+
+-- note, for some reason this fails with the Jacobian2 function. 
+-- so does the Linear module, so it probably is ok.
+-- use the default Jacobian function and change default type to double and it works.
+if test_locallyConnected then 
+   function nntest.LocallyConnected()
+      torch.setdefaulttensortype('torch.DoubleTensor')
+      print('\n')
+      local nInputs = 100
+      local nOutputs = 200
+      local batchSize = 10
+      local connTable = torch.Tensor(nOutputs, nInputs):fill(1)
+      local cuts = nInputs*nOutputs/2
+      -- cut some connections
+      for k = 1,cuts do 
+         local i = math.random(1,nInputs)
+         local j = math.random(1,nOutputs)
+         connTable[j][i] = 0
+      end
+      --local model = nn.Linear(nInputs, nOutputs)
+      local model = nn.LocallyConnected(nInputs, nOutputs, connTable)
+      input = torch.Tensor(batchSize, nInputs):zero()
+      local err,jf,jb = jac.testJacobian(model, input)
+      print('error on state = ' .. err)
+
+      err,jfp,jbp = jac.testJacobianParameters(model, input, model.weight, model.gradWeight)
+      print('error on weight = ' .. err)
+      --mytester:assertlt(err,precision, 'error on weight')
+      print('\n')
+
+      local err,jfp,jbp = jac.testJacobianParameters(model, input, model.bias, model.gradBias)
+      print('error on bias = ' .. err)
+      --mytester:assertlt(err,precision, 'error on bias')
+      torch.setdefaulttensortype('torch.FloatTensor')
+      print('\n')
+   end
+end
+   
 if test_bias then
    function nntest.Bias()
       print('\n')
@@ -206,15 +275,27 @@ if test_spectralconv then
       torch.manualSeed(123)
       local interpType = 'bilinear'
       local dim = 120
-      local subdim = 5
+      local subdim = 20
       local nInputPlanes = 3
-      local nOutputPlanes = 2
-      local batchSize = 3
+      local nOutputPlanes = 4
+      local batchSize = 32
+
+
+
+
+
+
+   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+   --local graph_name = opt.dataset .. '_spatialsim_laplacian_poolsize_' .. opt.poolsize .. '_stride_' .. opt.poolstride .. '_neighbs_' .. opt.poolneighbs .. '.th') 
+   local graph_name = 'timit_laplacians.mat'
+   L = matio.load(graphs_path .. graph_name)
+   GFTMatrix = L.V1:float()
+
       --local L = torch.load('mresgraph/reuters_GFT_pool4.th')
       --local GFTMatrix = torch.eye(dim,dim)--L.V2
-      local X = torch.randn(dim,dim)
-      X = (X + X:t())/2
-      local _,GFTMatrix = torch.symeig(X,'V')
+--      local X = torch.randn(dim,dim)
+--      X = (X + X:t())/2
+--      local _,GFTMatrix = torch.symeig(X,'V')
       local s = estimate_norm(GFTMatrix)
       print(s)
       --GFTMatrix = torch.eye(dim,dim)
@@ -293,7 +374,7 @@ if test_spectralconv_img then
       torch.manualSeed(123)
       torch.setdefaulttensortype('torch.FloatTensor')
       local interpType = 'spatial'
-      local real = 'modulus'
+      local real = 'none'
       local iW = 16
       local iH = 16
       local nInputPlanes = 3
@@ -301,10 +382,9 @@ if test_spectralconv_img then
       local batchSize = 2
       local sW = 5	
       local sH = 5
-      model = nn.SpectralConvolutionImage(batchSize,nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType,real)
+      model = nn.SpectralConvolutionImage(nInputPlanes,nOutputPlanes,iH,iW,sH,sW,interpType,real)
       model = model:cuda()
       model:reset()
-      model.bias:zero()
       model.zW = 0
       model.zH = 0
       local input = torch.CudaTensor(batchSize,nInputPlanes,iH,iW):normal()
