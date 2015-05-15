@@ -46,6 +46,7 @@ for i = 1,opt.epochs do
       elseif opt.optim == 'adagrad' then
          optim.adagrad(feval, w, optimState)
       end
+      regularize(opt.lambda*(optimState.learningRate/(1+optimState.evalCounter*optimState.learningRateDecay)))
    end
    
    function computePerf(set)

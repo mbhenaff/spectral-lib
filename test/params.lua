@@ -25,12 +25,14 @@ cmd:option('-printNorms',0)
 cmd:option('-batchSize',128)
 cmd:option('-learningRate',0.1)
 cmd:option('-weightDecay',0)
-cmd:option('-epochs',80)
+cmd:option('-epochs',100)
 cmd:option('-log',1)
 cmd:option('-dropout',0)
 cmd:option('-alpha',0.1)
 cmd:option('-suffix','')
 cmd:option('-normdata','features')
+cmd:option('-lambda',0)
+cmd:option('-weightDecay',0)
 cmd:option('-interpScale',1)
 opt = cmd:parse(arg or {})
 
@@ -52,7 +54,7 @@ else
    opt.dropout = true
 end
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/'
+opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/gc/'
 
 opt.modelFile = 'dataset=' .. opt.dataset .. '-norm=' .. opt.normdata
 
@@ -83,10 +85,12 @@ elseif string.match(opt.model,'spatial') then
       .. '-poolstride-' .. opt.poolstride
    end
 
-elseif string.match(opt.model,'fc') then
+elseif string.match(opt.model,'fc') or string.match(opt.model,'gc') then
    opt.modelFile = opt.modelFile 
       .. '-nhidden=' .. opt.nhidden 
+      .. '-weightDecay=' .. opt.weightDecay
 end
+
 
 if string.match(opt.model,'pool') then
    opt.modelFile = opt.modelFile 

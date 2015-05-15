@@ -5,21 +5,23 @@ matio = require 'matio'
 
 
 -- load GFT matrices and connection table
+if false then
 if string.match(opt.model,'gconv') or string.match(opt.model,'lc') then
    graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
    local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_poolsize_' 
-                        .. 32 .. '_poolstride_' 
-                        .. 16 .. '.mat')
+                        .. '/reuters_laplacians.mat')
+   
 
    V1 = x.V1:clone():float()
    V2 = x.V1:clone():float()
+end
 end
 
 if string.match(opt.model,'pool') then
    local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
    local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_poolsize_' 
+                        .. '/reuters_laplacian_' .. opt.laplacian
+                        .. '_poolsize_' 
                         .. opt.poolsize .. '_poolstride_' 
                         .. opt.poolstride .. '.mat')
    pools1 = x.pools[1]:clone()
@@ -32,6 +34,9 @@ nInputs = dim*nChannels
 
 -- make model
 model = nn.Sequential()
+
+function regularize() end
+
 if opt.model == 'linear' then
    model:add(nn.View(dim*nChannels))
    model:add(nn.Linear(dim*nChannels, nclasses))
@@ -88,6 +93,40 @@ elseif opt.model == 'fc3dropout' then
    model:add(nn.Linear(opt.nhidden, nclasses))
    model:add(nn.LogSoftMax())
    model = model:cuda()
+
+elseif opt.model == 'gc3' then 
+   require 'regularization'
+
+
+   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+
+
+   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
+                        .. '/reuters_laplacian_gauss.mat')
+
+   print(x)
+   L = x.L:cuda()
+
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.Linear(dim*nChannels, opt.nhidden))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden, opt.nhidden))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden, nclasses))
+   model:add(nn.LogSoftMax())
+
+   model:get(3):initReg()
+   model:get(6):initReg()
+   function regularize(lambda)
+      model:get(3):regularize(L,lambda)
+      model:get(6):regularize(L,lambda)
+   end
+
+   model = model:cuda()
+
 
 elseif opt.model == 'fc4' then 
    model:add(nn.View(dim*nChannels))
@@ -192,6 +231,33 @@ elseif opt.model == 'gconv2-finalpool-dropout' then
    model = model:cuda()
    model:reset()
 
+elseif opt.model == 'gconv2-finalpool-dropout2' then
+
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.View(nChannels, dim))
+   -- conv layer 1
+   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- conv layer 2
+   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- pooling layer
+   model:add(nn.GraphMaxPooling(pools1:t():clone()))
+
+   -- classifier layer
+   model:add(nn.View(opt.nhidden*dim/opt.poolstride))
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden*dim/opt.poolstride, nclasses))
+   model:add(nn.LogSoftMax())
+
+   -- send to GPU and reset pointers
+   model = model:cuda()
+   model:reset()
+
+
 elseif opt.model == 'gconv3-finalpool' then 
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
@@ -224,7 +290,7 @@ elseif opt.model == 'gconv-deep1' then
    poolsize2 = 8
    poolstride2 = 4
    
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/alpha_0.1/'
    local x = matio.load(graphs_path .. '/reuters_laplacian_pool1_' .. poolsize1 .. '_stride1_' .. poolstride1 .. '_pool2_' .. poolsize2 .. '_stride2_' .. poolstride2 .. '.mat')
 
 
@@ -232,6 +298,10 @@ elseif opt.model == 'gconv-deep1' then
    V2 = x.V[2]:clone()
    pools1 = x.pools[1]:clone()
    pools2 = x.pools[2]:clone()
+
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.View(nChannels, dim))
 
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
@@ -257,6 +327,7 @@ elseif opt.model == 'gconv-deep1' then
 
    -- classifier layer
    model:add(nn.View(opt.nhidden*dim/(poolstride1*poolstride2)))
+   model:add(nn.Dropout())
    model:add(nn.Linear(opt.nhidden*dim/(poolstride1*poolstride2), nclasses))
    model:add(nn.LogSoftMax())
 
@@ -311,7 +382,6 @@ elseif opt.model == 'gconv-deep2' then
    -- send to GPU and reset pointers
    model = model:cuda()
    model:reset()
-
 else
    error('unrecognized model')
 end

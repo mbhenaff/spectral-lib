@@ -1,5 +1,5 @@
 -- Unit tests and speed tests for all the modules. 
-
+require 'gnuplot'
 require 'cunn'
 require 'spectralnet'
 require 'Jacobian2'
@@ -21,8 +21,8 @@ local test_locallyConnected = false
 local test_spectralconv_img = false
 local test_spectralconv_img_feat = false
 local test_spectralconv = false
-local test_graphpool = false
-local test_learnable_interp = true
+local test_graphpool = true
+local test_learnable_interp = false
 local test_time = false
 
 local mytester = torch.Tester()
@@ -72,7 +72,7 @@ if test_learnable_interp then
    end
 end
    
-nntest.LearnableInterp2D()
+--nntest.LearnableInterp2D()
 
 
 
@@ -329,13 +329,13 @@ end
 if test_graphpool then
    function nntest.GraphMaxPool()
       torch.manualSeed(313)
-      local dim = 784
-      local poolsize = 9
-      local stride = 4
-      local nClusters = dim/stride
-      local nMaps = 2
-      local batchSize = 3
-      for i = 1,20 do 
+      local dim = 5790
+      local poolsize = 20
+      local stride = 10
+      local nClusters = math.ceil(dim/stride)
+      local nMaps = 1
+      local batchSize = 1
+      for i = 1,1 do 
          local clusters
          if false then
             clusters = torch.randperm(dim)
@@ -349,7 +349,7 @@ if test_graphpool then
          model = nn.GraphMaxPooling(clusters)
          model = model:cuda()
          model:reset()      
-         local input = torch.CudaTensor(batchSize, nMaps, dim):normal()
+         input = torch.CudaTensor(batchSize, nMaps, dim):normal()
          err,jf,jb = jac.testJacobian(model, input, -100,100)
          diff = jf:float() - jb:float()
          print('error on state = ' .. err)
