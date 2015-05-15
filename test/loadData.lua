@@ -4,7 +4,7 @@ require 'image'
 --require 'utils'
 require 'memoryMap'
 
-function loadData(dataset,split,resize)
+function loadData(dataset,split,resize,normalize)
    local resize = resize or false
    local f, data, labels
    if dataset == 'cifar' then
@@ -47,8 +47,33 @@ function loadData(dataset,split,resize)
       else
          error('set should be train or test')
       end
+
+      local means
+      local std
+      if not paths.dirp('/scratch/mbhenaff/reuters') then
+         paths.mkdir('/scratch/mbhenaff/reuters')
+      end
+      
+      if paths.filep('/scratch/mbhenaff/reuters/means.th') then
+         means = torch.load('/scratch/mbhenaff/reuters/means.th')
+      else
+         means = torch.mean(f.data,1)
+         torch.save('/scratch/mbhenaff/reuters/means.th',means)
+      end
+      if paths.filep('/scratch/mbhenaff/reuters/std.th') then
+         std = torch.load('/scratch/mbhenaff/reuters/std.th')
+      else
+         std = torch.std(f.data,1)
+         torch.save('/scratch/mbhenaff/reuters/std.th',std)         
+      end
+      if normalize then
+         f.data:add(-1,means:expandAs(f.data))
+         f.data:cdiv(std:expandAs(f.data))
+      end
+
       labels = f.labels
       data = f.data
+
    elseif dataset == 'imagenet' then
       f = {}
       if split == 'test' then 
@@ -73,14 +98,37 @@ function loadData(dataset,split,resize)
          f.data:resize(100000,3,128,128)
       end
    elseif dataset == 'timit' then
-      f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/timit/fbanks/' .. split .. '/data_winsize_15.th')
+      if paths.filep('/scratch/timit/' .. split .. '/data_winsize_15.th') then
+         f = torch.load('/scratch/timit/' .. split .. '/data_winsize_15.th')
+      else
+         f = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/torch_datasets/timit/' .. split .. '/data_winsize_15.th')
+      end
+      print(f)
       local nSamples = f.data:size(1)
       local nFrames = f.data:size(2)
       local nBands = f.data:size(3)
       f.data:resize(nSamples,nFrames*nBands)
       f.labels = f.labels + 1
-      local means = torch.mean(f.data,1)
-      local std = torch.std(f.data,1)
+      
+      local means
+      local std
+      if not paths.dirp('/scratch/mbhenaff/timit') then
+         paths.mkdir('/scratch/mbhenaff/timit')
+      end
+      
+      if paths.filep('/scratch/mbhenaff/timit/means.th') then
+         means = torch.load('/scratch/mbhenaff/timit/means.th')
+      else
+         means = torch.mean(f.data,1)
+         torch.save('/scratch/mbhenaff/timit/means.th',means)
+      end
+      if paths.filep('/scratch/mbhenaff/timit/std.th') then
+         std = torch.load('/scratch/mbhenaff/timit/std.th')
+      else
+         std = torch.std(f.data,1)
+         torch.save('/scratch/mbhenaff/timit/std.th',std)         
+      end
+
       f.data:add(-1,means:expandAs(f.data))
       f.data:cdiv(std:expandAs(f.data))
       f.data = f.data:resize(nSamples, nFrames, nBands)

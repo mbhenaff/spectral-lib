@@ -1,10 +1,12 @@
 -- general datasource object for training graph conv networks.
 -- data is loaded and presented in the form [nSamples x nChannels x dim]
 require 'torch'
+matio = require 'matio'
 local Datasource = torch.class('Datasource')
 
 function Datasource:__init(dataset,normalization)
    -- load the datasets and format to be [nSamples x nChannels x dim]
+   local normalization = normalization or 'none'
    print('Loading dataset')
    self.output = torch.Tensor()
    self.labels = torch.LongTensor()
@@ -39,6 +41,18 @@ function Datasource:__init(dataset,normalization)
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
       self.nChannels = 15
       self.dim = 120
+   elseif dataset == 'merck10' then
+--      self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_train_4000.mat')
+--      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_val_4000.mat')
+      self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_train2.mat')
+      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_val.mat')
+      print(self.train_set)
+      print(self.test_set)
+      self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
+      self.nChannels = 1
+      self.dim = 5790
+      self.train_set.labels = self.train_set.labels:squeeze()
+      self.test_set.labels = self.test_set.labels:squeeze()
    end
    self.train_set.data:resize(self.nSamples.train,self.nChannels,self.dim)
    self.test_set.data:resize(self.nSamples.test,self.nChannels,self.dim)
@@ -74,8 +88,15 @@ function Datasource:__init(dataset,normalization)
       self.test_set.data:cdiv(std:expandAs(self.test_set.data))
       self.train_set.data:resize(self.nSamples.train,self.nChannels,self.dim)
       self.test_set.data:resize(self.nSamples.test,self.nChannels,self.dim)
+   elseif normalization == 'log' then
+      self.train_set.data:resize(self.nSamples.train,self.nChannels*self.dim)
+      self.test_set.data:resize(self.nSamples.test,self.nChannels*self.dim)
+      self.train_set.data:add(1):log()
+      self.test_set.data:add(1):log()
    elseif normalization == 'none' then
       --do nothing
+   else
+      error('unrecognized normalization')
    end
 
    self.indx = torch.randperm(self.nSamples.train)
