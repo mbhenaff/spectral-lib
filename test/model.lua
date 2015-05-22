@@ -52,6 +52,13 @@ elseif opt.model == 'lc2' then
    model = model:cuda()
 
 elseif opt.model == 'lc3' then
+   graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
+                        .. '/reuters_laplacian_gauss.mat')
+
+   local connTable = x.NN
+
+
    local nInputs = dim*nChannels
    model:add(nn.View(nInputs))
    
@@ -62,6 +69,29 @@ elseif opt.model == 'lc3' then
    model:add(nn.Linear(nInputs, nclasses))
    model:add(nn.LogSoftMax())
    model = model:cuda()
+
+elseif opt.model == 'lc3dropout' then
+   graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
+                        .. '/reuters_laplacians.mat')
+
+   local connTable = x.NN
+
+
+   local nInputs = dim*nChannels
+   model:add(nn.View(nInputs))
+   model:add(nn.Dropout(0.2))   
+   model:add(nn.LocallyConnected(nInputs, nInputs, connTable))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.LocallyConnected(nInputs, nInputs, connTable))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(nInputs, nclasses))
+   model:add(nn.LogSoftMax())
+   model = model:cuda()
+
+
 
 elseif opt.model == 'fc2' then 
    model:add(nn.View(dim*nChannels))
@@ -102,7 +132,7 @@ elseif opt.model == 'gc3' then
 
 
    local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_gauss.mat')
+                        .. '/' .. opt.dataset .. '_laplacian_gauss.mat')
 
    print(x)
    L = x.L:cuda()
@@ -121,8 +151,46 @@ elseif opt.model == 'gc3' then
    model:get(3):initReg()
    model:get(6):initReg()
    function regularize(lambda)
+      for i = 1,1 do
+      model:get(3):regularize(L,lambda,opt.npts)
+      model:get(6):regularize(L,lambda,opt.npts)
+      end
+   end
+   model = model:cuda()
+
+elseif opt.model == 'gc4' then 
+   require 'regularization'
+
+   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+
+
+   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
+                        .. '/reuters_laplacian_gauss.mat')
+
+   print(x)
+   L = x.L:cuda()
+
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.Linear(dim*nChannels, opt.nhidden))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden, opt.nhidden))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden, opt.nhidden))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden, nclasses))
+   model:add(nn.LogSoftMax())
+
+   model:get(3):initReg()
+   model:get(6):initReg()
+   model:get(9):initReg()
+   function regularize(lambda)
       model:get(3):regularize(L,lambda)
       model:get(6):regularize(L,lambda)
+      model:get(9):regularize(L,lambda)
    end
 
    model = model:cuda()
