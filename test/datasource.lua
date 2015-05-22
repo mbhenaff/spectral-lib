@@ -5,12 +5,16 @@ matio = require 'matio'
 local Datasource = torch.class('Datasource')
 
 function Datasource:__init(dataset,normalization)
+   self.testTime = true
+   self.alpha = 0.1
    -- load the datasets and format to be [nSamples x nChannels x dim]
    local normalization = normalization or 'none'
    print('Loading dataset')
    self.output = torch.Tensor()
    self.labels = torch.LongTensor()
    if dataset == 'cifar' then
+      self.train_set = {}
+      self.test_set = {}
       local cifar = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/cifar-10-batches-t7/cifar_10_norm.th')
       self.train_set.data = cifar.trdata
       self.test_set.data = cifar.tedata
@@ -19,6 +23,7 @@ function Datasource:__init(dataset,normalization)
       self.nClasses = 10
       self.nChannels = 3
       self.dim = 32*32
+      self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
    elseif dataset == 'mnist' then
       self.train_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/train_28x28.th7nn')
       self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/mnist-torch7/test_28x28.th7nn')
@@ -33,6 +38,7 @@ function Datasource:__init(dataset,normalization)
       self.nChannels = 1
       self.dim = 2000
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
+      normalization = 'log'
    elseif dataset == 'timit' then
       self.train_set = torch.load('/scratch/timit/' .. split .. '/data_winsize_15.th')
       self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/torch_datasets/timit/' .. split .. '/data_winsize_15.th')
@@ -41,18 +47,68 @@ function Datasource:__init(dataset,normalization)
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
       self.nChannels = 15
       self.dim = 120
-   elseif dataset == 'merck10' then
---      self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_train_4000.mat')
---      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_val_4000.mat')
-      self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_train2.mat')
-      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/ACT10_val.mat')
-      print(self.train_set)
-      print(self.test_set)
+   elseif dataset == 'merck1' then
+      self.dim = 9491
+      self.train_set = {}
+      self.train_set.data = torch.Tensor(33516,self.dim):zero()
+      self.train_set.labels = torch.Tensor(33516):zero()
+      local cntr = 1
+      for i = 1,5 do 
+--         local chunk = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/TrainingSet/ACT1_PLS2000_train_chunk' .. i .. '.mat')
+         local chunk = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/TrainingSet/ACT1_train_chunk' .. i .. '.mat')
+         print(chunk)
+         self.train_set.data[{{cntr,cntr+chunk.data:size(1)-1}}]:copy(chunk.data)
+         self.train_set.labels[{{cntr,cntr+chunk.data:size(1)-1}}]:copy(chunk.labels)
+         cntr = cntr + chunk.data:size(1)
+      end
+      print(cntr)
+--      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/TrainingSet/ACT1_PLS2000_val.mat')
+      self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/TrainingSet/ACT1_val.mat')
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
       self.nChannels = 1
-      self.dim = 5790
       self.train_set.labels = self.train_set.labels:squeeze()
       self.test_set.labels = self.test_set.labels:squeeze()
+      normalization = 'none'
+
+   elseif string.match(dataset,'merck') then
+      local num = string.match(dataset,"%d+")
+      if self.testTime then
+         self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_test.mat')
+         self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_train.mat')
+         self.dim = self.test_set.data:size(2)
+         local mean = torch.mean(self.train_set.labels)
+         local std = torch.std(self.train_set.labels)
+         self.train_set.labels:add(-mean)
+         self.train_set.labels:mul(1./std)
+         self.test_set.labels:add(-mean)
+         self.test_set.labels:mul(1./std)
+      else
+         local x = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_train.mat')
+         local nSamples = x.data:size(1)
+         self.dim = x.data:size(2)
+         local nTrain = math.floor(nSamples*(1-self.alpha))
+         local nTest = nSamples - nTrain
+         local perm = torch.randperm(nSamples)
+         self.train_set = {}
+         self.test_set = {}
+         self.train_set.data = torch.Tensor(nTrain,self.dim)
+         self.test_set.data = torch.Tensor(nTest,self.dim)
+         self.train_set.labels = torch.Tensor(nTrain,1)
+         self.test_set.labels = torch.Tensor(nTest,1)
+         for i = 1,nTrain do 
+            self.train_set.data[i]:copy(x.data[perm[i]])
+            self.train_set.labels[i]:copy(x.labels[perm[i]])
+         end
+         for i = 1,nTest do 
+            self.test_set.data[i]:copy(x.data[perm[i+nTrain]])
+            self.test_set.labels[i]:copy(x.labels[perm[i+nTrain]])
+         end
+      end
+      self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
+      self.nChannels = 1
+      self.train_set.labels = self.train_set.labels:squeeze()
+      self.test_set.labels = self.test_set.labels:squeeze()
+      normalization = 'none'
    end
    self.train_set.data:resize(self.nSamples.train,self.nChannels,self.dim)
    self.test_set.data:resize(self.nSamples.test,self.nChannels,self.dim)
@@ -98,7 +154,8 @@ function Datasource:__init(dataset,normalization)
    else
       error('unrecognized normalization')
    end
-
+   print('training set is ' .. self.nSamples['train'] .. ' x ' .. self.dim)
+   print('testing set is ' .. self.nSamples['test'] .. ' x ' .. self.dim)
    self.indx = torch.randperm(self.nSamples.train)
 end
 

@@ -47,6 +47,7 @@ for i = 1,opt.epochs do
          optim.adagrad(feval, w, optimState)
       end
       regularize(opt.lambda*(optimState.learningRate/(1+optimState.evalCounter*optimState.learningRateDecay)))
+      collectgarbage()
    end
    
    function computePerf(set)

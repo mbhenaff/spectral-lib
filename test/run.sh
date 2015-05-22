@@ -7,6 +7,7 @@ do
     then
         for job in jobs/queued/*.txt; do 
             cmd=`cat $job`
+            echo executing $cmd
             fname=$(basename $job)
             rm -f $job
             echo $cmd > jobs/running/$fname

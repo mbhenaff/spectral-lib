@@ -30,9 +30,11 @@ cmd:option('-log',1)
 cmd:option('-dropout',0)
 cmd:option('-alpha',0.1)
 cmd:option('-suffix','')
-cmd:option('-normdata','features')
+cmd:option('-normdata','feature')
 cmd:option('-lambda',0)
 cmd:option('-weightDecay',0)
+cmd:option('-momentum',0)
+cmd:option('-npts', 10, 'number of points to sample for commutation loss')
 cmd:option('-interpScale',1)
 opt = cmd:parse(arg or {})
 
@@ -54,7 +56,7 @@ else
    opt.dropout = true
 end
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/gc/'
+opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/merck/'
 
 opt.modelFile = 'dataset=' .. opt.dataset .. '-norm=' .. opt.normdata
 
@@ -89,6 +91,12 @@ elseif string.match(opt.model,'fc') or string.match(opt.model,'gc') then
    opt.modelFile = opt.modelFile 
       .. '-nhidden=' .. opt.nhidden 
       .. '-weightDecay=' .. opt.weightDecay
+end
+
+if string.match(opt.model,'gc') then
+   opt.modelFile = opt.modelFile ..'-lambda=' .. opt.lambda
+      .. '-alpha=' .. opt.alpha
+      .. '-npts=' .. opt.npts
 end
 
 
