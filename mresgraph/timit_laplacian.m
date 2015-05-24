@@ -1,6 +1,7 @@
 %this script generates several laplacians for the TIMIT dataset
 
-if 0
+%%
+if 1
 clear all
 close all
 
@@ -16,6 +17,7 @@ mu=mean(data,2);
 data = data - repmat(mu,1,size(data,2));
 sigmas = std(data,0,2);
 data = data./repmat(sigmas,1,size(data,2));
+%%
 
 %%1 Use the euclidean Kernel (aka PCA)
 G = data*data';
@@ -41,13 +43,21 @@ LW=randn(size(L));
 [V2,~,~]=svd(LW);
 
 
-%construct the neighbordhoods
+%construct the neighbordhoods using correlation
+correl = data*data';
+correl = correl/mean(diag(correl));
+correl = abs(correl);
+
 NN=zeros(size(L));
+
+NN=(correl > 0.7);
+
+if 0
 for i=1:size(K0s,1)
 ind = find(K0(i,:) < sigma^2);
 NN(i,ind)=1;
 end
-
+end
 
 save('/misc/vlgscratch3/LecunGroup/bruna/timit_laplacians.mat','V0','V1','V2','NN');
 
