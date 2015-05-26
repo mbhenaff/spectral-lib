@@ -15,21 +15,11 @@ function LocallyConnected:__init(inputSize, outputSize, connTable)
 end
 
 function LocallyConnected:reset(stdv)
-   if stdv then
-      stdv = stdv * math.sqrt(3)
-   else
-      stdv = 1./math.sqrt(self.weight:size(2))
-   end
-   if nn.oldSeed then
-      for i=1,self.weight:size(1) do
-         self.weight:select(1, i):apply(function()
-            return torch.uniform(-stdv, stdv)
-         end)
-         self.bias[i] = torch.uniform(-stdv, stdv)
-      end
-   else
-      self.weight:uniform(-stdv, stdv)
-      self.bias:uniform(-stdv, stdv)
+   for i = 1,self.weight:size(1) do 
+      local nInputs = self.connTable[i]:sum()
+      stdv = 1./math.sqrt(nInputs)
+      self.weight[i]:uniform(-stdv,stdv)
+      self.bias[i]:uniform(-stdv,stdv)
    end
 end
 
