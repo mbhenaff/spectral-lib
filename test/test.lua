@@ -20,7 +20,7 @@ local test_complex_interp = false
 local test_locallyConnected = false
 local test_spectralconv_img = false
 local test_spectralconv_img_feat = false
-local test_spectralconv = false
+local test_spectralconv = true
 local test_graphpool = true
 local test_learnable_interp = false
 local test_time = false
@@ -303,6 +303,7 @@ if test_spectralconv then
       local model = nn.SpectralConvolution(batchSize,nInputPlanes,nOutputPlanes,dim, subdim, GFTMatrix:float())
       model = model:cuda()
       model:reset()
+      print({model})
       local input = torch.CudaTensor(batchSize,nInputPlanes,dim):normal()
       err,jf,jb = jac.testJacobian(model, input)
       print('error on state =' .. err)
@@ -329,10 +330,21 @@ end
 if test_graphpool then
    function nntest.GraphMaxPool()
       torch.manualSeed(313)
-      local dim = 5790
-      local poolsize = 20
-      local stride = 10
-      local nClusters = math.ceil(dim/stride)
+      if true then
+      dim = 3705
+      poolsize = 8
+      stride = 4
+      --nClusters = math.floor(dim/stride)
+      nClusters = 926
+   else
+      dim = 10000
+      poolsize = 20
+      stride = 10
+      --nClusters = math.floor(dim/stride)
+      nClusters = 10
+   end
+
+      print(nClusters)
       local nMaps = 1
       local batchSize = 1
       for i = 1,1 do 

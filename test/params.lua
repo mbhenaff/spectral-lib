@@ -13,7 +13,7 @@ cmd:option('-dataset','reuters')
 cmd:option('-model','gconv2','linear | gconv1 | gconv2 | fc2 | ... | fc5')
 cmd:option('-optim','sgd')
 cmd:option('-nhidden',64)
-cmd:option('-k',5)
+cmd:option('-k',40)
 cmd:option('-rfreq',0,'reduction factor for freq bands')
 cmd:option('-interp', 'spline','bilinear | spline | dyadic_spline | spatial')
 cmd:option('-laplacian','gauss')
@@ -23,9 +23,9 @@ cmd:option('-poolneighbs',4)
 cmd:option('-gpunum',1)
 cmd:option('-printNorms',0)
 cmd:option('-batchSize',128)
-cmd:option('-learningRate',0.1)
+cmd:option('-learningRate',0.05)
 cmd:option('-weightDecay',0)
-cmd:option('-epochs',100)
+cmd:option('-epochs',500)
 cmd:option('-log',1)
 cmd:option('-dropout',0)
 cmd:option('-alpha',0.1)
@@ -33,9 +33,11 @@ cmd:option('-suffix','')
 cmd:option('-normdata','feature')
 cmd:option('-lambda',0)
 cmd:option('-weightDecay',0)
-cmd:option('-momentum',0)
+cmd:option('-momentum',0.9)
 cmd:option('-npts', 10, 'number of points to sample for commutation loss')
 cmd:option('-interpScale',1)
+cmd:option('-testTime',0)
+cmd:option('-stop',0)
 opt = cmd:parse(arg or {})
 
 cutorch.setDevice(opt.gpunum)
@@ -44,19 +46,16 @@ torch.manualSeed(321)
 
 assert(opt.optim == 'sgd' or opt.optim == 'adagrad')
 
-if opt.log == 0 then 
-   opt.log = false 
-else
-   opt.log = true
-end
-
-if opt.dropout == 0 then 
-   opt.dropout = false 
-else 
-   opt.dropout = true
-end
+opt.testTime = (opt.testTime == 1)
+opt.log = (opt.log == 1)
+opt.dropout = (opt.dropout == 1)
+opt.stop = (opt.stop == 1)
 
 opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/merck/'
+
+if opt.testTime then
+   opt.savePath = opt.savePath .. '/testtime/'
+end
 
 opt.modelFile = 'dataset=' .. opt.dataset .. '-norm=' .. opt.normdata
 
@@ -70,22 +69,10 @@ if string.match(opt.model,'gconv') then
       .. '-alpha=' .. opt.alpha
       .. '-interpScale=' .. opt.interpScale
 
-   if opt.poolsize > 1 then
-      opt.modelFile = opt.modelFile 
-      .. '-poolsize-' .. opt.poolsize
-      .. '-poolstride-' .. opt.poolstride
-   end
-
 elseif string.match(opt.model,'spatial') then
    opt.modelFile = opt.modelFile 
       .. '-nhidden=' .. opt.nhidden 
       .. '-k=' .. opt.k  
-
-   if opt.poolsize > 1 then
-      opt.modelFile = opt.modelFile 
-      .. '-poolsize-' .. opt.poolsize
-      .. '-poolstride-' .. opt.poolstride
-   end
 
 elseif string.match(opt.model,'fc') or string.match(opt.model,'gc') then
    opt.modelFile = opt.modelFile 
@@ -93,7 +80,7 @@ elseif string.match(opt.model,'fc') or string.match(opt.model,'gc') then
       .. '-weightDecay=' .. opt.weightDecay
 end
 
-if string.match(opt.model,'gc') then
+if string.match(opt.model,'gc3') then
    opt.modelFile = opt.modelFile ..'-lambda=' .. opt.lambda
       .. '-alpha=' .. opt.alpha
       .. '-npts=' .. opt.npts
@@ -104,7 +91,7 @@ if string.match(opt.model,'pool') then
    opt.modelFile = opt.modelFile 
       .. '-poolsize=' .. opt.poolsize
       .. '-poolstride=' .. opt.poolstride
-      .. '-poolneighbs=' .. opt.poolneighbs
+      --.. '-poolneighbs=' .. opt.poolneighbs
 end
    
 

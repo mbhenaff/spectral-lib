@@ -2,6 +2,20 @@ dofile('params.lua')
 dofile('data.lua')
 dofile('model_merck.lua')
 
+if opt.stop then 
+   m1 = model:get(4)
+   m2 = model:get(6)
+   inp1 = torch.randn(opt.batchSize,opt.nhidden,dim):cuda()
+   timer = torch.Timer()
+   timer:reset()
+   out1 = m1:forward(inp1)
+   cutorch.synchronize()
+   print(timer:time().real)
+   timer:reset()
+   out2 = m2:forward(out1)
+   cutorch.synchronize()
+   print(timer:time().real)
+end
 
 optimState = {
    learningRate = opt.learningRate,
@@ -68,14 +82,15 @@ for i = 1,opt.epochs do
 
       target = target[{{1,nTotal}}]
       pred = pred[{{1,nTotal}}]
-      target:add(-target:mean())
-      pred:add(-pred:mean())
-      r = torch.dot(target,pred)^2/((torch.cmul(target,target):sum())*(torch.cmul(pred,pred):sum()))
+      target:add(-torch.mean(target))
+      pred:add(-torch.mean(pred))
+      r = torch.sum(torch.cmul(target,pred))^2/((torch.cmul(target,target):sum())*(torch.cmul(pred,pred):sum()))
       model:training()
       return round(loss/nTotal,8),r
    end
    trainLoss,rtrain = computePerf('train')
    testLoss,rtest = computePerf('test')
+--   gnuplot.plot(target,pred,'.')
    local outString = 'Epoch ' .. i .. ' | trloss = ' .. trainLoss .. ', r = ' .. rtrain .. ' | ' .. 'teloss = ' .. testLoss .. ', r = ' .. rtest .. '\n'
    print(outString)
    trloss[i] = trainLoss
@@ -83,10 +98,13 @@ for i = 1,opt.epochs do
    if opt.log then
       logFile:write(outString)
    end
+   collectgarbage()
 end
 
 if opt.log then
    logFile:close()
    torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc,optimState=optimState})
 end
+trainLoss,rtrain = computePerf('train')
 
+gnuplot.plot({'train',trloss},{'test',teloss})

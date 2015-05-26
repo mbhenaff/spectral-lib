@@ -2,6 +2,8 @@ dofile('params.lua')
 dofile('data.lua')
 dofile('model.lua')
 
+print(opt.stop)
+if opt.stop then print('cats') break end
 
 optimState = {
    learningRate = opt.learningRate,

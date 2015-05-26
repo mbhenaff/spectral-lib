@@ -46,7 +46,6 @@ elseif opt.model == 'dnn4' then
 
 elseif opt.model == 'gconv2-pool' then
 
-
    local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
    local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
                         .. '/' .. opt.dataset .. '_laplacian_gauss_poolsize_' 
