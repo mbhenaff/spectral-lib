@@ -2,47 +2,50 @@
 #include <cassert>
 
 __global__ void cuda_graph_pool_fprop(const float* input, const float* clusters, float* output, float* indices,
-                                const int nMaps, const int dim, const int poolsize, const int nClusters, const int nClustersPerThread) {
+                                      const int nMaps, const int dim, const int poolsize, const int nClusters, const int nClustersPerThread, const int nClustersPerBlock) {
 
   extern __shared__ float shared_mem[];
   float* input_data = (float*)shared_mem;
   float* cluster_indx = (float*)&input_data[dim];
+  const int nThreadsPerBlock = blockDim.x;
   const int tidx = threadIdx.x;
-  
+
+  //  if (threadIdx.x * nClustersPerThread * poolsize >= nClusters) 
+  if (threadIdx.x * nClustersPerThread >= nClusters) 
+    return;
+
+  // shift maps
   input += blockIdx.x * dim;
   output += blockIdx.x * nClusters;
   indices += blockIdx.x * nClusters;
   __syncthreads();
+
+  output += blockIdx.y * nClustersPerBlock;
+  indices += blockIdx.y * nClustersPerBlock;
+  clusters += blockIdx.y * nClustersPerBlock * poolsize;
+  
+  __syncthreads();
   // copy input data to shared memory
-  int nChunks = DIVUP(dim, nClusters);
+  int nChunks = DIVUP(dim, nThreadsPerBlock);
   int idx;
   for (int i = 0; i < nChunks; ++i) {
-    idx = tidx + i*nClusters;
+    idx = tidx + i*nThreadsPerBlock;
     if (idx < dim)
       input_data[idx] = input[idx];
   }
   __syncthreads();
   
   // copy cluster indices to shared memory 
-  const int nClusterIndices = nClusters * poolsize;
-  nChunks = DIVUP(nClusterIndices,poolsize);
+  const int nClusterIndices = nClustersPerBlock * poolsize;
+  nChunks = DIVUP(nClusterIndices,nThreadsPerBlock);
   for (int i = 0; i < nChunks; ++i) {
-    idx = tidx + i*nClusters;
-    if (idx < nClusterIndices) 
+    idx = tidx + i*nThreadsPerBlock;
+    //    if (idx < nClusterIndices) 
+    if ((idx + blockIdx.y * nClustersPerBlock * poolsize) < nClusters * poolsize)
       cluster_indx[idx] = clusters[idx]-1.0;
   }
   __syncthreads();
   
-  /*
-  for (int i = 0; i < nClusters; ++i) {
-    const int idx = tidx + i*poolsize;
-    if (idx < dim) {
-      input_data[idx] = input[idx];
-      cluster_indx[idx] = clusters[idx]-1.0;
-    }
-  }
-  __syncthreads();
-  */
 
   cluster_indx += threadIdx.x * nClustersPerThread * poolsize;
   output += threadIdx.x * nClustersPerThread;
@@ -52,21 +55,24 @@ __global__ void cuda_graph_pool_fprop(const float* input, const float* clusters,
   float max; 
   int indx, indx_max;
   for (int i = 0; i < nClustersPerThread; ++i) {
-    indx_max = (int)cluster_indx[i*poolsize];
-    max = input_data[indx_max];
-    for (int j = 1; j < poolsize; ++j) {
-      indx = (int)cluster_indx[i*poolsize + j];
-      if(input_data[indx] > max) {
-        max = input_data[indx];
-        indx_max = indx;
-      } 
+    if (tidx*nClustersPerThread + blockIdx.y*nClustersPerBlock < nClusters) {
+      indx_max = (int)cluster_indx[i*poolsize];
+      max = input_data[indx_max];
+      for (int j = 1; j < poolsize; ++j) {
+        indx = (int)cluster_indx[i*poolsize + j];
+        if(input_data[indx] > max) {
+          max = input_data[indx];
+          indx_max = indx;
+        } 
+      }
+      output[i] = max;
+      indices[i] = (float)indx_max+1;
     }
-    output[i] = max;
-    indices[i] = (float)indx_max+1;
   }
 }
 
-__global__ void cuda_graph_pool_bprop(float* gradInput, const float *gradOutput, const float* indices, const int nClusters, const int dim) {
+
+__global__ void cuda_graph_pool_bprop(float* gradInput, const float *gradOutput, const float* indices, const int nClusters, const int dim, const int nClustersPerThread) {
 
   extern __shared__ float shared_mem[];
   float* gradOutput_data = (float*)shared_mem;
@@ -77,11 +83,16 @@ __global__ void cuda_graph_pool_bprop(float* gradInput, const float *gradOutput,
   gradOutput += blockIdx.x * nClusters;
   indices += blockIdx.x * nClusters;
   __syncthreads();
-  gradOutput_data[tidx] = gradOutput[tidx];
-  indices_data[tidx] = indices[tidx];
+  for (int i = 0; i < nClustersPerThread; ++i) {
+    int idx = tidx + i*blockDim.x;
+      if (idx < nClusters) {
+        gradOutput_data[idx] = gradOutput[idx];
+        indices_data[idx] = indices[idx];
+      }
+  }
   __syncthreads();
 
-  //awful i know...
+  //ouch...
   if (tidx == 1) {
     for (int i = 0; i < nClusters; ++i) {
       gradInput[(int)indices_data[i]-1] += gradOutput[i];
@@ -91,25 +102,31 @@ __global__ void cuda_graph_pool_bprop(float* gradInput, const float *gradOutput,
 }
 
      
-// input is n x d
-// clusters is (d/p) x p
-// output is d/p
+// input is nMaps x dim
+// clusters is poolsize x nClusters
+// output is nMaps x nClusters 
+// indices is nMaps x nClusters
 void graph_pool_fprop_call(const float* input, const float* clusters, float* output, float* indices,
                 const int nMaps,
                            const int dim, const int poolsize, const int nClusters) {
 
-  //assert(dim % poolsize == 0);
-  //const int nClusters = dim / poolsize;
   const int max_threads = 1024;
-  const int threadsPerBlock = min(nClusters, max_threads);
-  const int nClustersPerThread = max(DIVUP(nClusters, max_threads),1);
+  const int max_clusters_per_block = 200; //floor((49000/sizeof(float) - dim)/poolsize);
+  const int nBlocksPerMap = max(DIVUP(nClusters,max_clusters_per_block),1); 
+  const int nClustersPerBlock = max(DIVUP(nClusters, nBlocksPerMap),1);
+  const int nClustersPerThread = max(DIVUP(nClustersPerBlock, max_threads),1);
+  const int threadsPerBlock = min(nClustersPerBlock, max_threads);
   dim3 threads(threadsPerBlock, 1);
-  dim3 blocks(nMaps);
-  int size = dim*sizeof(float) + nClusters*poolsize*sizeof(float);
-  //  printf("nMaps = %d, threadsPerBlock = %d, nClustersPerThread = %d\n", nMaps, threadsPerBlock, nClustersPerThread);
-  //printf("dim = %d, poolsize = %d, nClusters = %d\n", dim, poolsize, nClusters);
-  cuda_graph_pool_fprop<<<blocks, threads, size>>>(input, clusters, output, indices, nMaps, dim, poolsize, nClusters, nClustersPerThread);
+  dim3 blocks(nMaps, nBlocksPerMap);
+
+  //  int size = dim*sizeof(float) + nClusters*poolsize*sizeof(float);
+    int size = dim*sizeof(float) + nClustersPerBlock*poolsize*sizeof(float);
+    //    printf("nMaps = %d, nClusters = %d, threadsPerBlock = %d, nClustersPerThread = %d\n", nMaps, nClusters, threadsPerBlock, nClustersPerThread);
+    //printf("dim = %d, poolsize = %d, nClusters = %d, size = %d\n", dim, poolsize, nClusters, size);
+    //printf("nClustersPerBlock = %d, nBlocksPerMap = %d\n",nClustersPerBlock, nBlocksPerMap);
+    cuda_graph_pool_fprop<<<blocks, threads, size>>>(input, clusters, output, indices, nMaps, dim, poolsize, nClusters, nClustersPerThread, nClustersPerBlock);
   CUDA_LOOK_FOR_ERROR();
+  // printf("done\n");
 }
 
 
@@ -117,12 +134,13 @@ void graph_pool_bprop_call(float* gradInput, const float* gradOutput, const floa
                            const int nMaps, const int dim, const int nClusters) {
   
   const int max_threads = 1024;
+  const int nThreadsPerMap = max(DIVUP(nClusters, max_threads),1);
   const int threadsPerBlock = min(nClusters, max_threads);
-  const int nClustersPerThread = max(DIVUP(nClusters, max_threads),1);
   dim3 threads(threadsPerBlock, 1);
   dim3 blocks(nMaps);
   int size = 2*nClusters*sizeof(float);
-  cuda_graph_pool_bprop<<<blocks, threads, size>>>(gradInput, gradOutput, maxIndices, nClusters, dim);
+  //  printf("nThreadsPerMap = %d, threadsPerBlock = %d\n",nThreadsPerMap, threadsPerBlock);
+  cuda_graph_pool_bprop<<<blocks, threads, size>>>(gradInput, gradOutput, maxIndices, nClusters, dim, nThreadsPerMap);
   CUDA_LOOK_FOR_ERROR();
 }
 
@@ -148,6 +166,7 @@ static int graph_pool_fprop(lua_State *L) {
     bool resize = false;
     //fassert(nClusters == dim/poolsize);
     // haven't tested large inputs yet
+    //    printf("dim = %d\n",dim);
     assert(dim <= 4096);
 
     if (nDim == 3) {
@@ -168,12 +187,14 @@ static int graph_pool_fprop(lua_State *L) {
 	float *maxIndices_data = (float*)THCudaTensor_data(NULL,maxIndices);
 
     graph_pool_fprop_call(input_data, clusterIndx_data, output_data, maxIndices_data, nMaps, dim, poolsize, nClusters);
+    //printf("maincoons\n");
     
     if (resize) {
       THCudaTensor_resize3d(NULL,input, nSamples, nInputMaps, dim);
       THCudaTensor_resize3d(NULL,output, nSamples, nInputMaps, nClusters);
       THCudaTensor_resize3d(NULL,maxIndices, nSamples, nInputMaps, nClusters);
     }
+    //printf("maincats\n");
     return 0;
 }
 
@@ -217,28 +238,3 @@ static int graph_pool_bprop(lua_State *L) {
     }
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
