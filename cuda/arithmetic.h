@@ -2,7 +2,8 @@
 #define __ARITHMETIC_H__
 
 // integer ceil
-#define DIVUP(a,b) (((a)+(b)+1)/(b))
+#define DIVUP(a,b) (((a)+(b)-1)/(b))
+//#define DIVUP(a,b) ((a/b)+(a%b != 0))
 
 // fast integer power
 inline int ipow(int a, int n) {
