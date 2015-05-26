@@ -9,8 +9,8 @@ n = size(X,2);
 last = 0;
 
 minener = 1e+20;
-outiters=5;
-maxiters=1000;
+outiters=2;
+maxiters=100;
 
 if nargin < 4
 maxsize = n/k;

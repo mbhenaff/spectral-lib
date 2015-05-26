@@ -4,17 +4,18 @@ W{1} = w;
 WF{1} = wfat;
 
 for j=1:depth
-n = round(frac*size(W{j},1));
-%1) spectral clustering 
-fprintf('doing scale %d \n', j)
-[V{j}, anchors, clusters] = spectral_clustering(W{j}, n, psize(j));
-for i=1:n
-slice = WF{j}(:,anchors(i));
-[~,inds] = sort(slice,'descend');
-pools{j}(:,i) = inds(1:psize(j));
-end
+    n = floor(frac(j)*size(W{j},1));
+    %1) spectral clustering; 
+    fprintf('doing scale %d \n', j);
+    [V{j}, anchors, clusters] = spectral_clustering(W{j}, n, psize(j));
+    n = min(n,length(anchors));
+    for i=1:n
+        slice = WF{j}(:,anchors(i));
+        [~,inds] = sort(slice,'descend');
+        pools{j}(:,i) = inds(1:psize(j));
+    end
 
-%2) coarsen kernels
+    %2) coarsen kernels
     nw=zeros(n);
     for s=1:n
         for t=1:n
