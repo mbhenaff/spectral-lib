@@ -1,4 +1,7 @@
-if 0
+if 1
+
+%to generate the codes run in a shell the following command:
+%for f in *.csv ; do head -n 1 $f | sed 's/\,D_/\, /g' | sed  's/MOLECULE\,Act\, //' > featurecode/${f%.csv}.csv ; done
 close all
 clear all
 
@@ -6,11 +9,13 @@ folder='/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/train/';
 
 d=dir(folder);
 maxfeat = 1;
+stdev_norm = 0;
+
 
 for i=3:length(d)
  fname = d(i).name;
- if(length(fname)>4)
- if(strcmp( fname(end-3:end), '.csv')==1)
+ if(length(fname)>5)
+ if(strcmp( fname(end-4:end), 'n.csv')==1)
 	code = csvread(fullfile(folder,'featurecode',fname));
 	maxfeat = max(maxfeat,max(code(:)));
  end
@@ -24,13 +29,18 @@ bigkern = zeros(maxfeat,'single');
 bigmass = zeros(maxfeat,'single');
 for i=3:length(d)
  fname = d(i).name;
- if(length(fname)>4)
- if(strcmp( fname(end-3:end), '.csv')==1)
-	aux = csvread(fullfile(folder,fname),1,2);
+ if(length(fname)>5)
+ if(strcmp( fname(end-4:end), 'n.csv')==1)
+	aux = csvread(fullfile(folder,fname),1,3);
 	code = csvread(fullfile(folder,'featurecode',fname));
+	if stdev_norm
 	%normalize each feature
-	auxn = sqrt(sum(aux.^2));
-	aux = aux./repmat(auxn,size(aux,1),1);
+		auxn = sqrt(sum(aux.^2));
+		aux = aux./repmat(auxn,size(aux,1),1);
+	else %use logarithmic normalizxation
+		aux = log(1 + aux);
+	end
+
 	auxk = kernelization(aux');
 	kersolo{i} = fgf_weights(auxk,opts);
 	bigkern(code,code) = bigkern(code,code) + auxk;
@@ -46,8 +56,8 @@ ker = bigkern./max(1,bigmass);
 
 for i=3:length(d)
  fname = d(i).name;
- if(length(fname)>4)
- if(strcmp( fname(end-3:end), '.csv')==1)
+ if(length(fname)>5)
+ if(strcmp( fname(end-4:end), 'n.csv')==1)
 	code = csvread(fullfile(folder,'featurecode',fname));
 	kerb= ker(code,code);
 	%codef{i} = code;
@@ -56,7 +66,11 @@ for i=3:length(d)
 	L = eye(size(kerf,1)) - D * kerf * D;
 	L = (L + L')/2;
 	[ee,ev]=eig(L);
-	save(fullfile(folder,sprintf('/graph_%d.mat',i)),'kerf','code','L','ee','ev','-v7.3');
+	if stdev_norm
+	save(fullfile(folder,sprintf('/graphstd_%d.mat',i)),'kerf','code','L','ee','ev','-v7.3');
+	else
+	save(fullfile(folder,sprintf('/graphlog_%d.mat',i)),'kerf','code','L','ee','ev','-v7.3');
+	end
 end
 end
 end
