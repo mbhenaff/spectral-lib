@@ -22,6 +22,6 @@ for i=1:size(outm,2)
   clusters{i} = find(outlabels==i);
   len(i) = length(clusters{i});
 end
-fprintf('cluster sizes in [%d, %d] \n', min(len), max(len))
+fprintf('cluster sizes in [%d, %d] ave is %f \n', min(len), max(len), mean(len))
 
 

@@ -53,6 +53,8 @@ end
 end
 
 ker = bigkern./max(1,bigmass);
+poolsize = 8;
+poolstride = 4;
 
 for i=3:length(d)
  fname = d(i).name;
@@ -66,14 +68,15 @@ for i=3:length(d)
 	L = eye(size(kerf,1)) - D * kerf * D;
 	L = (L + L')/2;
 	[ee,ev]=eig(L);
+  	[V,pools] = ms_spectral_clustering(kerb,kerb,1,1/poolstride,poolsize);
 	if stdev_norm
-	save(fullfile(folder,sprintf('/graphstd_%d.mat',i)),'kerf','code','L','ee','ev','-v7.3');
+	save(fullfile(folder,sprintf('/graph_%s_std_%d.mat',fname(1:end-4),i)),'kerf','code','L','ee','ev','pools','-v7.3');
 	else
-	save(fullfile(folder,sprintf('/graphlog_%d.mat',i)),'kerf','code','L','ee','ev','-v7.3');
+	save(fullfile(folder,sprintf('/graph_%s_log_%d.mat',fname(1:end-4),i)),'kerf','code','L','ee','ev','pools','-v7.3');
 	end
 end
 end
 end
-
+cd(folder);unix('chmod 777 *');
 
 
