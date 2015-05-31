@@ -5,29 +5,45 @@ matio = require 'matio'
 
 
 -- load GFT matrices and connection table
-if false then
-if string.match(opt.model,'gconv') or string.match(opt.model,'lc') then
-   graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacians.mat')
-   
-
-   V1 = x.V1:clone():float()
-   V2 = x.V1:clone():float()
-end
+function loadGraph1layer()
+   local x = matio.load(opt.graphs_path .. 'alpha_' .. opt.alpha 
+                        .. '/reuters_laplacian_gauss.mat')
+   connTable = x.NN
+   return connTable
 end
 
-if string.match(opt.model,'pool') then
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_' .. opt.laplacian
-                        .. '_poolsize_' 
-                        .. opt.poolsize .. '_poolstride_' 
-                        .. opt.poolstride .. '.mat')
-   pools1 = x.pools[1]:clone()
-   --pools2 = x.pools[2]:clone()
-end
 
+
+function loadGraph2layer()
+   if opt.graphscale == 'global' then
+      local x = matio.load(opt.graphs_path .. 'alpha_' .. opt.alpha 
+                           .. '/' .. opt.graph .. '_laplacian_gauss'
+                              .. '_pool1_' .. opt.pool 
+                              .. '_stride1_' .. opt.stride  
+                              .. '_pool2_' .. opt.pool 
+                              .. '_stride2_' .. opt.stride  
+                              .. '.mat')
+      V1 = x.V[1]:clone()
+      V2 = x.V[2]:clone()
+      pools1 = x.pools[1]:clone()
+      pools2 = x.pools[2]:clone()
+      print(x)
+   elseif opt.graphscale == 'local' then
+      local x = matio.load(opt.graphs_path .. 'alpha_' .. opt.alpha 
+                           .. '/' .. opt.graph .. '_laplacian_gausslocal'
+                              .. '_pool1_' .. opt.pool 
+                              .. '_stride1_' .. opt.stride  
+                              .. '_pool2_' .. opt.pool 
+                              .. '_stride2_' .. opt.stride  
+                              .. '.mat')
+      V1 = x.V[1]:clone()
+      V2 = x.V[2]:clone()
+      pools1 = x.pools[1]:clone()
+      pools2 = x.pools[2]:clone()
+      print(x)
+   end
+   return V1,V2,pools1,pools2
+end
 
 torch.manualSeed(314)
 nInputs = dim*nChannels
@@ -52,12 +68,6 @@ elseif opt.model == 'lc2' then
    model = model:cuda()
 
 elseif opt.model == 'lc3' then
-   graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_gauss.mat')
-
-   local connTable = x.NN
-
 
    local nInputs = dim*nChannels
    model:add(nn.View(nInputs))
@@ -71,12 +81,6 @@ elseif opt.model == 'lc3' then
    model = model:cuda()
 
 elseif opt.model == 'lc3dropout' then
-   graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacians.mat')
-
-   local connTable = x.NN
-
 
    local nInputs = dim*nChannels
    model:add(nn.View(nInputs))
@@ -91,7 +95,19 @@ elseif opt.model == 'lc3dropout' then
    model:add(nn.LogSoftMax())
    model = model:cuda()
 
+elseif opt.model == 'fc-reuters' then 
 
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.Linear(dim*nChannels, 2000))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(2000, 1000))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(1000, nclasses))
+   model:add(nn.LogSoftMax())
+   model = model:cuda()
 
 elseif opt.model == 'fc2' then 
    model:add(nn.View(dim*nChannels))
@@ -128,13 +144,6 @@ elseif opt.model == 'gc3' then
    require 'regularization'
 
 
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-
-
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/' .. opt.dataset .. '_laplacian_gauss.mat')
-
-   print(x)
    L = x.L:cuda()
 
    model:add(nn.View(dim*nChannels))
@@ -160,15 +169,6 @@ elseif opt.model == 'gc3' then
 
 elseif opt.model == 'gc4' then 
    require 'regularization'
-
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-
-
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_gauss.mat')
-
-   print(x)
-   L = x.L:cuda()
 
    model:add(nn.View(dim*nChannels))
    model:add(nn.Dropout(0.2))
@@ -254,7 +254,7 @@ elseif opt.model == 'gconv2' then
    model = model:cuda()
    model:reset()
 
-elseif opt.model == 'gconv2-finalpool' then
+elseif opt.model == 'gconv2-pool' then
 
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
@@ -276,86 +276,15 @@ elseif opt.model == 'gconv2-finalpool' then
    model = model:cuda()
    model:reset()
 
-elseif opt.model == 'gconv2-finalpool-dropout' then
+elseif opt.model == 'gconv-pool-fc' then
 
-   -- conv layer 1
-   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- pooling layer
-   model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
-
-   -- classifier layer
-   model:add(nn.View(opt.nhidden*dim/opt.poolstride))
-   model:add(nn.Dropout())
-   model:add(nn.Linear(opt.nhidden*dim/opt.poolstride, nclasses))
-   model:add(nn.LogSoftMax())
-
-   -- send to GPU and reset pointers
-   model = model:cuda()
-   model:reset()
-
-elseif opt.model == 'gconv2-finalpool-dropout2' then
+   V1,V2,pools1,pools2 = loadGraph2layer()
 
    model:add(nn.View(dim*nChannels))
    model:add(nn.Dropout(0.2))
    model:add(nn.View(nChannels, dim))
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- pooling layer
-   model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
-
-   -- classifier layer
-   model:add(nn.View(opt.nhidden*dim/opt.poolstride))
-   model:add(nn.Dropout())
-   model:add(nn.Linear(opt.nhidden*dim/opt.poolstride, nclasses))
-   model:add(nn.LogSoftMax())
-
-   -- send to GPU and reset pointers
-   model = model:cuda()
-   model:reset()
-
-elseif opt.model == 'gconv2-pool-fc' then
-
-   if opt.graphscale == 'global' then
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_' .. opt.laplacian 
-                        .. '_poolsize_' 
-                        .. opt.poolsize .. '_poolstride_' 
-                        .. opt.poolstride .. '.mat')
-   V1 = x.V1:clone()
-   pools1 = x.pools[1]:clone()
-elseif opt.graphscale == 'local' then
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_' .. opt.laplacian .. 'local' 
-                        .. '_poolsize_' 
-                        .. opt.poolsize .. '_poolstride_' 
-                        .. opt.poolstride .. '.mat')
-   V1 = x.V1:clone()
-   pools1 = x.pools[1]:clone()
-end
-
-   model:add(nn.View(dim*nChannels))
-   model:add(nn.Dropout(0.2))
-   model:add(nn.View(nChannels, dim))
-   -- conv layer 1
-   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V1, opt.interpScale))
    model:add(nn.Threshold())
 
    -- pooling layer
@@ -364,10 +293,10 @@ end
    -- classifier layer
    model:add(nn.View(opt.nhidden*pools1:size(2)))
    model:add(nn.Dropout())
-   model:add(nn.Linear(opt.nhidden*pools1:size(2), 250))
+   model:add(nn.Linear(opt.nhidden*pools1:size(2), 1000))
    model:add(nn.Threshold())
    model:add(nn.Dropout())
-   model:add(nn.Linear(250,nclasses))
+   model:add(nn.Linear(1000,nclasses))
    model:add(nn.LogSoftMax())
 
    -- send to GPU and reset pointers
@@ -377,25 +306,7 @@ end
 
 elseif opt.model == 'gconv-pool-gconv-pool-fc' then
 
-   if opt.graphscale == 'global' then
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_' .. opt.laplacian 
-                        .. '_poolsize_' 
-                        .. opt.poolsize .. '_poolstride_' 
-                        .. opt.poolstride .. '.mat')
-   V1 = x.V1:clone()
-   pools1 = x.pools[1]:clone()
-elseif opt.graphscale == 'local' then
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. 'alpha_' .. opt.alpha 
-                        .. '/reuters_laplacian_' .. opt.laplacian .. 'local' 
-                        .. '_poolsize_' 
-                        .. opt.poolsize .. '_poolstride_' 
-                        .. opt.poolstride .. '.mat')
-   V1 = x.V1:clone()
-   pools1 = x.pools[1]:clone()
-end
+   V1,V2,pools1,pools2 = loadGraph2layer()
 
    model:add(nn.View(dim*nChannels))
    model:add(nn.Dropout(0.2))
@@ -404,46 +315,23 @@ end
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
    model:add(nn.Threshold())
 
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V1, opt.interpScale))
-   model:add(nn.Threshold())
-
    -- pooling layer
    model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
 
+   -- conv layer 2
+   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, pools1:size(2), opt.k, V2, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- pooling layer
+   model:add(nn.GraphPooling(pools2:t():clone(), opt.pooltype))
+
    -- classifier layer
-   model:add(nn.View(opt.nhidden*pools1:size(2)))
+   model:add(nn.View(opt.nhidden*pools2:size(2)))
    model:add(nn.Dropout())
-   model:add(nn.Linear(opt.nhidden*pools1:size(2), 250))
+   model:add(nn.Linear(opt.nhidden*pools2:size(2), 250))
    model:add(nn.Threshold())
    model:add(nn.Dropout())
    model:add(nn.Linear(250,nclasses))
-   model:add(nn.LogSoftMax())
-
-   -- send to GPU and reset pointers
-   model = model:cuda()
-   model:reset()
-
-
-elseif opt.model == 'gconv3-finalpool' then 
-   -- conv layer 1
-   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- conv layer 3
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
-   model:add(nn.Threshold())
-
-   -- pooling layer
-   model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
-
-   -- classifier layer
-   model:add(nn.View(opt.nhidden*dim/opt.poolstride))
-   model:add(nn.Linear(opt.nhidden*dim/opt.poolstride, nclasses))
    model:add(nn.LogSoftMax())
 
    -- send to GPU and reset pointers
@@ -456,15 +344,7 @@ elseif opt.model == 'gconv-deep1' then
    poolstride1 = 4
    poolsize2 = 8
    poolstride2 = 4
-   
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/alpha_0.1/'
-   local x = matio.load(graphs_path .. '/reuters_laplacian_gauss_pool1_' .. poolsize1 .. '_stride1_' .. poolstride1 .. '_pool2_' .. poolsize2 .. '_stride2_' .. poolstride2 .. '.mat')
-
-
-   V1 = x.V[1]:clone()
-   V2 = x.V[2]:clone()
-   pools1 = x.pools[1]:clone()
-   pools2 = x.pools[2]:clone()
+   V1,V2,pools1,pools2 = loadGraph2layer()
 
    model:add(nn.View(dim*nChannels))
    model:add(nn.Dropout(0.2))
@@ -505,14 +385,7 @@ elseif opt.model == 'gconv-deep2' then
    poolsize2 = 8
    poolstride2 = 4
    
-   local graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
-   local x = matio.load(graphs_path .. '/reuters_laplacian_pool1_' .. poolsize1 .. '_stride1_' .. poolstride1 .. '_pool2_' .. poolsize2 .. '_stride2_' .. poolstride2 .. '.mat')
-
-
-   V1 = x.V[1]:clone()
-   V2 = x.V[2]:clone()
-   pools1 = x.pools[1]:clone()
-   pools2 = x.pools[2]:clone()
+   V1,V2,pools1,pools2 = loadGraph2layer()
 
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
