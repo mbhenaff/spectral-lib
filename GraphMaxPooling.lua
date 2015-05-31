@@ -1,18 +1,24 @@
 require 'nn'
 
-local GraphMaxPooling, parent = torch.class('nn.GraphMaxPooling', 'nn.Module')
+local GraphPooling, parent = torch.class('nn.GraphPooling', 'nn.Module')
 
-function GraphMaxPooling:__init(clusters)
+function GraphPooling:__init(clusters, type)
    parent.__init(self)
    self.clusters = clusters
    self.nClusters = clusters:size(1)
+   assert(self.nClusters <= 1024)
    self.poolSize = clusters:size(2)
    self.output = torch.Tensor(self.nClusters)
    self.indices = torch.Tensor(self.nClusters)
+   if type == 'max' then
+      self.pooltype = 1
+   elseif type == 'avg' then
+      self.pooltype = 2
+   end
    self:reset()
 end
 
-function GraphMaxPooling:updateOutput(input)
+function GraphPooling:updateOutput(input)
    if input:nDimension() == 3 then
       self.output:resize(input:size(1), input:size(2), self.nClusters)
       self.indices:resize(input:size(1), input:size(2), self.nClusters)
@@ -25,15 +31,15 @@ function GraphMaxPooling:updateOutput(input)
    self.output:zero()
    self.indices:zero()
 --   fprop_cpu(input, self.output, self.clusters, self.indices)
-   libspectralnet.graph_pool_fprop(input, self.output, self.clusters, self.indices) 
+   libspectralnet.graph_pool_fprop(input, self.output, self.clusters, self.indices, self.pooltype) 
    return self.output
 end
 
-function GraphMaxPooling:updateGradInput(input, gradOutput)
+function GraphPooling:updateGradInput(input, gradOutput)
    self.gradInput:resize(input:size())
    self.gradInput:zero()
 --   bprop_cpu(self.gradInput, gradOutput, self.indices)
-   libspectralnet.graph_pool_bprop(self.gradInput, gradOutput, self.indices)
+   libspectralnet.graph_pool_bprop(self.gradInput, gradOutput, self.indices, self.clusters, self.pooltype)
    return self.gradInput
 end
 
@@ -64,9 +70,9 @@ function bprop_cpu(gradInput, gradOutput, indices)
    gradInput:zero()
    for k = 1,gradInput:size(1) do 
       for n = 1,gradInput:size(2) do 
-         for i = 1,nClusters do 
-            local ix = indices[k][n][i]
-            gradInput[k][n][ix] = gradInput[k][n][ix] + gradOutput[k][n][i]
+         for i = 1,nClusters do                
+--            local ix = indices[k][n][i]
+--            gradInput[k][n][ix] = gradInput[k][n][ix] + gradOutput[k][n][i]
          end
       end
    end

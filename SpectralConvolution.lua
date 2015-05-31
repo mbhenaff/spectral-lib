@@ -9,7 +9,7 @@ function SpectralConvolution:__init(batchSize, nInputMaps, nOutputMaps, dim, sub
    self.subdim = subdim
    self.nInputMaps = nInputMaps
    self.nOutputMaps = nOutputMaps
-   self.GFTMatrix = GFTMatrix or torch.eye(dim,dim)
+   self.GFTMatrix = GFTMatrix 
    self.iGFTMatrix = self.GFTMatrix:t():clone()
    self.GFTMatrix = self.GFTMatrix[{{},{1,self.nfreq}}]
    self.iGFTMatrix = self.iGFTMatrix[{{1,self.nfreq}}]
