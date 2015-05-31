@@ -1,0 +1,114 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips15submit_e,times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+%\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
+
+\newtheorem{graphconv}{Definition}
+
+
+\title{Deep Networks on Graph-Structured Data}
+
+
+\author{
+Mikael Henaff \\
+Courant Institute of Mathematical Sciences\\
+New York University\\
+\texttt{mbh305@nyu.edu} \\
+\And
+Joan Bruna \\
+University of California, Berkeley \\
+\texttt{bruna@cims.nyu.edu} \\
+\AND
+Yann LeCun \\
+Courant Institute of Mathematical Sciences \\
+New York University \\
+\texttt{yann@cs.nyu.edu} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+%\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+
+Generalizing convolutional networks to graph-structured data is an important open problem. 
+Thus far ConvNets have proved extremely successful for a large variety of tasks in computer vision and acoustic modeling ~\cite{krizhevsky2012,hinton12}. This is largely due to their ability to efficiently exploit stationarity and local statistics to greatly reduce the number of parameters in the network without sacrificing the capacity to accurately represent the data.  
+As a result, one is able to train very large networks while limiting the overfitting problem.
+The implicit assumption behind a ConvNet is that the data lives on a lattice, a specific type of graph.
+Images can be thought of as signals defined on a 2-D lattice, where each pixel is a node which is connected to its immediate neighbors. 
+Similarly, audio waveforms can be viewed as signals defined on a 1-D lattice, where each node is a time point. 
+
+However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple graph. 
+
+In this work we propose two different approaches to generalizing ConvNets to data defined arbitrary graphs. We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
+
+\section{Spectral Networks}
+
+Our work builds upon ~\cite{spectralnet2013} which defines spectral networks. We recall the definition here. A spectral network generalizes a convolutional network through the Graph Fourier Transform, which is in turn defined through a generalization of the Laplacian operator on the grid to the graph Laplacian.
+
+\begin{graphconv}
+ Let $W$ be a similarity matrix representing a graph $G$, and let $L$ be its graph Laplacian with eigenvectors $U$. Then a \textit{graph convolution} of input signals $x$ and $y$ defined on $G$ is defined by $f \star g = U^T \left( Uf \odot Ug \right)$, where $\odot$ represents a pointwise product. 
+\end{graphconv}
+
+There are several ways of computing $L$. In this work, we choose $L = I - D^{-1/2}WD^{-1/2}$, where $D$ is a diagonal matrix with entries $D_{ii} = \sum_j W_{ij}$. Note that in the case where $W$ represents the lattice, from the definition of $L$ we recover the discrete Laplacian operator $\Delta$. Also note that the Laplacian commutes with the translation operator, which is diagonalized in the Fourier basis. 
+It follows that the eigenvectors of $\Delta$ are given by the Discrete Fourier Transform (DFT) matrix. 
+We then recover a classical convolution through the Convolution Theorem. 
+
+We can then generalize a convolutional network by replacing the convolutions in the three main operations by graph convolutions defined above. 
+Specifically, we have:
+
+\begin{algorithm}
+\caption{Train Graph Convolution Layer}
+\label{pseudoPSO}
+\begin{algorithmic}[1]
+\State Given GFT matrix $U$, interpolation kernel $K$, weights $w$. 
+\State \textbf{Forward Pass:}
+  \State Fetch input batch $x$ and gradients w.r.t outputs $\nabla y$.
+  \State Compute interpolated weights: $w_{f'f} = K \tilde{w_{f'f}}$.
+  \State Compute output: $y_{sf'} = U^T\left(\sum_{f} Ux_{sf} \odot w_{f'f} \right)$.
+  \State \textbf{Backward Pass:}
+  \State Compute gradient w.r.t input: $\nabla x_{sf} = U^T\left(\sum_{f'} \nabla y_{sf'} \odot w_{f'f} \right)$
+  \State Compute gradient w.r.t interpolated weights: $\nabla w_{f'f} = U^T\left(\sum_s \nabla y_{sf'} \odot x_{sf} \right)$
+  \State Compute gradient w.r.t weights $\nabla \tilde{w_{f'f}} = K^T \nabla w_{f'f}$.
+\end{algorithmic}
+\end{algorithm}
+
+In the case of a classical ConvNet, the weights $w$ are small filters localized in space.
+In the case of the grid, localization in space is inversely related to localization in frequency. 
+
+\section{Graph Estimation }
+
+
+\section{Experiments}
+
+
+
+
+\bibliography{references}{}
+\bibliographystyle{plain}
+
+\end{document}
