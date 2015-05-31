@@ -27,6 +27,19 @@ elseif strcmp(dataset, 'reuters')
 %  data = data./repmat(sigmas,size(data,1),1);
   fprintf('done\n')
 
+elseif strcmp(dataset,'merck3fc')
+ data=load('dnn4.mat');
+ data=data.W1';
+elseif strcmp(dataset,'merck3fc2')
+ data=load('dnn4.mat');
+ data=(data.W1*data.W2)';
+elseif strcmp(dataset,'merck3fc3')
+ data=load('dnn4.mat');
+ data=(data.W1*data.W2*data.W3)';
+elseif strcmp(dataset,'merck3fc4')
+ data=load('dnn4.mat');
+ data=(data.W1*data.W2*data.W3*data.W4)';
+
 elseif ~isempty(findstr(dataset,'merck'))
   num = regexp(dataset,'\d+','match')
   data=load(['/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/' dataset '_train.mat'],'data');

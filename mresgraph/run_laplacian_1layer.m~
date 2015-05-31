@@ -1,14 +1,14 @@
 %this script generates the GFT matrix and pools for 1 layer
 kernel = 'gauss';
-poolsize = 32;
-poolstride = 16;
-do_pooling = 0;
-alpha = 0.01;
+poolsize = 8;
+poolstride = 4;
+do_pooling = 1;
+alpha = 0.1;
 
 
-for d = 3:3
-dataset = ['merck' num2str(d) 'fc']
-%dataset = 'reuters';
+for d = 6:6
+dataset = ['merck' num2str(d)]
+
 if 1
                                 %  clear all
   close all
@@ -53,13 +53,13 @@ if 1
                                 %adjust sparsity level 
       [K0s, Is]=sort(K0,2,'ascend');
       loc=round(alpha*size(K0s,2));
-%      sigma = sqrt( mean(K0s(:,loc)));
-      sigmas = sqrt(abs(K0s(:,loc)));
-      K1 = exp(-((K0) ./ (sigmas*sigmas')));
+      sigma = sqrt( mean(K0s(:,loc)));
+      sigmas = K0(:,loc);
+      K1 = exp(-(K0.^2) ./ (sigmas*sigmas'));
       %K1=exp(-K0/sigma^2);
       fprintf('done\n');
                                 % compute laplacian
-      D = diag(max(0.000001,sum(K1)).^(-1/2));
+      D = diag(sum(K1).^(-1/2));
       L = eye(size(K1,1)) - D * K1 * D;
       L = (L+L')/2;
       [V1,ev]=eig(L);
@@ -79,8 +79,7 @@ if 1
 end
 
 
-% Get pools
-unix(['mkdir -p '  '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/alpha_' num2str(alpha)]);
+% Get pools 
 if do_pooling 
   [V,pools] = ms_spectral_clustering(K1,K1,1,1/poolstride,poolsize);
   V1=V{1};
