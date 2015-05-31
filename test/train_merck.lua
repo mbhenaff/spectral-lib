@@ -17,20 +17,10 @@ if opt.stop then
    print(timer:time().real)
 end
 
-optimState = {
-   learningRate = opt.learningRate,
-   weightDecay = opt.weightDecay,
-   momentum = opt.momentum,
-   learningRateDecay = 0--1/trsize
-}
-
--- these will record performance
-trloss = torch.Tensor(opt.epochs)
-teloss = torch.Tensor(opt.epochs)
 
 cutorch.synchronize()
 
-for i = 1,opt.epochs do
+for i = startEpoch,opt.epochs do
    -- get model parameters
    w,dL_dw = model:getParameters()
    local shuffle = torch.randperm(trsize)
@@ -93,6 +83,8 @@ for i = 1,opt.epochs do
 --   gnuplot.plot(target,pred,'.')
    local outString = 'Epoch ' .. i .. ' | trloss = ' .. trainLoss .. ', r = ' .. rtrain .. ' | ' .. 'teloss = ' .. testLoss .. ', r = ' .. rtest .. '\n'
    print(outString)
+   trrsqu[i] = rtrain
+   tersqu[i] = rtest
    trloss[i] = trainLoss
    teloss[i] = testLoss
    if opt.log then
@@ -103,7 +95,7 @@ end
 
 if opt.log then
    logFile:close()
-   torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss,teloss=teloss,tracc=tracc,teacc=teacc,optimState=optimState})
+   torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss,teloss=teloss,trrsqu=trrsqu,tersqu=tersqu,optimState=optimState})
 end
 trainLoss,rtrain = computePerf('train')
 

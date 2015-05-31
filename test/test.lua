@@ -20,7 +20,7 @@ local test_complex_interp = false
 local test_locallyConnected = false
 local test_spectralconv_img = false
 local test_spectralconv_img_feat = false
-local test_spectralconv = true
+local test_spectralconv = false
 local test_graphpool = true
 local test_learnable_interp = false
 local test_time = false
@@ -337,11 +337,11 @@ if test_graphpool then
       --nClusters = math.floor(dim/stride)
       nClusters = 926
    else
-      dim = 10000
-      poolsize = 20
-      stride = 10
+      dim = 4
+      poolsize = 2
+      stride = 2
       --nClusters = math.floor(dim/stride)
-      nClusters = 10
+      nClusters = 2
    end
 
       print(nClusters)
@@ -358,7 +358,8 @@ if test_graphpool then
                clusters[j]:copy(torch.randperm(dim)[{{1,poolsize}}])
             end
          end
-         model = nn.GraphMaxPooling(clusters)
+         model = nn.GraphPooling(clusters,'avg')
+         print({model})
          model = model:cuda()
          model:reset()      
          input = torch.CudaTensor(batchSize, nMaps, dim):normal()

@@ -5,6 +5,8 @@ matio = require 'matio'
 local Datasource = torch.class('Datasource')
 
 function Datasource:__init(dataset,normalization,testTime)
+   print(normalization)
+
    self.testTime = testTime or false
    self.alpha = 0.1
    -- load the datasets and format to be [nSamples x nChannels x dim]
@@ -40,8 +42,8 @@ function Datasource:__init(dataset,normalization,testTime)
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
       normalization = 'log'
    elseif dataset == 'timit' then
-      self.train_set = torch.load('/scratch/timit/' .. split .. '/data_winsize_15.th')
-      self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/torch_datasets/timit/' .. split .. '/data_winsize_15.th')
+      self.train_set = torch.load('/scratch/timit/' .. 'train' .. '/data_winsize_15.th')
+      self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/torch_datasets/timit/' .. 'dev' .. '/data_winsize_15.th')
       self.train_set.labels = self.train_set.labels + 1
       self.test_set.labels = self.test_set.labels + 1
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
@@ -112,7 +114,7 @@ function Datasource:__init(dataset,normalization,testTime)
       self.nChannels = 1
       self.train_set.labels = self.train_set.labels:squeeze()
       self.test_set.labels = self.test_set.labels:squeeze()
-      normalization = 'none'
+      if normalization ~= 'whitening' then normalization = 'none' end
 
    elseif string.match(dataset,'merck') then
       local num = string.match(dataset,"%d+")
@@ -120,10 +122,10 @@ function Datasource:__init(dataset,normalization,testTime)
          self.test_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_test.mat')
          self.train_set = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_train.mat')
          self.dim = self.test_set.data:size(2)
-   self.train_set.data = self.train_set.data:contiguous()
-   self.train_set.labels = self.train_set.labels:contiguous()
-   self.test_set.data = self.test_set.data:contiguous()
-   self.test_set.data = self.test_set.data:contiguous()
+         self.train_set.data = self.train_set.data:contiguous()
+         self.train_set.labels = self.train_set.labels:contiguous()
+         self.test_set.data = self.test_set.data:contiguous()
+         self.test_set.data = self.test_set.data:contiguous()
 
       else
          local x = matio.load('/misc/vlgscratch3/LecunGroup/mbhenaff/merck/merck/paper/merck' .. num .. '_train.mat')
@@ -148,7 +150,7 @@ function Datasource:__init(dataset,normalization,testTime)
             self.test_set.labels[i]:copy(x.labels[perm[i+nTrain]])
          end
       end
-      normalization = 'none'
+      if normalization ~= 'whitening' then normalization = 'none' end
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
       self.nChannels = 1
       self.train_set.labels = self.train_set.labels:squeeze()
@@ -169,6 +171,42 @@ function Datasource:__init(dataset,normalization,testTime)
       self.std = self.train_set.data:std()
       self.train_set.data:div(self.std)
       self.test_set.data:div(self.std)
+   elseif normalization == 'whitening' then
+      require 'unsup'
+      print('whitening data')
+      self.train_set.data:resize(self.nSamples.train,self.nChannels*self.dim)
+      self.test_set.data:resize(self.nSamples.test,self.nChannels*self.dim)
+      self.mean = self.train_set.data:mean(1)
+--      self.train_set.data:add(-1,self.mean:expandAs(self.train_set.data))
+--      self.test_set.data:add(-1,self.mean:expandAs(self.test_set.data))
+      self.train_set.data, means, P = unsup.zca_whiten(self.train_set.data)
+      means:resize(1,self.dim)
+      self.test_set.data:add(-1,means:expandAs(self.test_set.data))
+      self.test_set.data = torch.mm(self.test_set.data,P:float())
+--      U,S,V = torch.svd(self.train_set.data)
+--      print(torch.min(S),torch.max(S),torch.mean(S))
+--      self.train_set.data = self.train_set.data*V
+--      self.test_set.data = self.test_set.data*V
+--      print(S:size())
+--      gnuplot.hist(S)
+
+--      for i = 1,S:nElement() do if S[i] < 1e-4 then S[i] = 1e-4 end end
+--      Sinv = torch.cdiv(torch.ones(S:nElement()):float(),S)
+--      Sinv:resize(1,Sinv:nElement())
+      
+
+--      self.train_set.data = self.train_set.data:cmul(Sinv:expandAs(self.train_set.data))
+--      self.test_set.data = self.test_set.data:cmul(Sinv:expandAs(self.test_set.data))
+      
+      if false then
+         self.std = self.train_set.data:std(1)
+         self.train_set.data:cdiv(self.std:expandAs(self.train_set.data))
+         self.test_set.data:cdiv(self.std:expandAs(self.test_set.data))
+         self.train_set.data:resize(self.nSamples.train,self.nChannels,self.dim)
+         self.test_set.data:resize(self.nSamples.test,self.nChannels,self.dim)
+      end
+      cov = self.train_set.data:t()*self.train_set.data
+      gnuplot.imagesc(cov)
    elseif  normalization == 'feature' then
       self.train_set.data:resize(self.nSamples.train,self.nChannels*self.dim)
       self.test_set.data:resize(self.nSamples.test,self.nChannels*self.dim)
@@ -249,7 +287,7 @@ function Datasource:nextIteratedBatchPerm(batchSize, set, idx, perm)
    for i = 1, batchSize do
       local idx1 = (idx-1)*batchSize+i
       if idx1 > perm:size(1) then
-	 return nil
+         return nil
       end
       local idx2 = perm[idx1]
       self.output[i]:copy(this_set.data[idx2])
@@ -282,8 +320,8 @@ function Datasource:nextIteratedBatch(batchSize, set, idx)
 end
 
 function Datasource:type(typ)
---   self.train_set.data = self.train_set.data:type(typ)
---   self.test_set.data = self.test_set.data:type(typ)
+   --   self.train_set.data = self.train_set.data:type(typ)
+   --   self.test_set.data = self.test_set.data:type(typ)
    self.output = self.output:type(typ)
    if typ == 'torch.CudaTensor' then
       self.train_set.labels = self.train_set.labels:type(typ)

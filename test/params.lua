@@ -9,36 +9,41 @@ require 'spectralnet'
 require 'aux'
 
 cmd = torch.CmdLine()
-cmd:option('-dataset','reuters')
+cmd:option('-dataset','merck3')
+cmd:option('-graph','merck3')
 cmd:option('-model','gconv2','linear | gconv1 | gconv2 | fc2 | ... | fc5')
-cmd:option('-optim','sgd')
+cmd:option('-optim','adagrad')
 cmd:option('-nhidden',64)
 cmd:option('-k',40)
 cmd:option('-rfreq',0,'reduction factor for freq bands')
 cmd:option('-interp', 'spline','bilinear | spline | dyadic_spline | spatial')
 cmd:option('-laplacian','gauss')
-cmd:option('-poolsize',1)
-cmd:option('-poolstride',1)
+cmd:option('-pool',16)
+cmd:option('-stride',8)
+cmd:option('-pooltype','avg', 'max | avg')
 cmd:option('-poolneighbs',4)
 cmd:option('-gpunum',1)
 cmd:option('-printNorms',0)
 cmd:option('-batchSize',128)
-cmd:option('-learningRate',0.05)
-cmd:option('-weightDecay',0)
+cmd:option('-learningRate',0.01)
 cmd:option('-epochs',500)
 cmd:option('-log',1)
 cmd:option('-dropout',0)
 cmd:option('-alpha',0.1)
 cmd:option('-suffix','')
-cmd:option('-normdata','feature')
+cmd:option('-normdata','none')
 cmd:option('-lambda',0)
-cmd:option('-weightDecay',0)
+cmd:option('-weightDecay',0.0001)
 cmd:option('-momentum',0.9)
 cmd:option('-npts', 10, 'number of points to sample for commutation loss')
 cmd:option('-interpScale',1)
 cmd:option('-testTime',0)
+cmd:option('-graphscale','global')
 cmd:option('-stop',0)
 opt = cmd:parse(arg or {})
+
+opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/paper/merck/'
+opt.graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
 
 cutorch.setDevice(opt.gpunum)
 torch.setdefaulttensortype('torch.FloatTensor')
@@ -51,10 +56,12 @@ opt.log = (opt.log == 1)
 opt.dropout = (opt.dropout == 1)
 opt.stop = (opt.stop == 1)
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/new/merck/'
+
 
 if opt.testTime then
-   opt.savePath = opt.savePath .. '/testtime/'
+   opt.savePath = opt.savePath .. '/test/'
+else
+   opt.savePath = opt.savePath .. '/dev/'
 end
 
 opt.modelFile = 'dataset=' .. opt.dataset .. '-norm=' .. opt.normdata
@@ -67,6 +74,8 @@ if string.match(opt.model,'gconv') then
       .. '-k=' .. opt.k
       .. '-laplacian=' .. opt.laplacian
       .. '-alpha=' .. opt.alpha
+      .. '-graph=' .. opt.graph
+      .. '-graphscale=' .. opt.graphscale
       .. '-interpScale=' .. opt.interpScale
 
 elseif string.match(opt.model,'spatial') then
@@ -89,9 +98,8 @@ end
 
 if string.match(opt.model,'pool') then
    opt.modelFile = opt.modelFile 
-      .. '-poolsize=' .. opt.poolsize
-      .. '-poolstride=' .. opt.poolstride
-      --.. '-poolneighbs=' .. opt.poolneighbs
+      .. '-pool=' .. opt.pool
+      .. '-stride=' .. opt.stride
 end
    
 

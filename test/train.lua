@@ -3,7 +3,7 @@ dofile('data.lua')
 dofile('model.lua')
 
 print(opt.stop)
-if opt.stop then print('cats') break end
+if opt.stop then print('cats') return end
 
 optimState = {
    learningRate = opt.learningRate,

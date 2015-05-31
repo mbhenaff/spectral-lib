@@ -1,5 +1,5 @@
 require 'datasource'
-datasource = Datasource(opt.dataset, opt.norm, opt.testTime)
+datasource = Datasource(opt.dataset, opt.normdata, opt.testTime)
 datasource:type('torch.CudaTensor')
 dim = datasource.dim
 nChannels = datasource.nChannels
