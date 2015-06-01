@@ -3,7 +3,6 @@
 -------------------------------
 matio = require 'matio'
 
-
 -- load GFT matrices and connection table
 function loadGraph1layer()
    local x = matio.load(opt.graphs_path .. 'alpha_' .. opt.alpha 
@@ -237,6 +236,7 @@ elseif opt.model == 'gconv1' then
    model:reset()
 
 elseif opt.model == 'gconv2' then
+   V1,V2,pools1,pools2 = loadGraph2layer()
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
    model:add(nn.Threshold())
@@ -256,20 +256,22 @@ elseif opt.model == 'gconv2' then
 
 elseif opt.model == 'gconv2-pool' then
 
+   V1,V2,pools1,pools2 = loadGraph2layer()
+
    -- conv layer 1
    model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
    model:add(nn.Threshold())
 
    -- conv layer 2
-   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V2, opt.interpScale))
+   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V1, opt.interpScale))
    model:add(nn.Threshold())
 
    -- pooling layer
    model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
 
    -- classifier layer
-   model:add(nn.View(opt.nhidden*dim/opt.poolstride))
-   model:add(nn.Linear(opt.nhidden*dim/opt.poolstride, nclasses))
+   model:add(nn.View(opt.nhidden*pools1:size(2)))
+   model:add(nn.Linear(opt.nhidden*pools1:size(2), nclasses))
    model:add(nn.LogSoftMax())
 
    -- send to GPU and reset pointers
@@ -304,6 +306,39 @@ elseif opt.model == 'gconv-pool-fc' then
    model:reset()
 
 
+elseif opt.model == 'gconv-pool-gconv-fc' then
+
+   V1,V2,pools1,pools2 = loadGraph2layer()
+
+   model:add(nn.View(dim*nChannels))
+   model:add(nn.Dropout(0.2))
+   model:add(nn.View(nChannels, dim))
+   -- conv layer 1
+   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- pooling layer
+   model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
+
+   -- conv layer 2
+   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, pools1:size(2), opt.k, V2, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- classifier layer
+   model:add(nn.View(opt.nhidden*pools1:size(2)))
+   model:add(nn.Dropout())
+   model:add(nn.Linear(opt.nhidden*pools1:size(2), 1000))
+   model:add(nn.Threshold())
+   model:add(nn.Dropout())
+   model:add(nn.Linear(1000,nclasses))
+   model:add(nn.LogSoftMax())
+
+   -- send to GPU and reset pointers
+   model = model:cuda()
+   model:reset()
+
+
+
 elseif opt.model == 'gconv-pool-gconv-pool-fc' then
 
    V1,V2,pools1,pools2 = loadGraph2layer()
@@ -328,10 +363,10 @@ elseif opt.model == 'gconv-pool-gconv-pool-fc' then
    -- classifier layer
    model:add(nn.View(opt.nhidden*pools2:size(2)))
    model:add(nn.Dropout())
-   model:add(nn.Linear(opt.nhidden*pools2:size(2), 250))
+   model:add(nn.Linear(opt.nhidden*pools2:size(2), 1000))
    model:add(nn.Threshold())
    model:add(nn.Dropout())
-   model:add(nn.Linear(250,nclasses))
+   model:add(nn.Linear(1000,nclasses))
    model:add(nn.LogSoftMax())
 
    -- send to GPU and reset pointers
