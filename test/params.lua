@@ -33,7 +33,7 @@ cmd:option('-alpha',0.1)
 cmd:option('-suffix','')
 cmd:option('-normdata','none')
 cmd:option('-lambda',0)
-cmd:option('-weightDecay',0.0001)
+cmd:option('-weightDecay',0)
 cmd:option('-momentum',0.9)
 cmd:option('-npts', 10, 'number of points to sample for commutation loss')
 cmd:option('-interpScale',1)
@@ -42,7 +42,7 @@ cmd:option('-graphscale','global')
 cmd:option('-stop',0)
 opt = cmd:parse(arg or {})
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/paper/merck/'
+opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/paper/' .. opt.dataset .. '/'
 opt.graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
 
 cutorch.setDevice(opt.gpunum)
