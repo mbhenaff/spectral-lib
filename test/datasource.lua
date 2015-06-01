@@ -34,11 +34,18 @@ function Datasource:__init(dataset,normalization,testTime)
       self.dim = 28*28
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
    elseif dataset == 'reuters' then
+      local reuters_path 
+      if global_cluster == 'cims' then
+         reuters_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/'
+      elseif global_cluster == 'hydra' then
+         reuters_path = '/scratch/mbh305/spectralnet/data/reuters/'
+      end
+      end
       if self.testTime then
-         self.train_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
-         self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/test.th')
+         self.train_set = torch.load(reuters_path .. '/train.th')
+         self.test_set = torch.load(reuters_path .. '/test.th')
       else
-         local x = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
+         local x = torch.load(reuters_path .. '/train.th')
          local nSamples = x.data:size(1)
          self.dim = x.data:size(2)
          local nTrain = math.floor(nSamples*(1-self.alpha))
