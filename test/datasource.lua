@@ -34,8 +34,33 @@ function Datasource:__init(dataset,normalization,testTime)
       self.dim = 28*28
       self.nSamples = {['train'] = self.train_set.data:size(1),['test'] = self.test_set.data:size(1)}
    elseif dataset == 'reuters' then
-      self.train_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
-      self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/test.th')
+      if self.testTime then
+         self.train_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
+         self.test_set = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/test.th')
+      else
+         local x = torch.load('/misc/vlgscratch3/LecunGroup/mbhenaff/reuters_50/train.th')
+         local nSamples = x.data:size(1)
+         self.dim = x.data:size(2)
+         local nTrain = math.floor(nSamples*(1-self.alpha))
+         local nTest = nSamples - nTrain
+         torch.manualSeed(314)
+--         local perm = torch.randperm(nSamples)
+         local perm = torch.range(1,nSamples)
+         self.train_set = {}
+         self.test_set = {}
+         self.train_set.data = torch.Tensor(nTrain,self.dim)
+         self.test_set.data = torch.Tensor(nTest,self.dim)
+         self.train_set.labels = torch.Tensor(nTrain)
+         self.test_set.labels = torch.Tensor(nTest)
+         for i = 1,nTrain do
+            self.train_set.data[i]:copy(x.data[perm[i]])
+            self.train_set.labels[i]=x.labels[perm[i]]
+         end
+         for i = 1,nTest do
+            self.test_set.data[i]:copy(x.data[perm[i+nTrain]])
+            self.test_set.labels[i]=x.labels[perm[i+nTrain]]
+         end
+      end
       self.nClasses = 50
       self.nChannels = 1
       self.dim = 2000
