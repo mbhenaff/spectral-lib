@@ -8,6 +8,8 @@ require 'cunn'
 require 'spectralnet'
 require 'aux'
 
+global_cluster = 'cims'
+
 cmd = torch.CmdLine()
 cmd:option('-dataset','merck3')
 cmd:option('-graph','merck3')
@@ -42,8 +44,13 @@ cmd:option('-graphscale','global')
 cmd:option('-stop',0)
 opt = cmd:parse(arg or {})
 
-opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/paper/' .. opt.dataset .. '/'
-opt.graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+if global_cluster == 'cims' then
+   opt.savePath = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/results/paper/' .. opt.dataset .. '/'
+   opt.graphs_path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'
+elseif global_cluster == 'hydra' then
+   opt.savePath = '/scratch/mbh305/spectralnet/results/paper/' .. opt.dataset .. '/'
+   opt.graphs_path = '/scratch/mbh305/spectralnet/mresgraph/'
+end
 
 cutorch.setDevice(opt.gpunum)
 torch.setdefaulttensortype('torch.FloatTensor')
