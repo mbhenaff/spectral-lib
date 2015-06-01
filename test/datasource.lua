@@ -40,7 +40,6 @@ function Datasource:__init(dataset,normalization,testTime)
       elseif global_cluster == 'hydra' then
          reuters_path = '/scratch/mbh305/spectralnet/data/reuters/'
       end
-      end
       if self.testTime then
          self.train_set = torch.load(reuters_path .. '/train.th')
          self.test_set = torch.load(reuters_path .. '/test.th')
