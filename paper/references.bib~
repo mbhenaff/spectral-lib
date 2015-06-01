@@ -1,0 +1,474 @@
+
+@inproceedings{Goodfellow_maxout_2013,
+       author = {Ian J. Goodfellow and David Warde-Farley and Mehdi Mirza and Aaron Courville and Yoshua Bengio},
+        title = {Maxout Networks},
+  booktitle = {ICML},
+  year      = {2013},
+}
+
+
+@incollection{DBLP:journals/corr/SaxeMG13,
+  author    = {Andrew M. Saxe and
+               James L. McClelland and
+               Surya Ganguli},
+  title     = {Exact solutions to the nonlinear dynamics of learning in deep linear
+               neural networks},
+  booktitle   = {ICLR},
+  year      = {2014},
+}
+
+
+
+@book{saad2009line,
+  title={On-line learning in neural networks},
+  author={Saad, David},
+  volume={17},
+  year={2009},
+  publisher={Cambridge University Press}
+}
+
+
+@inproceedings{spinglass2015,
+  author = {Anna Choromanska and Mikael Henaff and Michael Mathieu and Gerard Ben Arous and Yann LeCun},
+  title = {The Loss Surfaces of Multilayer Networks},
+  booktitle = {Proceedings of the 18th International Conference on Artificial Intelligence and Statistics},
+  year = {2015}
+}
+
+@inproceedings{spectralnet2013,
+  author = {Joan Bruna and Wojciech Zaremba and Arthur Szlam and Yann LeCun},
+  title = {Spectral Networks and Deep Locally Connected Networks on Graphs},
+  booktitle = {Proceedings of the 2nd International Conference on Learning Representations},
+  year = {2013}
+}
+
+
+
+@inproceedings{ DBLP:conf/icml/NairH10,
+  author = {Vinod Nair and Geoffrey E. Hinton},
+  title = {Rectified Linear Units Improve Restricted Boltzmann Machines},
+  booktitle = {Proceedings of the 27th International Conference on Machine Learning (ICML-10), June 21-24, 2010, Haifa, Israel},
+  pages = {807-814},
+  ee = {http://www.icml2010.org/papers/432.pdf},
+  year = {2010}
+}
+
+
+
+
+@inproceedings { lecun-98b,
+original =    "orig/lecun-98b.ps.gz",
+author = 	"LeCun, Y. and Bottou, L. and Orr, G. and Muller, K.",
+title = 	"Efficient BackProp",
+booktitle =	"Neural Networks: Tricks of the trade",
+editor =        "Orr, G. and Muller K.",
+publisher =     "Springer",
+year =		1998
+}
+
+
+
+
+
+
+
+@article{saad1995exact,
+  title={Exact solution for on-line learning in multilayer neural networks},
+  author={Saad, David and Solla, Sara A},
+  journal={Physical Review Letters},
+  volume={74},
+  number={21},
+  pages={4337},
+  year={1995},
+  publisher={APS}
+}
+
+@article {AAC2010,
+author="A. Auffinger and G. {Ben Arous} and J. Cerny",
+title="Random Matrices and complexity of Spin Glasses",
+journal   = {CoRR},
+year="2010",
+}
+
+@article{AAC2013,
+  author    = {A. Auffinger and G. {Ben Arous}},
+  title     = {Complexity of random smooth functions on the high-dimensional sphere},
+  journal   = {CoRR},
+  year      = {2013},
+}
+
+@article{mcculloch43a,
+  author = {McCulloch, Warren and Pitts, Walter},
+  journal = {Bulletin of Mathematical Biophysics},
+  pages = {127--147},
+  title = {A Logical Calculus of Ideas Immanent in Nervous Activity},
+  volume = 5,
+  year = 1943
+}
+
+@article{PhysRevA.32.1007,
+  title = {Spin-glass models of neural networks},
+  author = {Amit, D. J. and Gutfreund, H. and Sompolinsky, H.},
+  journal = {Phys. Rev. A},
+  volume = {32},
+  pages = {1007--1018},
+  year = {1985},
+}
+
+@article{0305-4470-30-23-009,
+  author={K. Nakanishi and H. Takayama},
+  title={Mean-field theory for a spin-glass model of neural networks: TAP free energy and the paramagnetic to spin-glass transition},
+  journal={Journal of Physics A: Mathematical and General},
+  volume={30},
+  pages={8085},
+  year={1997},
+}
+
+@book{Hebb:1949,
+  author = {Hebb, D. O.},
+  title = {The Organization of Behavior},
+  year = 1949
+}
+
+@book{Dotsenko1995,
+  author = {V. Dotsenko},
+  title = {An Introduction to the Theory of Spin Glasses and Neural Networks},
+  publisher = {World Scientific Lecture Notes in Physics},
+  year = {1995},
+}
+
+@article{Do:2012:RBM:2503308.2503355,
+ author = {Do, T.-M.-T. and Arti\`{e}res, T.},
+ title = {Regularized Bundle Methods for Convex and Non-convex Risks},
+ journal = {J. Mach. Learn. Res.},
+ volume = {13},
+ year = {2012},
+ pages = {3539--3583},
+} 
+
+@article{Bray2007,
+ author = {A. J. Bray and D. S. Dean},
+ title = {The statistics of critical points of Gaussian fields on large-dimensional spaces},
+ journal = {Physics Review Letter},
+ year = {2007},
+} 
+
+@article{Fyodorov2007,
+ author = {Y. V Fyodorov and I. Williams},
+ title = {Replica Symmetry Breaking Condition Exposed by Random Matrix Calculation of Landscape Complexity},
+ journal = {Journal of Statistical Physics},
+ volume = {129(5-6),1081-1116},
+ year = {2007},
+} 
+
+@article{Baldi:1989:NNP:70359.70362,
+ author = {Baldi, P. and Hornik, K.},
+ title = {Neural Networks and Principal Component Analysis: Learning from Examples Without Local Minima},
+ journal = {Neural Networks},
+ volume = {2},
+ year = {1989},
+ pages = {53--58},
+} 
+
+
+
+@inproceedings{DBLP:conf/emnlp/WestonCA14,
+  author    = {Jason Weston and
+               Sumit Chopra and
+               Keith Adams},
+  title     = {{\#}TagSpace: Semantic Embeddings from Hashtags},
+  booktitle = {Proceedings of the 2014 Conference on Empirical Methods in Natural
+               Language Processing, {EMNLP} 2014, October 25-29, 2014, Doha, Qatar,
+               {A} meeting of SIGDAT, a Special Interest Group of the {ACL}},
+  pages     = {1822--1827},
+  year      = {2014},
+  crossref  = {DBLP:conf/emnlp/2014},
+  url       = {http://aclweb.org/anthology/D/D14/D14-1194.pdf},
+  timestamp = {Sat, 15 Nov 2014 14:12:40 +0100},
+  biburl    = {http://dblp.uni-trier.de/rec/bib/conf/emnlp/WestonCA14},
+  bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+
+@article{NLPScratch,
+ author = {Collobert, Ronan and Weston, Jason and Bottou, L{\'e}on and Karlen, Michael and Kavukcuoglu, Koray and Kuksa, Pavel},
+ title = {Natural Language Processing (Almost) from Scratch},
+ journal = {J. Mach. Learn. Res.},
+ issue_date = {2/1/2011},
+ volume = {12},
+ month = nov,
+ year = {2011},
+ issn = {1532-4435},
+ pages = {2493--2537},
+ numpages = {45},
+ url = {http://dl.acm.org/citation.cfm?id=1953048.2078186},
+ acmid = {2078186},
+ publisher = {JMLR.org},
+} 
+
+
+@article{hinton12,
+title = {Deep Neural Networks for Acoustic Modeling in Speech Recognition},
+author  = {Geoffrey Hinton and Li Deng and Dong Yu and George Dahl and Abdel-rahman Mohamed and Navdeep Jaitly and Andrew Senior and Vincent Vanhoucke and Patrick Nguyen and Tara Sainath and Brian Kingsbury},
+year  = 2012,
+journal = {Signal Processing Magazine}
+}
+
+
+@incollection{NIPS2012_4824,
+title = {ImageNet Classification with Deep Convolutional Neural Networks},
+author = {Alex Krizhevsky and Sutskever, Ilya and Geoffrey E. Hinton},
+booktitle = {Advances in Neural Information Processing Systems 25},
+editor = {F. Pereira and C.J.C. Burges and L. Bottou and K.Q. Weinberger},
+pages = {1097--1105},
+year = {2012},
+publisher = {Curran Associates, Inc.},
+url = {http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf}
+}
+
+
+@article{journals/corr/abs-1207-0580,
+   author    = {G. E. Hinton and
+               N. Srivastava and
+               A. Krizhevsky and
+               I. Sutskever and
+               R. Salakhutdinov},
+  journal = {CoRR},
+  title = {Improving neural networks by preventing co-adaptation of feature detectors},
+  year = 2012
+}
+
+@incollection{bottou-98x,
+  author = {Bottou, L\'{e}on},
+  title = {Online Algorithms and Stochastic Approximations},
+  booktitle = {Online Learning and Neural Networks},
+  editor = {Saad, David},
+  publisher = {Cambridge University Press},
+  address = {Cambridge, UK},
+  year = {1998},
+  url = {http://leon.bottou.org/papers/bottou-98x},
+  note = {revised, oct 2012}
+}
+
+
+
+
+
+
+@article{wigner_semicircle,
+    author = {Wigner, E. P.},
+    journal = {The Annals of Mathematics},
+    pages = {325--327},
+    title = {{On the Distribution of the Roots of Certain Symmetric Matrices}},
+    volume = {67},
+    year = {1958}
+}
+
+@book{Bengio+chapter2007,
+     author = {Bengio, Y. and LeCun, Y.},
+      title = {Scaling Learning Algorithms towards {AI}},
+      publisher = {Large Scale Kernel Machines, MIT Press},
+      year = {2007},
+}
+
+@incollection{DBLP:journals/corr/DauphinPGCGB14,
+  author    = {Y. Dauphin and
+               R. Pascanu and
+               {\c{C}}. G{\"{u}}l{\c{c}}ehre and
+               K. Cho and
+               S. Ganguli and
+               Y. Bengio},
+  title     = {Identifying and attacking the saddle point problem in high-dimensional
+               non-convex optimization},
+  booktitle = {NIPS},
+  year      = {2014},
+}
+
+@incollection{DBLP:journals/corr/DentonZBLF14,
+  author    = {E. Denton and
+               W. Zaremba and
+               J. Bruna and
+               Y. LeCun and
+               R. Fergus},
+  title     = {Exploiting Linear Structure Within Convolutional Networks for Efficient
+               Evaluation},
+  booktitle = {NIPS},
+  year      = {2014},
+}
+
+@incollection{NIPS2013_5025, 
+    Author = {M. Denil and B. Shakibi and L. Dinh and M. Ranzato and N. D. Freitas}, 
+    Booktitle = {NIPS}, 
+    Title = {Predicting Parameters in Deep Learning}, 
+    Year = {2013}, 
+   }
+
+
+
+@article{rosenblatt58a,
+  author = {Rosenblatt, F.},
+  journal = {Psychological Review},
+  number = 6,
+  pages = {386-408},
+  title = {The Perceptron: A Probabilistic Model for Information Storage and Organization in the Brain},
+  volume = 65,
+  year = 1958
+}
+
+@book{opac-b1095246,
+   title = "Decoupling : from dependence to independence : randomly stopped processes, {U}-statistics and processes, martingales and beyond",
+   author = "De la Pe\~{n}a, V. H. and Gin\'{e}, E.",
+   series = "Probability and its applications",
+   publisher = "Springer",
+   year = 1999
+}
+
+
+
+
+
+
+
+@phdthesis{Werbos:74,
+  author = {Werbos, P. J.},
+  title = {Beyond Regression: New Tools for Prediction and Analysis in the Behavioral Sciences},
+  year = 1974
+}
+
+@article{Larochelle:2009:EST:1577069.1577070,
+ author = {Larochelle, H. and Bengio, Y. and Louradour, J. and Lamblin, P.},
+ title = {Exploring Strategies for Training Deep Neural Networks},
+ journal = {J. Mach. Learn. Res.},
+ volume = {10},
+ year = {2009},
+ pages = {1--40},
+} 
+
+@article{JMLR:v15:srivastava14a,
+  author  = {Nitish Srivastava and Geoffrey Hinton and Alex Krizhevsky and Ilya Sutskever and Ruslan Salakhutdinov},
+  title   = {Dropout: A Simple Way to Prevent Neural Networks from Overfitting},
+  journal = {Journal of Machine Learning Research},
+  year    = {2014},
+  volume  = {15},
+  pages   = {1929-1958},
+}
+
+@incollection{Hopfield:1988:NNP:65669.104422,
+ author = {Hopfield, J. J.},
+ title = {Neurocomputing: Foundations of Research, chapter: Neural Networks and Physical Systems with Emergent Collective Computational Abilities, 457--464},
+ year = {1988},
+ publisher = {MIT Press}
+}
+
+@article{Kohonen1982,
+  author = {Kohonen, T.},
+  journal = {Biological Cybernetics},
+  pages = {59--69},
+  title = {{Self-organized formation of topologically correct feature maps}},
+  volume = 43,
+  year = 1982
+}
+
+@article{Hinton:1986:LRB:104279.104291,
+ author = {Hinton, G. E. and Sejnowski, T. J.},
+ title = {Parallel Distributed Processing: Explorations in the Microstructure of Cognition, chapter: Learning and Relearning in Boltzmann Machines},
+ year = {1986},
+ volume = {1},
+ pages = {282--317, MIT Press},
+} 
+
+@article {lecun-gradientbased-learning-applied-1998,
+author = 	"LeCun, Y. and Bottou, L. and Bengio, Y. and Haffner, P.",
+title = 	"Gradient-Based Learning Applied to Document Recognition",
+journal =	"Proceedings of the IEEE",
+volume =        "86",
+pages =         "2278-2324",
+year =		1998
+}
+
+@article{Graves:2009:NCS:1525650.1525782,
+ author = {Graves, A. and Liwicki, M. and Fern\'{a}ndez, S. and Bertolami, R. and Bunke, H. and Schmidhuber, J.},
+ title = {A Novel Connectionist System for Unconstrained Handwriting Recognition},
+ journal = {IEEE Trans. Pattern Anal. Mach. Intell.},
+ volume = {31},
+ year = {2009},
+ pages = {855--868},
+} 
+
+@article{DBLP:journals/corr/Schmidhuber14,
+  author    = {J{\"{u}}rgen Schmidhuber},
+  title     = {Deep Learning in Neural Networks: An Overview},
+  journal   = {CoRR},
+  year      = {2014},
+}
+
+@incollection{Huang14,
+  author    = {G. B. Huang and V. Jain},
+  title     = {Deep and Wide Multiscale Recursive Networks for Robust Image Labeling},
+  booktitle  = {ICLR},
+  year      = {2014},
+}
+
+@article{journals/nn/CiresanMMS12,
+  author = {Ciresan, D. C. and Meier, U. and Masci, J. and Schmidhuber, J.},
+  journal = {Neural Networks},
+  pages = {333-338},
+  title = {Multi-column deep neural network for traffic sign classification.},
+  volume = 32,
+  year = 2012
+}
+
+@incollection{NIPS2012_4741,
+title = {Deep Neural Networks Segment Neuronal Membranes in Electron Microscopy Images},
+author = {D. Ciresan and A. Giusti and L. M. Gambardella and J. Schmidhuber},
+booktitle = {NIPS},
+year = {2012},
+}
+
+@incollection{DBLP:journals/corr/TompsonJLB14,
+  author    = {J. Tompson and
+               A. Jain and
+               Y. LeCun and
+               C. Bregler},
+  title     = {Joint Training of a Convolutional Network and a Graphical Model for
+               Human Pose Estimation},
+  booktitle   = {NIPS},
+  year      = {2014},
+}
+
+@inproceedings{sermanet-iclr-14,
+ title = "OverFeat: Integrated Recognition, Localization and Detection using Convolutional Networks",
+ author = "Sermanet, P. and Eigen, D. and Zhang, X. and Mathieu, M. and Fergus, R. and LeCun, Y.",
+ booktitle = "ICLR",
+ year = "2014",
+}
+
+@inproceedings{conf/icml/GoodfellowCB12,
+  added-at = {2013-01-25T00:00:00.000+0100},
+  author = {Goodfellow, I. J. and Courville, A. C. and Bengio, Y.},
+  booktitle = {ICML},
+  title = {Large-Scale Feature Learning With Spike-and-Slab Sparse Coding.},
+  year = 2012
+}
+
+@book{opac-b1104789,
+   title = "Introductory lectures on convex optimization : a basic course",
+   author = "Nesterov, Y.",
+   series = "Applied optimization",
+   publisher = "Kluwer Academic Publ.",
+   year = 2004
+}
+
+@book{ben-tal_nemirovski:2001,
+    author = {Ben-Tal, A. and Nemirovski, A.},
+    booktitle = {Lectures on Modern Convex Optimization},
+    publisher = {SIAM},
+    title = {{Lectures on Modern Convex Optimization: Analysis, Algorithms, and Engineering Applications}},
+    year = {2001}
+}
+
+@book{hastie01statisticallearning,
+  author = {Hastie, T. and Tibshirani, R. and Friedman, J.},
+  title = {The Elements of Statistical Learning},
+  series = {Springer Series in Statistics},
+  year = 2001
+}
