@@ -1,0 +1,23 @@
+\begin{thebibliography}{1}
+
+\bibitem{spectralnet2013}
+Joan Bruna, Wojciech Zaremba, Arthur Szlam, and Yann LeCun.
+\newblock Spectral networks and deep locally connected networks on graphs.
+\newblock In {\em Proceedings of the 2nd International Conference on Learning
+  Representations}, 2013.
+
+\bibitem{hinton12}
+Geoffrey Hinton, Li~Deng, Dong Yu, George Dahl, Abdel rahman Mohamed, Navdeep
+  Jaitly, Andrew Senior, Vincent Vanhoucke, Patrick Nguyen, Tara Sainath, and
+  Brian Kingsbury.
+\newblock Deep neural networks for acoustic modeling in speech recognition.
+\newblock {\em Signal Processing Magazine}, 2012.
+
+\bibitem{krizhevsky2012}
+Alex Krizhevsky, Ilya Sutskever, and Geoffrey~E. Hinton.
+\newblock Imagenet classification with deep convolutional neural networks.
+\newblock In F.~Pereira, C.J.C. Burges, L.~Bottou, and K.Q. Weinberger,
+  editors, {\em Advances in Neural Information Processing Systems 25}, pages
+  1097--1105. Curran Associates, Inc., 2012.
+
+\end{thebibliography}
