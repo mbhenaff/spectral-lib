@@ -21,7 +21,7 @@ function loadGraph2layer()
                               .. '_stride1_' .. opt.stride  
                               .. '_pool2_' .. opt.pool 
                               .. '_stride2_' .. opt.stride  
-                              .. '.mat')
+                              .. 'rank1.mat')
       V1 = x.V[1]:clone()
       V2 = x.V[2]:clone()
       pools1 = x.pools[1]:clone()
@@ -277,6 +277,33 @@ elseif opt.model == 'gconv2-pool' then
    -- send to GPU and reset pointers
    model = model:cuda()
    model:reset()
+
+elseif opt.model == 'gconv2-pool-smallfc' then
+
+   V1,V2,pools1,pools2 = loadGraph2layer()
+
+   -- conv layer 1
+   model:add(nn.SpectralConvolution(opt.batchSize, nChannels, opt.nhidden, dim, opt.k, V1, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- conv layer 2
+   model:add(nn.SpectralConvolution(opt.batchSize, opt.nhidden, opt.nhidden, dim, opt.k, V1, opt.interpScale))
+   model:add(nn.Threshold())
+
+   -- pooling layer
+   model:add(nn.GraphPooling(pools1:t():clone(), opt.pooltype))
+
+   -- classifier layer
+   model:add(nn.View(opt.nhidden*pools1:size(2)))
+   model:add(nn.Linear(opt.nhidden*pools1:size(2), 100))
+   model:add(nn.Threshold())
+   model:add(nn.Linear(100,nclasses))
+   model:add(nn.LogSoftMax())
+
+   -- send to GPU and reset pointers
+   model = model:cuda()
+   model:reset()
+
 
 elseif opt.model == 'gconv-pool-fc' then
 
