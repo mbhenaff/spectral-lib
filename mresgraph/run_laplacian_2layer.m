@@ -1,9 +1,10 @@
 %this script generates the GFT matrices and pools for 2 layers
-dataset = 'merck3fc2';
+dataset = 'reutersfc';
 kernel = 'gauss';
-poolsize = [16 16];
-poolstride = [8 8];
+poolsize = [8 8];
+poolstride = [4 4];
 alpha=0.01;
+r = 0.25;
 
 if 1
 %  clear all
@@ -19,6 +20,11 @@ if 1
 if strcmp(kernel,'gauss')
 %%2 Gaussian Kernel
 fprintf('computing kernel...');
+if 1
+[U,S,V]=svd(data,0);
+nComp = r*min(size(data));
+data=U(:,1:nComp)*S(1:nComp,1:nComp)*V(:,1:nComp)';
+end
 K0 = kernelization(data);
 %adjust sparsity level 
 [K0s, Is]=sort(K0,2,'ascend');
@@ -72,6 +78,6 @@ end
 % Get pools 
 [V,pools] = ms_spectral_clustering(K1,K1,2,1./poolstride,poolsize);
 path = '/misc/vlgscratch3/LecunGroup/mbhenaff/spectralnet/mresgraph/'; 
-save([path 'alpha_' num2str(alpha) '/' dataset '_laplacian_' kernel '_pool1_' num2str(poolsize(1)) '_stride1_' num2str(poolstride(1)) '_pool2_' num2str(poolsize(2)) '_stride2_' num2str(poolstride(2)) '.mat'],'V','NN','pools');
+save([path 'alpha_' num2str(alpha) '/' dataset '_laplacian_' kernel '_pool1_' num2str(poolsize(1)) '_stride1_' num2str(poolstride(1)) '_pool2_' num2str(poolsize(2)) '_stride2_' num2str(poolstride(2)) 'rank_' num2str(r) '.mat'],'V','NN','pools');
 
 

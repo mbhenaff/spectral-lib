@@ -26,10 +26,16 @@ elseif strcmp(dataset, 'reuters')
  % sigmas = std(data,0,1);
 %  data = data./repmat(sigmas,size(data,1),1);
   fprintf('done\n')
+elseif strcmp(dataset,'reutersfc')
+data=load('reuters-reutersfc.mat')
+data=data.W1';
 
 elseif strcmp(dataset,'merck3fc')
  data=load('dnn4.mat');
  data=data.W1';
+elseif strcmp(dataset,'merck3grad')
+ data=load('merck3-dnn4.mat');
+ data=data.G';
 elseif strcmp(dataset,'merck3fc2')
  data=load('dnn4.mat');
  data=(data.W1*data.W2)';

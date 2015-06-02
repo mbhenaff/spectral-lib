@@ -19,6 +19,7 @@ function LearnableInterp2D:__init(iH, iW, oH, oW, interpType)
       self.weight = compute_interpolation_matrix(iH, oH, interpType)
    end
    self.gradWeight = torch.Tensor(self.weight:size()):zero()
+   if false then
    self.mask = torch.Tensor(self.weight:size()):fill(1)
    for i = 1,self.weight:size(1) do 
       for j = 1,self.weight:size(2) do 
@@ -27,6 +28,9 @@ function LearnableInterp2D:__init(iH, iW, oH, oW, interpType)
          end
       end
    end
+else
+   self.mask = compute_mask(iH, oH)
+end
    self.originalKernel = self.weight:clone()
 end
 
@@ -123,6 +127,55 @@ function compute_interpolation_matrix(k,n,interpType)
    K:mul(scale)
    return K,scale
 end
+
+
+
+
+function compute_mask(k,n)
+   local K = torch.FloatTensor(2*k^2, 2*n^2)
+   local model = nn.ComplexInterp(k,k,n,n,'bilinear'):float()
+   model.kernelRows:fill(1)
+   model.kernelCols:fill(1)
+   local input = torch.FloatTensor(1,k,k,2)
+   local cntr = 1
+   for i = 1,k do
+      for j = 1,k do 
+         for l = 1,2 do 
+            input:zero()
+            input[1][i][j][l] = 1
+            out = model:forward(input)
+            K[{cntr,{}}]:copy(out:resize(2*n^2))
+            cntr = cntr + 1
+         end
+      end
+   end
+
+   for i = 1,2*k^2 do 
+      for j = 1,2*n^2 do 
+         if math.abs(K[i][j]) < 1e-5 then
+            K[i][j] = 0
+         else
+            K[i][j] = 1
+         end
+      end
+   end
+   return K
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- estimate a scaling factor for matrix M2 so that it has a similar matrix norm as M1
 function estimate_scaling(M1, M2, npts)

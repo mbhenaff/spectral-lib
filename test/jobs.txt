@@ -1,4 +1,46 @@
-th train_merck.lua -dataset merck10 -model gconv2-finalpool-dropout2 -learningRate 0.001 -poolsize 20 -poolstride 10 -alpha 0.001 -k 100
-th train_merck.lua -dataset merck10 -model gconv2-finalpool-dropout2 -learningRate 0.001 -poolsize 20 -poolstride 10 -alpha 0.001 -k 200 
-th train_merck.lua -dataset merck10 -model gconv2-finalpool-dropout2 -learningRate 0.001 -poolsize 20 -poolstride 10 -alpha 0.01 -k 100
-th train_merck.lua -dataset merck10 -model gconv2-finalpool-dropout2 -learningRate 0.001 -poolsize 20 -poolstride 10 -alpha 0.01 -k 200
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc -alpha 0.01 -k 20
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc -alpha 0.01 -k 60
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc -alpha 0.01 -k 40 -graphscale local
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc2 -alpha 0.01 -k 40
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc3 -alpha 0.01 -k 40
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3fc4 -alpha 0.01 -k 40
+th -i train_merck.lua -dataset merck3 -model gconv-pool-gconv-pool-fc-fc -pool 16 -stride 8 -nhidden 64 -graph merck3 -alpha 0.01 -k 40
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

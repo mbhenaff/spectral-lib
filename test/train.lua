@@ -8,7 +8,7 @@ if opt.stop then print('cats') return end
 optimState = {
    learningRate = opt.learningRate,
    weightDecay = opt.weightDecay,
-   learningRateDecay = 1/trsize
+   learningRateDecay = 0--1/trsize
 }
 
 -- these will record performance
@@ -81,6 +81,12 @@ for i = 1,opt.epochs do
    if opt.log then
       logFile:write(outString)
    end
+   if i % opt.saveEvery == 0 then
+      print('saving model...')
+      torch.save(opt.savePath .. opt.modelFile .. '.model',{model=model,opt=opt,trloss=trloss[{{1,i}}],teloss=teloss[{{1,i}}],tracc=tracc[{{1,i}}],teacc=teacc[{{1,i}}],optimState=optimState})
+      print('done')
+   end
+      
 end
 
 if opt.log then
