@@ -11,11 +11,6 @@ optimState = {
    learningRateDecay = 0--1/trsize
 }
 
--- these will record performance
-trloss = torch.Tensor(opt.epochs)
-teloss = torch.Tensor(opt.epochs)
-tracc = torch.Tensor(opt.epochs)
-teacc = torch.Tensor(opt.epochs)
 
 cutorch.synchronize()
 
