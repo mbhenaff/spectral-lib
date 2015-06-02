@@ -23,7 +23,7 @@ New York University\\
 \And
 Joan Bruna \\
 University of California, Berkeley \\
-\texttt{bruna@cims.nyu.edu} \\
+\texttt{joan.bruna@berkeley.edu} \\
 \AND
 Yann LeCun \\
 Courant Institute of Mathematical Sciences \\
@@ -55,6 +55,10 @@ New York University \\
 
 \section{Introduction}
 
+%main ideas here:
+% how to perform weight sharing in non-euclidean domains. 
+% how to estimate a graph structure 
+
 Generalizing convolutional networks to graph-structured data is an important open problem. 
 Thus far ConvNets have proved extremely successful for a large variety of tasks in computer vision and acoustic modeling ~\cite{krizhevsky2012,hinton12}. This is largely due to their ability to efficiently exploit stationarity and local statistics to greatly reduce the number of parameters in the network without sacrificing the capacity to accurately represent the data.  
 As a result, one is able to train very large networks while limiting the overfitting problem.
@@ -66,20 +70,50 @@ However, many types of data are defined on more complex graphs. For example, tex
 
 In this work we propose two different approaches to generalizing ConvNets to data defined arbitrary graphs. We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
 
-\section{Spectral Networks}
+%Main contributions of this work. How to apply graph convolutions on problems where the graph is not known a priori.
 
-Our work builds upon ~\cite{spectralnet2013} which defines spectral networks. We recall the definition here. A spectral network generalizes a convolutional network through the Graph Fourier Transform, which is in turn defined through a generalization of the Laplacian operator on the grid to the graph Laplacian.
 
+\section{Related Work}
+
+Spectral Net
+
+Locally connected from Coates et Al. 
+
+Recent paper by Masci et al.
+
+Identification of graphical model.
+
+Stephane's paper on learning wavelets using pairing.
+
+\section{Generalizing Convolutions in Graphs }
+
+\subsection{Spectral Networks}
+
+Our work builds upon ~\cite{spectralnet2013} which defines spectral networks. We recall the definition here and its main properties.
+
+A spectral network generalizes a convolutional network through the Graph Fourier Transform, which is in turn defined via a generalization of the Laplacian operator on the grid to the graph Laplacian. An input vector $x \in \mathbb{R}^N$ is seen as a a signal defined on a graph $G$ with $N$ nodes. 
 \begin{graphconv}
- Let $W$ be a similarity matrix representing a graph $G$, and let $L$ be its graph Laplacian with eigenvectors $U$. Then a \textit{graph convolution} of input signals $x$ and $y$ defined on $G$ is defined by $f \star g = U^T \left( Uf \odot Ug \right)$, where $\odot$ represents a pointwise product. 
+ Let $W$ be a $N \times N$ similarity matrix representing a graph $G$, and let $L= D - W$ be its graph Laplacian with $D=W {\bf 1}$, with eigenvectors $U=(u_1,\dots,u_N)$. Then a \textit{graph convolution} of input signals $x$ with filters $g$ on $G$ is defined by $x \ast_G g = U^T \left( Ux \odot Ug \right)$, where $\odot$ represents a point-wise product. 
 \end{graphconv}
 
-There are several ways of computing $L$. In this work, we choose $L = I - D^{-1/2}WD^{-1/2}$, where $D$ is a diagonal matrix with entries $D_{ii} = \sum_j W_{ij}$. Note that in the case where $W$ represents the lattice, from the definition of $L$ we recover the discrete Laplacian operator $\Delta$. Also note that the Laplacian commutes with the translation operator, which is diagonalized in the Fourier basis. 
+Here, the unitary matrix $U$ plays the role of the Fourier Transform in $\mathbb{R}^d$. 
+There are several ways of computing the graph Laplacian $L$ \cite{spectralgraphcite}. In this paper, we choose the normalized version $L = I - D^{-1/2}WD^{-1/2}$, where $D$ is a diagonal matrix with entries $D_{ii} = \sum_j W_{ij}$. Note that in the case where $W$ represents the lattice, from the definition of $L$ we recover the discrete Laplacian operator $\Delta$. Also note that the Laplacian commutes with the translation operator, which is diagonalized in the Fourier basis. 
 It follows that the eigenvectors of $\Delta$ are given by the Discrete Fourier Transform (DFT) matrix. 
-We then recover a classical convolution through the Convolution Theorem. 
+We then recover a classical convolution operator that noting that convolutions are by definition linear operators that diagonalize in the Fourier domain (also known as the Convolution Theorem \cite{mallat}).
 
-We can then generalize a convolutional network by replacing the convolutions in the three main operations by graph convolutions defined above. 
-Specifically, we have:
+Learning filters in a Graph thus amounts to learning spectral multipliers $w_g = (w_1, \dots,w_N)$ 
+$$x \ast_G g := U^T ( \mbox{diag}(w_g) U x)~.$$
+Extending the convolution to inputs $x$ with multiple input channels is straightforward. If $x$ is a signal with $M$ input channels and $N$ locations, we apply the transformation $U$ on each channel, and then use multipliers $w_g =  (w_{i,j}\, ;\, i \leq N~, j \leq M)$. 
+
+However, for each feature map $g$ we need convolutional kernels are typically restricted to have small spatial support, independent of the number of input pixels $N$, which enables the model to learn a number of parameters independent of $N$. In order to recover a similar learning complexity in the spectral domain, it is thus necessary to restrict the class of spectral multipliers to those corresponding to localized filters. 
+
+For that purpose, we seek to express spatial localization of filters in terms of their spectral multipliers. In the grid, smoothness in the frequency domain corresponds to the spatial decay, since
+$$\left| \frac{\partial^k \hat{x}(\xi)}{\partial \xi^k} \right| \leq C \int u^k |x(u)| du~,$$
+where $\hat{x}(\xi)$ is the Fourier transform of $x$.
+In \cite{spectralnet2013} it was suggested to use the same principle in a general graph, by considering a smoothing kernel $\mathcal{K} \in \mathbb{R}^{N \times N_0}$, such as splines, and searching for spectral multipliers of the form
+$$w_g = \mathcal{K} \tilde{w}_g~.$$
+
+The algorithm which implements the graph convolution is described in \ref{pseudoPSO}.
 
 \begin{algorithm}
 \caption{Train Graph Convolution Layer}
@@ -97,15 +131,54 @@ Specifically, we have:
 \end{algorithmic}
 \end{algorithm}
 
-In the case of a classical ConvNet, the weights $w$ are small filters localized in space.
-In the case of the grid, localization in space is inversely related to localization in frequency. 
+\subsection{Pooling with Hierarchical Graph Clustering}
 
-\section{Graph Estimation }
+In image and speech applications, and in order to reduce the complexity of the model, it is often useful to trade-off spatial resolution with feature resolution as the representation becomes deeper. For that purpose, pooling layers compute statistics in local neighborhoods, such as the average amplitude, energy or maximum activation.
+
+The same layers can be defined in a Graph by providing the equivalent notion of neighborhood. In this work, we construct such neighborhoods at different scales using multi-resolution spectral clustering \cite{spectralclustering}, and consider both average and max-pooling as in standard convolutional network architectures.
+
+\section{ Graph Estimation }
+
+Whereas some recognition tasks, such as those considered in \cite{spectralnet2013}, might have a prior knowledge of the graph structure of the input data, many other real-world applications do not have such knowledge. It is thus necessary to estimate a similarity matrix $W$ from the data before constructing the spectral network. 
+We consider in this paper two possible graph constructions.
+
+\subsection{ Estimation from Feature Correlation }
+
+Given data $X \in \mathbb{R}^{N \times L}$, where $L$ is the number of samples and $N$ the number of features,
+the simplest approach to estimating a graph structure from the data is to consider a distance between features $i$ and $j$ given by
+$$d(i,j) = \| X_i - X_j \|^2~,$$
+where $X_i$ is the $i$-th row of $X$. 
+
+This distance is then used to build a Gaussian diffusion Kernel \cite{diffusion_maps} 
+\begin{equation}
+\label{unsupervisedkernel}
+\omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma^2}}~.
+\end{equation}
+In our experiments, consider the variant of self-tuning diffusion kernel \cite{self-tuning}
+$$\omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma_i \sigma_j}}~,$$
+where $\sigma_i$ is computed as the distance $d(i,i_{k})$ corresponding to the $k$-th nearest neighbor $i_{k}$ of feature $i$. 
+
+%Pros and Cons
+%Semi-supervised Setting: this 
+The main advantage of (\ref{unsupervised_kernel}) is that it does not require labeled data. Therefore, it is possible to estimate 
+the similarity using several datasets that share the same features, for example in text classification. 
+While correlations are typically sufficient to reveal the intrinsic geometrical structure of images \cite{bengioleroux}, 
+ the effects of higher-order statistics might be non-negligible in other contexts, especially in presence of sparsity. 
+
+Another strategy is to use $\ell_1$ penalized logistic regression \cite{martin}. 
+
+\subsection{ Supervised Graph Estimation }
+
+Use a fully connected network to determine the feature similarity. 
 
 
-\section{Experiments}
+\section{ Experiments }
 
 
+\section{Discussion}
+
+The graph construction using the Supervised Graph Estimation. 
+Related to discovering latent graphical models
 
 
 \bibliography{references}{}
