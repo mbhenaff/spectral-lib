@@ -3,8 +3,9 @@
 \BOOKMARK [1][-]{section.3}{Generalizing Convolutions in Graphs }{}% 3
 \BOOKMARK [2][-]{subsection.3.1}{Spectral Networks}{section.3}% 4
 \BOOKMARK [2][-]{subsection.3.2}{Pooling with Hierarchical Graph Clustering}{section.3}% 5
-\BOOKMARK [1][-]{section.4}{ Graph Estimation }{}% 6
-\BOOKMARK [2][-]{subsection.4.1}{ Estimation from Feature Correlation }{section.4}% 7
-\BOOKMARK [2][-]{subsection.4.2}{ Supervised Graph Estimation }{section.4}% 8
-\BOOKMARK [1][-]{section.5}{ Experiments }{}% 9
-\BOOKMARK [1][-]{section.6}{Discussion}{}% 10
+\BOOKMARK [1][-]{section.4}{ Graph Construction }{}% 6
+\BOOKMARK [2][-]{subsection.4.1}{ Using Prior Knowledge}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.2}{ Estimation from Feature Correlation }{section.4}% 8
+\BOOKMARK [2][-]{subsection.4.3}{ Supervised Graph Estimation }{section.4}% 9
+\BOOKMARK [1][-]{section.5}{ Experiments }{}% 10
+\BOOKMARK [1][-]{section.6}{Discussion}{}% 11

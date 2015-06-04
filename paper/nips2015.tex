@@ -58,19 +58,36 @@ New York University \\
 %main ideas here:
 % how to perform weight sharing in non-euclidean domains. 
 % how to estimate a graph structure 
+% towards efficient archiectures
 
-Generalizing convolutional networks to graph-structured data is an important open problem. 
-Thus far ConvNets have proved extremely successful for a large variety of tasks in computer vision and acoustic modeling ~\cite{krizhevsky2012,hinton12}. This is largely due to their ability to efficiently exploit stationarity and local statistics to greatly reduce the number of parameters in the network without sacrificing the capacity to accurately represent the data.  
-As a result, one is able to train very large networks while limiting the overfitting problem.
-The implicit assumption behind a ConvNet is that the data lives on a lattice, a specific type of graph.
-Images can be thought of as signals defined on a 2-D lattice, where each pixel is a node which is connected to its immediate neighbors. 
-Similarly, audio waveforms can be viewed as signals defined on a 1-D lattice, where each node is a time point. 
+In recent times, deep learning models have proven extremely successful in a wide variety of tasks, from computer vision and acoustic modeling, to natural language processing \cite{natureyann}. At the core of their success lies an important assumption on the statistical properties of the data, namely the \emph{stationarity} and the \emph{compositionality} through local statistics, which is present in natural images, video, or speech.
+ These properties are exploited efficiently by ConvNets ~\cite{krizhevsky2012,hinton12}, which are designed to extract local features that are shared across the signal domain. Thanks to this, they are able to greatly reduce the number of parameters in the network with respect to generic Deep architectures, without sacrificing the capacity to extract informative statistics from the data. Similarly, Recurrent Neural Nets (RNNs) trained on temporal data implicitly assume a stationary distribution.
 
-However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple graph. 
+%
+%
+%%The 
+%%Thus far ConvNets have proved extremely successful for a large variety of tasks in computer vision and acoustic modeling . This is largely due to their ability to efficiently exploit stationarity and local statistics to   
+%%As a result, one is able to train very large networks while limiting the overfitting problem.
+%When the data lives on a low-dimensional grid 
+%(1-D for speech or text data, 2-D for images, 3-D for videos), a ConvNet can exploit 
+% 
+%Images can be thought of as signals defined on a 2-D lattice, where each pixel is a node which is connected to its immediate neighbors. 
+%Similarly, audio waveforms can be viewed as signals defined on a 1-D lattice, where each node is a time point. 
+%Generalizing convolutional networks to graph-structured data is an important open problem. 
+One can think such data as being signals defined on a low-dimensional grid, where the stationarity can be well defined via the natural translation 
+operator on the grid, locality is defined via the metric of the grid, and compositionality is obtained from downsampling. 
+However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. 
 
-In this work we propose two different approaches to generalizing ConvNets to data defined arbitrary graphs. We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
+When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize convnets using low learning complexity, that was shown on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to more general data distributions, and, most importantly, to the setting where the graph structure is not known a priori.
+We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks before: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
 
 %Main contributions of this work. How to apply graph convolutions on problems where the graph is not known a priori.
+Our main contributions can be summarized as follows:
+\begin{itemize}
+\item We extend the ideas from \cite{spectralnet2013} to large scale classification problems, on Object Recognition, text categorization and bioinformatics.
+\item We consider the most general setting where no prior information on the graph structure is available, and propose unsupervised and supervised graph estimation strategies.
+\item Finally, we introduce an alternative formulation for efficient learning in graph-structured domains which works directly in the feature domain.
+\end{itemize}
 
 
 \section{Related Work}
@@ -137,10 +154,16 @@ In image and speech applications, and in order to reduce the complexity of the m
 
 The same layers can be defined in a Graph by providing the equivalent notion of neighborhood. In this work, we construct such neighborhoods at different scales using multi-resolution spectral clustering \cite{spectralclustering}, and consider both average and max-pooling as in standard convolutional network architectures.
 
-\section{ Graph Estimation }
+\section{ Graph Construction }
+
+\subsection{ Using Prior Knowledge}
 
 Whereas some recognition tasks, such as those considered in \cite{spectralnet2013}, might have a prior knowledge of the graph structure of the input data, many other real-world applications do not have such knowledge. It is thus necessary to estimate a similarity matrix $W$ from the data before constructing the spectral network. 
+
+Word datasets. Using Word embeddings is also a possibility.
+
 We consider in this paper two possible graph constructions.
+
 
 \subsection{ Estimation from Feature Correlation }
 
