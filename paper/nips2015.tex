@@ -76,11 +76,11 @@ In recent times, deep learning models have proven extremely successful in a wide
 %Generalizing convolutional networks to graph-structured data is an important open problem. 
 One can think such data as being signals defined on a low-dimensional grid, where the stationarity can be well defined via the natural translation 
 operator on the grid, locality is defined via the metric of the grid, and compositionality is obtained from downsampling. 
-However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. 
+However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. For those type of data of dimension $n$, deep learning strategies are reduced to learning with fully-connected layers, which have $o(n^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{dropouthinton}.
 
-When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize convnets using low learning complexity, that was shown on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to more general data distributions, and, most importantly, to the setting where the graph structure is not known a priori.
+When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize convnets using low learning complexity, that was shown on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to more general data distributions, and, most importantly, to the setting where the graph structure is not known a priori. In this context, learning the graph structure amounts to estimating the similarity matrix, which has complexity $o(n^2)$. One may therefore wonder whether the graph estimation followed by graph convolutions offers advantages with respect to learning directly from the data with fully connected layers. We attempt to answer this question experimentally as well as mathematically. 
+ 
 We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks before: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
-
 %Main contributions of this work. How to apply graph convolutions on problems where the graph is not known a priori.
 Our main contributions can be summarized as follows:
 \begin{itemize}
@@ -89,6 +89,7 @@ Our main contributions can be summarized as follows:
 \item Finally, we introduce an alternative formulation for efficient learning in graph-structured domains which works directly in the feature domain.
 \end{itemize}
 
+The rest of the paper is structured as follows. Section \ref{relatedworksect} reviews similar works in the literature. Section \ref{spectralsect} discusses generalizations of convolutions on graphs, and Section \ref{graphestimsect} addresses the question of graph estimation. Finally, Section \ref{experimentssect} shows numerical experiments on large scale object recogniton, text categorization and bioinformatics.
 
 \section{Related Work}
 
