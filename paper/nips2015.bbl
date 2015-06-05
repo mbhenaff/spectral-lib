@@ -1,10 +1,34 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
+
+\bibitem{belkin2001laplacian}
+Mikhail Belkin and Partha Niyogi.
+\newblock Laplacian eigenmaps and spectral techniques for embedding and
+  clustering.
+\newblock In {\em NIPS}, volume~14, pages 585--591, 2001.
 
 \bibitem{spectralnet2013}
 Joan Bruna, Wojciech Zaremba, Arthur Szlam, and Yann LeCun.
 \newblock Spectral networks and deep locally connected networks on graphs.
 \newblock In {\em Proceedings of the 2nd International Conference on Learning
   Representations}, 2013.
+
+\bibitem{chen2014unsupervised}
+Xu~Chen, Xiuyuan Cheng, and St{\'e}phane Mallat.
+\newblock Unsupervised deep haar scattering on graphs.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  1709--1717, 2014.
+
+\bibitem{coates2011selecting}
+Adam Coates and Andrew~Y Ng.
+\newblock Selecting receptive fields in deep networks.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  2528--2536, 2011.
+
+\bibitem{karol}
+Karo Gregor and Yann LeCun.
+\newblock Emergence of complex-like cells in a temporal product network with
+  local receptive fields.
+\newblock {\em arXiv preprint arXiv:1006.0448}, 2010.
 
 \bibitem{hinton12}
 Geoffrey Hinton, Li~Deng, Dong Yu, George Dahl, Abdel rahman Mohamed, Navdeep
@@ -19,5 +43,59 @@ Alex Krizhevsky, Ilya Sutskever, and Geoffrey~E. Hinton.
 \newblock In F.~Pereira, C.J.C. Burges, L.~Bottou, and K.Q. Weinberger,
   editors, {\em Advances in Neural Information Processing Systems 25}, pages
   1097--1105. Curran Associates, Inc., 2012.
+
+\bibitem{natureyann}
+Yann LeCun, Yoshua Bengio, and Geoffrey Hinton.
+\newblock Deep learning.
+\newblock {\em Nature}, 521(7553):436--444, 05 2015.
+
+\bibitem{mallat1999wavelet}
+St{\'e}phane Mallat.
+\newblock {\em A wavelet tour of signal processing}.
+\newblock Academic press, 1999.
+
+\bibitem{DBLP:journals/corr/MasciBBV15}
+Jonathan Masci, Davide Boscaini, Michael~M. Bronstein, and Pierre
+  Vandergheynst.
+\newblock Shapenet: Convolutional neural networks on non-euclidean manifolds.
+\newblock {\em CoRR}, abs/1501.06297, 2015.
+
+\bibitem{ngiam2010tiled}
+Jiquan Ngiam, Zhenghao Chen, Daniel Chia, Pang~W Koh, Quoc~V Le, and Andrew~Y
+  Ng.
+\newblock Tiled convolutional neural networks.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  1279--1287, 2010.
+
+\bibitem{ravikumar2010high}
+Pradeep Ravikumar, Martin~J Wainwright, John~D Lafferty, et~al.
+\newblock High-dimensional ising model selection using ?1-regularized logistic
+  regression.
+\newblock {\em The Annals of Statistics}, 38(3):1287--1319, 2010.
+
+\bibitem{roux2008learning}
+Nicolas~L Roux, Yoshua Bengio, Pascal Lamblin, Marc Joliveau, and Bal{\'a}zs
+  K{\'e}gl.
+\newblock Learning the 2-d topology of images.
+\newblock In {\em Advances in Neural Information Processing Systems}, pages
+  841--848, 2008.
+
+\bibitem{srivastava2014dropout}
+Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
+  Salakhutdinov.
+\newblock Dropout: A simple way to prevent neural networks from overfitting.
+\newblock {\em The Journal of Machine Learning Research}, 15(1):1929--1958,
+  2014.
+
+\bibitem{von2007tutorial}
+Ulrike Von~Luxburg.
+\newblock A tutorial on spectral clustering.
+\newblock {\em Statistics and computing}, 17(4):395--416, 2007.
+
+\bibitem{zelnik2004self}
+Lihi Zelnik-Manor and Pietro Perona.
+\newblock Self-tuning spectral clustering.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1601--1608, 2004.
 
 \end{thebibliography}
