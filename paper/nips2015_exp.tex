@@ -97,10 +97,11 @@ RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & 67.66 & - \\
 \hline
 \end{tabular}
 \end{center}
+\label{reuterstable}
 \end{table}
 
 Note that our architectures are designed so that they factor the first hidden layer of the fully connected network across feature maps and a subsampled graph, trading off resolution in the graph domain for resolution across feature maps. The number of inputs into the last fully connected layer is always the same as for the fully-connected network. The idea is to reduce the number of parameters in the first layer of the network while avoiding too much compression in the second layer. 
-We note that as we increase the tradeoff between resolution in the graph domain and across features, there reaches a point where performance begins to suffer. This is especially pronounced for the unsupervised graph estimation strategies. When using the supervised method, the network is much more robust to the factorization of the first layer. Figure ? compares the test accuracy of the fully connected network and the GC4-P4-FC1000 network. We see that the factorization of the lower layer has a beneficial regularizing effect. 
+We note that as we increase the tradeoff between resolution in the graph domain and across features, there reaches a point where performance begins to suffer. This is especially pronounced for the unsupervised graph estimation strategies. When using the supervised method, the network is much more robust to the factorization of the first layer. Table \ref{reuterstable} compares the test accuracy of the fully connected network and the GC4-P4-FC1000 network. We see that the factorization of the lower layer has a beneficial regularizing effect. 
 
 \begin{figure}
        \centering
@@ -180,15 +181,10 @@ Figure \ref{merckfigure} shows the test performance as the models are being trai
 \subsection{ImageNet}
 
 
-\begin{figure}[h]
-\centering
- \includegraphics[width=0.4\textwidth]{{imagenetcrop}.pdf}
- \caption{ConvNet vs. SpectralNet on ImageNet.}
-\end{figure}
 
-
-In the experiments above our graph construction relied on an approximate estimation from the data. 
-To measure the influence of the graph construction compared to the filter learning in the frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain. Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
+In the experiments above our graph construction relied on estimation from the data. 
+To measure the influence of the graph construction compared to the filter learning in the graph frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain using frequency smoothing rather than imposing compactly supported filters.
+ Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
 
 Our network consisted of 4 convolution/ReLU/max pooling layers with 48, 128, 256 and 256 feature maps, followed by 3 fully-connected layers each with 4096 hidden units regularized with dropout. We trained two versions of the network: one classical convolutional network and one as a spectral network where the weights were defined in the frequency domain only and were interpolated using a spline kernel. Both networks were trained for 40 epochs over the ImageNet dataset where input images were scaled down to $128 \times 128$ to accelerate training.  
 
@@ -205,6 +201,14 @@ Graph & Architecture & Test Accuracy (Top 5) & Test Accuracy (Top 1)\\
 \end{tabular}
 \end{center}
 \end{table}
+
+\begin{figure}[h]
+\centering
+ \includegraphics[width=0.5\textwidth]{{imagenetcrop}.pdf}
+ \caption{ConvNet vs. SpectralNet on ImageNet.}
+\end{figure}
+
+
 
 We see that both models yield nearly identical performance. Interstingly, the spectral network learns faster than the ConvNet during the first part of training, although both networks converge around the same time. This requires further investigation.
 

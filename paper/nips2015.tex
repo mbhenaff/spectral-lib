@@ -47,7 +47,7 @@ New York University \\
 \newcommand{\new}{\marginpar{NEW}}
 
 %\nipsfinalcopy % Uncomment for camera-ready version
-\renewcommand{\baselinestretch}{0.92}
+\renewcommand{\baselinestretch}{0.94}
 \begin{document}
 
 
@@ -183,9 +183,11 @@ This distance is then used to build a Gaussian diffusion Kernel \cite{belkin2001
 \label{unsupervisedkernel}
 \omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma^2}}~.
 \end{equation}
-In our experiments, consider the variant of self-tuning diffusion kernel \cite{zelnik2004self}
+In our experiments, we also consider the variant of self-tuning diffusion kernel \cite{zelnik2004self}
 $$\omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma_i \sigma_j}}~,$$
 where $\sigma_i$ is computed as the distance $d(i,i_{k})$ corresponding to the $k$-th nearest neighbor $i_{k}$ of feature $i$. 
+This defines a kernel whose variance is locally adapted around each feature point, as opposed to (\ref{unsupervisedkernel}) where
+the variance is shared. 
 
 %Is This kernel is well defined? 
 %For a given input $X$, we obtain an associated laplacian $L$, diagonalizing in the basis $U$.
