@@ -62,7 +62,7 @@
 
 In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we performed experiments on three datasets from computer vision, text categorization and computational biology. All experiments were done using the Torch machine learning environment with a custom CUDA backend, which is publicly available at URL.
 
-In this section we adopt the following notation to descibe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units.
+In this section we adopt the following notation to describe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units.
 
 
 \subsection{Reuters}
@@ -156,12 +156,11 @@ Again, the supervised kernel performs clearly better than unsupervised kernels, 
 
 \subsection{ImageNet}
 
-\begin{center}
-\begin{figure}
- \includegraphics[width=1\textwidth]{{imagenet}.pdf}
+\begin{figure}[h]
+\centering
+ \includegraphics[width=0.7\textwidth]{{imagenetcrop}.pdf}
  \caption{ConvNet vs. SpectralNet on ImageNet.}
 \end{figure}
-\end{center}
 
 In the experiments above our graph construction relied on an approximate estimation from the data. 
 To measure the influence of the graph construction compared to the filter learning in the frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain. Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
