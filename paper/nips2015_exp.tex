@@ -74,14 +74,14 @@ We used the Reuters dataset described in ~\cite{JMLR:v15:srivastava14a}, which c
 Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
 
 \begin{table}[H]
-\caption{Results for Reuters dataset}
+\caption{Results for Reuters dataset. Accuracy is shown at epochs 200 and 1500.}
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-Graph & Architecture & $P_\text{net}$ & $P_\text{graph}$ & Acc. (200) & Acc. (500)\\
+Graph & Architecture & $P_\text{net}$ & $P_\text{graph}$ & Acc. (200) & Acc. (1500)\\
 \hline
-- &FC2000-FC1000 & $6 \cdot 10^6$ & 0 &70.2 & 70.2 \\
-Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & $2 \cdot 10^6$ & 69.41 & 70.09 \\
+- &FC2000-FC1000 & $6 \cdot 10^6$ & 0 &70.18 \footnotemark & 70.18 \\
+Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & $2 \cdot 10^6$ & 69.41 & 70.03 \\
 Supervised & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 69.15 & - \\
 Supervised low rank & GC4-P4-FC1000 & $2\cdot 10^6$ & $5 \cdot 10^5$ & 69.25 & - \\
 Supervised low rank & GC8-P8-FC1000 & $2 \cdot 10^6$ & $5 \cdot 10^5$ & 68.35 & - \\
@@ -98,7 +98,7 @@ RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.66 & -
 \end{center}
 \label{reuterstable}
 \end{table}
-
+\footnotetext{this is the maximum value before the fully connected starts overfitting}
 %\begin{figure}[h]
 %\begin{center}
 %\includegraphics[width=0.4\textwidth]{{reuters_fc_vs_spectral}.pdf}
