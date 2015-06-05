@@ -1,46 +1,48 @@
-This is BibTeX, Version 0.99d (TeX Live 2014)
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: nips2015.aux
 The style file: plain.bst
 Database file #1: references.bib
-You've used 16 entries,
+Warning--I didn't find a database entry for "adagrad"
+You've used 18 entries,
             2118 wiz_defined-function locations,
-            595 strings with 6958 characters,
-and the built_in function-call counts, 6877 in all, are:
-= -- 670
-> -- 350
+            607 strings with 7470 characters,
+and the built_in function-call counts, 7639 in all, are:
+= -- 739
+> -- 406
 < -- 8
-+ -- 138
-- -- 120
-* -- 479
-:= -- 1079
-add.period$ -- 49
-call.type$ -- 16
-change.case$ -- 104
++ -- 160
+- -- 140
+* -- 541
+:= -- 1216
+add.period$ -- 55
+call.type$ -- 18
+change.case$ -- 120
 chr.to.int$ -- 0
-cite$ -- 16
-duplicate$ -- 272
-empty$ -- 517
-format.name$ -- 120
-if$ -- 1474
+cite$ -- 18
+duplicate$ -- 293
+empty$ -- 562
+format.name$ -- 140
+if$ -- 1623
 int.to.chr$ -- 0
-int.to.str$ -- 16
-missing$ -- 17
-newline$ -- 83
-num.names$ -- 34
-pop$ -- 123
+int.to.str$ -- 18
+missing$ -- 19
+newline$ -- 93
+num.names$ -- 38
+pop$ -- 137
 preamble$ -- 1
-purify$ -- 89
+purify$ -- 103
 quote$ -- 0
-skip$ -- 221
+skip$ -- 235
 stack$ -- 0
-substring$ -- 458
-swap$ -- 97
+substring$ -- 495
+swap$ -- 99
 text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 62
+type$ -- 70
 warning$ -- 0
-while$ -- 62
-width$ -- 18
-write$ -- 176
+while$ -- 67
+width$ -- 20
+write$ -- 197
+(There was 1 warning)

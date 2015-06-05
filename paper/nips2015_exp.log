@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2015.5.12)  5 JUN 2015 01:12
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2015.5.12)  5 JUN 2015 04:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -374,21 +374,21 @@ e
 (./nips2015_exp.aux)
 \openout1 = `nips2015_exp.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 51.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 52.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
@@ -407,7 +407,7 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 \makeMPintoPDFobject=\count133
 \everyMPtoPDFconversion=\toks30
 )
-Package hyperref Info: Link coloring OFF on input line 51.
+Package hyperref Info: Link coloring OFF on input line 52.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
 
@@ -416,9 +416,9 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
 \c@section@level=\count134
 )
-LaTeX Info: Redefining \ref on input line 51.
-LaTeX Info: Redefining \pageref on input line 51.
-LaTeX Info: Redefining \nameref on input line 51.
+LaTeX Info: Redefining \ref on input line 52.
+LaTeX Info: Redefining \pageref on input line 52.
+LaTeX Info: Redefining \nameref on input line 52.
 
 (./nips2015_exp.out) (./nips2015_exp.out)
 \@outlinefile=\write3
@@ -427,84 +427,82 @@ LaTeX Info: Redefining \nameref on input line 51.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17.28> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 55.
-LaTeX Font Info:    Try loading font information for U+msa on input line 55.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 56.
+LaTeX Font Info:    Try loading font information for U+msa on input line 56.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 55.
+LaTeX Font Info:    Try loading font information for U+msb on input line 56.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 55.
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 55.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 56.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 56.
 
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 56.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 57.
 
 
-LaTeX Warning: Citation `Hinton2012' on page 1 undefined on input line 66.
+LaTeX Warning: Citation `Hinton2012' on page 1 undefined on input line 70.
 
 
-LaTeX Warning: Citation `Hinton2012' on page 1 undefined on input line 66.
+LaTeX Warning: Citation `Hinton2012' on page 1 undefined on input line 70.
 
 
-Overfull \hbox (81.42206pt too wide) in paragraph at lines 73--88
- [] 
- []
-
-<reuters_alpha_0.01_global.pdf, id=20, 614.295pt x 794.97pt>
-File: reuters_alpha_0.01_global.pdf Graphic file (type pdf)
-
-<use reuters_alpha_0.01_global.pdf>
-Package pdftex.def Info: reuters_alpha_0.01_global.pdf used on input line 94.
-(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
-
-<reuters_alpha_0.01_local.pdf, id=21, 614.295pt x 794.97pt>
-File: reuters_alpha_0.01_local.pdf Graphic file (type pdf)
-
-<use reuters_alpha_0.01_local.pdf>
-Package pdftex.def Info: reuters_alpha_0.01_local.pdf used on input line 100.
-(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
-
-<merck3_alpha_0.01_global.pdf, id=22, 614.295pt x 794.97pt>
-File: merck3_alpha_0.01_global.pdf Graphic file (type pdf)
-
-<use merck3_alpha_0.01_global.pdf>
-Package pdftex.def Info: merck3_alpha_0.01_global.pdf used on input line 105.
-(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
-
-<merck3_alpha_0.01_local.pdf, id=23, 614.295pt x 794.97pt>
-File: merck3_alpha_0.01_local.pdf Graphic file (type pdf)
-
-<use merck3_alpha_0.01_local.pdf>
-Package pdftex.def Info: merck3_alpha_0.01_local.pdf used on input line 111.
-(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
+LaTeX Warning: Citation `adagrad' on page 1 undefined on input line 72.
 
 
-LaTeX Warning: Citation `ma2015' on page 1 undefined on input line 120.
-
-
-Underfull \vbox (badness 2435) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
-] [2 <./reuters_alpha_0.01_global.pdf> <./reuters_alpha_0.01_local.pdf> <./merc
-k3_alpha_0.01_global.pdf> <./merck3_alpha_0.01_local.pdf>] <imagenet.pdf, id=57
-, 614.295pt x 794.97pt>
-File: imagenet.pdf Graphic file (type pdf)
+]
+<reuters_alpha_0.01_global.pdf, id=31, 614.295pt x 794.97pt>
+File: reuters_alpha_0.01_global.pdf Graphic file (type pdf)
 
-<use imagenet.pdf>
-Package pdftex.def Info: imagenet.pdf used on input line 144.
+<use reuters_alpha_0.01_global.pdf>
+Package pdftex.def Info: reuters_alpha_0.01_global.pdf used on input line 102.
+(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
+
+<reuters_alpha_0.01_local.pdf, id=32, 614.295pt x 794.97pt>
+File: reuters_alpha_0.01_local.pdf Graphic file (type pdf)
+
+<use reuters_alpha_0.01_local.pdf>
+Package pdftex.def Info: reuters_alpha_0.01_local.pdf used on input line 108.
+(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
+
+<merck3_alpha_0.01_global.pdf, id=33, 614.295pt x 794.97pt>
+File: merck3_alpha_0.01_global.pdf Graphic file (type pdf)
+
+<use merck3_alpha_0.01_global.pdf>
+Package pdftex.def Info: merck3_alpha_0.01_global.pdf used on input line 113.
+(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
+
+<merck3_alpha_0.01_local.pdf, id=34, 614.295pt x 794.97pt>
+File: merck3_alpha_0.01_local.pdf Graphic file (type pdf)
+
+<use merck3_alpha_0.01_local.pdf>
+Package pdftex.def Info: merck3_alpha_0.01_local.pdf used on input line 119.
+(pdftex.def)             Requested size: 119.2467pt x 154.3089pt.
+
+
+LaTeX Warning: Citation `ma2015' on page 2 undefined on input line 128.
+
+[2 <./reuters_alpha_0.01_global.pdf> <./reuters_alpha_0.01_local.pdf> <./merck3
+_alpha_0.01_global.pdf> <./merck3_alpha_0.01_local.pdf>]
+<imagenet.pdf, id=59, 614.295pt x 794.97pt>
+File: imagenet.pdf Graphic file (type pdf)
+ <use imagenet.pdf>
+Package pdftex.def Info: imagenet.pdf used on input line 153.
 (pdftex.def)             Requested size: 397.48499pt x 514.39537pt.
 
-Overfull \hbox (15.49246pt too wide) in paragraph at lines 155--163
+Overfull \hbox (15.49246pt too wide) in paragraph at lines 164--172
  [] 
  []
 
@@ -513,28 +511,28 @@ Overfull \hbox (15.49246pt too wide) in paragraph at lines 155--163
 LaTeX Warning: Empty `thebibliography' environment on input line 3.
 
 )
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 173.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 182.
  [3] [4 <./imagenet.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 173.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 182.
  (./nips2015_exp.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 173.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 173.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 182.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 182.
 Package rerunfilecheck Info: File `nips2015_exp.out' has not changed.
-(rerunfilecheck)             Checksum: EAA0B390D1ECC87726316889EDCCA59F;242.
+(rerunfilecheck)             Checksum: 9F9C4F96BF3A2FE35678AC3A4BFB98F1;242.
 
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 173.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 182.
  ) 
 Here is how much of TeX's memory you used:
- 8324 strings out of 493304
- 122743 string characters out of 6139871
+ 8330 strings out of 493304
+ 122814 string characters out of 6139871
  222506 words of memory out of 5000000
- 11653 multiletter control sequences out of 15000+600000
+ 11657 multiletter control sequences out of 15000+600000
  16564 words of font info for 38 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 37i,11n,39p,633b,450s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 37i,12n,39p,820b,450s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/
@@ -543,10 +541,10 @@ pe1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/ur
 w/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uh
 vb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/
 share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on nips2015_exp.pdf (4 pages, 4299502 bytes).
+Output written on nips2015_exp.pdf (4 pages, 4301490 bytes).
 PDF statistics:
- 104 PDF objects out of 1000 (max. 8388607)
- 80 compressed objects within 1 object stream
- 12 named destinations out of 1000 (max. 500000)
+ 107 PDF objects out of 1000 (max. 8388607)
+ 83 compressed objects within 1 object stream
+ 14 named destinations out of 1000 (max. 500000)
  58 words of extra memory for PDF output out of 10000 (max. 10000000)
 

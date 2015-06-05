@@ -1,0 +1,8 @@
+
+*.aux
+
+*.pdf
+
+*.log
+
+paper/nips2015.pdf
