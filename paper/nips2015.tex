@@ -76,7 +76,7 @@ In recent times, deep learning models have proven extremely successful in a wide
 %Generalizing convolutional networks to graph-structured data is an important open problem. 
 One can think such data as being signals defined on a low-dimensional grid, where the stationarity can be well defined via the natural translation 
 operator on the grid, locality is defined via the metric of the grid, and compositionality is obtained from downsampling. 
-However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. For those type of data of dimension $n$, deep learning strategies are reduced to learning with fully-connected layers, which have $o(n^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{dropouthinton}.
+However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. For those type of data of dimension $n$, deep learning strategies are reduced to learning with fully-connected layers, which have $o(n^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{srivastava2014dropout}.
 
 When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize ConvNets using low learning complexity, similar to what a convnet uses, that was shown on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to more general data distributions, and, most importantly, to the setting where the graph structure is not known a priori. In this context, learning the graph structure amounts to estimating the similarity matrix, which has complexity $o(n^2)$. One may therefore wonder whether the graph estimation followed by graph convolutions offers advantages with respect to learning directly from the data with fully connected layers. We attempt to answer this question experimentally as well as mathematically. 
  
@@ -94,11 +94,11 @@ The rest of the paper is structured as follows. Section \ref{relatedworksect} re
 \section{Related Work}
 \label{relatedworksect}
 
-There have been several works which have explored architectures using the so-called local receptive fields \cite{karol, coates, tiledconvnets}, mostly with applications to image recognition.In particular, \cite{coates} proposes a scheme to learn how to group together features based upon a measure of similarity that is obtained in an unsupervised fashion. However, it does not attempt to exploit any weight-sharing strategy. 
+There have been several works which have explored architectures using the so-called local receptive fields \cite{karol, coates2011selecting, ngiam2010tiled}, mostly with applications to image recognition.In particular, \cite{coates2011selecting} proposes a scheme to learn how to group together features based upon a measure of similarity that is obtained in an unsupervised fashion. However, it does not attempt to exploit any weight-sharing strategy. 
 
-Recently, \cite{spectralnet2013} proposed a generalization of convolutions to graphs via the Graph Laplacian. By identifying a linear, translation invariant operator in the grid (the Laplacian operator), with its counterpart in a general graph (the Graph Laplacian), one can view convolutions as the family of linear transforms commuting with the Laplacian. By combining this commutation property with a rule to find localized filters, the model requires only $o(1)$ parameters per ``feature map". However, this construction requires prior knowledge of the graph structure, and was shown only on simple, low-dimensional graphs. More recently, \cite{masci} introduced Shapenet, another generalization of Convolutions on non-Euclidean domains, based on geodesic polar coordinates, which was successfully applied to shape analysis, and allows comparison across different manifolds. However, it also requires prior knowledge of the manifolds. 
+Recently, \cite{spectralnet2013} proposed a generalization of convolutions to graphs via the Graph Laplacian. By identifying a linear, translation invariant operator in the grid (the Laplacian operator), with its counterpart in a general graph (the Graph Laplacian), one can view convolutions as the family of linear transforms commuting with the Laplacian. By combining this commutation property with a rule to find localized filters, the model requires only $o(1)$ parameters per ``feature map". However, this construction requires prior knowledge of the graph structure, and was shown only on simple, low-dimensional graphs. More recently, \cite{DBLP:journals/corr/MasciBBV15} introduced Shapenet, another generalization of Convolutions on non-Euclidean domains, based on geodesic polar coordinates, which was successfully applied to shape analysis, and allows comparison across different manifolds. However, it also requires prior knowledge of the manifolds. 
 
-The graph or similarity estimation aspects have also been extensively studied in the past. For instance, \cite{martin} studies the estimation of the graph from a statistical point of view, through the identification of a certain graphical model using $\ell_1$ penalized logistic regression. Also, \cite{haarscattgraph} considers the problem of learning a deep architecture through a series of Haar contractions, which are learnt using an unsupervised pairing criteria over the features.
+The graph or similarity estimation aspects have also been extensively studied in the past. For instance, \cite{ravikumar2010high} studies the estimation of the graph from a statistical point of view, through the identification of a certain graphical model using $\ell_1$ penalized logistic regression. Also, \cite{chen2014unsupervised} considers the problem of learning a deep architecture through a series of Haar contractions, which are learnt using an unsupervised pairing criteria over the features.
 
 \section{Generalizing Convolutions in Graphs }
 \label{spectralsect}
@@ -112,9 +112,9 @@ A spectral network generalizes a convolutional network through the Graph Fourier
 \end{graphconv}
 
 Here, the unitary matrix $U$ plays the role of the Fourier Transform in $\mathbb{R}^d$. 
-There are several ways of computing the graph Laplacian $L$ \cite{spectralgraphcite}. In this paper, we choose the normalized version $L = I - D^{-1/2}WD^{-1/2}$, where $D$ is a diagonal matrix with entries $D_{ii} = \sum_j W_{ij}$. Note that in the case where $W$ represents the lattice, from the definition of $L$ we recover the discrete Laplacian operator $\Delta$. Also note that the Laplacian commutes with the translation operator, which is diagonalized in the Fourier basis. 
+There are several ways of computing the graph Laplacian $L$ \cite{belkin2001laplacian}. In this paper, we choose the normalized version $L = I - D^{-1/2}WD^{-1/2}$, where $D$ is a diagonal matrix with entries $D_{ii} = \sum_j W_{ij}$. Note that in the case where $W$ represents the lattice, from the definition of $L$ we recover the discrete Laplacian operator $\Delta$. Also note that the Laplacian commutes with the translation operator, which is diagonalized in the Fourier basis. 
 It follows that the eigenvectors of $\Delta$ are given by the Discrete Fourier Transform (DFT) matrix. 
-We then recover a classical convolution operator that noting that convolutions are by definition linear operators that diagonalize in the Fourier domain (also known as the Convolution Theorem \cite{mallat}).
+We then recover a classical convolution operator that noting that convolutions are by definition linear operators that diagonalize in the Fourier domain (also known as the Convolution Theorem \cite{mallat1999wavelet}).
 
 Learning filters in a Graph thus amounts to learning spectral multipliers $w_g = (w_1, \dots,w_N)$ 
 $$x \ast_G g := U^T ( \mbox{diag}(w_g) U x)~.$$
@@ -137,7 +137,7 @@ The algorithm which implements the graph convolution is described in \ref{pseudo
 \State Given GFT matrix $U$, interpolation kernel $K$, weights $w$. 
 \State \textbf{Forward Pass:}
   \State Fetch input batch $x$ and gradients w.r.t outputs $\nabla y$.
-  \State Compute interpolated weights: $w_{f'f} = K \tilde{w_{f'f}}$.
+  \State Compute interpolated weights: $w_{f'f} = \mathcal{K} \tilde{w_{f'f}}$.
   \State Compute output: $y_{sf'} = U^T\left(\sum_{f} Ux_{sf} \odot w_{f'f} \right)$.
   \State \textbf{Backward Pass:}
   \State Compute gradient w.r.t input: $\nabla x_{sf} = U^T\left(\sum_{f'} \nabla y_{sf'} \odot w_{f'f} \right)$
@@ -150,46 +150,73 @@ The algorithm which implements the graph convolution is described in \ref{pseudo
 
 In image and speech applications, and in order to reduce the complexity of the model, it is often useful to trade-off spatial resolution with feature resolution as the representation becomes deeper. For that purpose, pooling layers compute statistics in local neighborhoods, such as the average amplitude, energy or maximum activation.
 
-The same layers can be defined in a Graph by providing the equivalent notion of neighborhood. In this work, we construct such neighborhoods at different scales using multi-resolution spectral clustering \cite{spectralclustering}, and consider both average and max-pooling as in standard convolutional network architectures.
+The same layers can be defined in a Graph by providing the equivalent notion of neighborhood. In this work, we construct such neighborhoods at different scales using multi-resolution spectral clustering \cite{von2007tutorial}, and consider both average and max-pooling as in standard convolutional network architectures.
 
 \section{ Graph Construction }
 \label{graphestimsect}
 
 \subsection{ Using Prior Knowledge}
 
-Whereas some recognition tasks in non-Euclidean domains, such as those considered in \cite{spectralnet2013} or \cite{masci}, might have a prior knowledge of the graph structure of the input data, many other real-world applications do not have such knowledge. It is thus necessary to estimate a similarity matrix $W$ from the data before constructing the spectral network. 
+Whereas some recognition tasks in non-Euclidean domains, such as those considered in \cite{spectralnet2013} or \cite{DBLP:journals/corr/MasciBBV15}, might have a prior knowledge of the graph structure of the input data, many other real-world applications do not have such knowledge. It is thus necessary to estimate a similarity matrix $W$ from the data before constructing the spectral network. 
 
-We consider in this paper two possible graph constructions, one unsupervised by measuring joint feature statistics, and another one supervised
-
+We consider in this paper two possible graph constructions, one unsupervised by measuring joint feature statistics, and another one supervised using an initial network as a proxy for the estimation.
 
 \subsection{ Unsupervised Graph Estimation }
 
-Given data $X \in \mathbb{R}^{N \times L}$, where $L$ is the number of samples and $N$ the number of features,
+Given data $X \in \mathbb{R}^{L \times N}$, where $L$ is the number of samples and $N$ the number of features,
 the simplest approach to estimating a graph structure from the data is to consider a distance between features $i$ and $j$ given by
 $$d(i,j) = \| X_i - X_j \|^2~,$$
-where $X_i$ is the $i$-th row of $X$. 
+where $X_i$ is the $i$-th column of $X$. 
+While correlations are typically sufficient to reveal the intrinsic geometrical structure of images \cite{roux2008learning}, 
+ the effects of higher-order statistics might be non-negligible in other contexts, especially in presence of sparsity. 
+Indeed, in many situations the pairwise Euclidean distances might suffer from unnormalized measurements. Several strategies and variants 
+exist to gain some robustness, for instance replacing the Euclidean distance by the $Z$-score (thus renormalizing each feature by its standard
+deviation), the ``square-correlation" (computing the correlation of squares of previously whitened features), or the mutual information.
 
-This distance is then used to build a Gaussian diffusion Kernel \cite{diffusion_maps} 
+This distance is then used to build a Gaussian diffusion Kernel \cite{belkin2001laplacian} 
 \begin{equation}
 \label{unsupervisedkernel}
 \omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma^2}}~.
 \end{equation}
-In our experiments, consider the variant of self-tuning diffusion kernel \cite{self-tuning}
+In our experiments, consider the variant of self-tuning diffusion kernel \cite{zelnik2004self}
 $$\omega(i,j) = \exp^{-\frac{d(i,j)}{\sigma_i \sigma_j}}~,$$
 where $\sigma_i$ is computed as the distance $d(i,i_{k})$ corresponding to the $k$-th nearest neighbor $i_{k}$ of feature $i$. 
+
+%Is This kernel is well defined? 
+%For a given input $X$, we obtain an associated laplacian $L$, diagonalizing in the basis $U$.
+%If now $X' = X B$, where $B$ is a random rotation, do we obtain as corresponding basis $B^T U$?
 
 %Pros and Cons
 %Semi-supervised Setting: this 
 The main advantage of (\ref{unsupervisedkernel}) is that it does not require labeled data. Therefore, it is possible to estimate 
 the similarity using several datasets that share the same features, for example in text classification. 
-While correlations are typically sufficient to reveal the intrinsic geometrical structure of images \cite{bengioleroux}, 
- the effects of higher-order statistics might be non-negligible in other contexts, especially in presence of sparsity. 
 
-Another strategy is to use $\ell_1$ penalized logistic regression \cite{martin}. 
+%Another strategy is to use $\ell_1$ penalized logistic regression \cite{martin}. 
 
 \subsection{ Supervised Graph Estimation }
 
-Use a fully connected network to determine the feature similarity. 
+As discussed in the previous section, the notion of feature similarity is not well defined, as it depends on our choice of 
+kernel and criteria. Therefore, in the context of supervised learning, the relevant statistics from the input signals might not correspond to 
+our imposed similarity criteria. It may thus be interesting to ask for the feature similarity that best suits a particular classification task. 
+
+A particularly simple approach is to use a fully connected network to determine the feature similarity. Given a training set with normalized \footnote{In our experiments we simply normalized each feature by its standard deviation, but one could also whiten completely the data.} features $X \in \mathbb{R}^{L \times N}$ 
+and labels $y \in \{1,\dots,C\}^L$, we initially train a fully connected network $\phi$ with $K$ layers of weights $W_1, \dots, W_K$, using standard ReLU activations and dropout. We then extract the first layer features $W_1 \in \mathbb{R}^{N \times M_1}$, where $M_1$ is the number of first-layer hidden features, and consider the distance
+\begin{equation}
+\label{supervisedkernel}
+d_{sup}(i, j) = \| W_{1,i} - W_{1,j} \|^2~,
+\end{equation}
+that is then fed into the Gaussian kernel as in (\ref{unsupervisedkernel}). The interpretation is that the supervised criterion will extract through $W_1$ a collection of linear measurements that best serve the classification task. Thus two features are similar if the network decides to extract similar collection of linear measurements.  
+
+Another supervised strategy that further exploits the dependencies learnt at the deeper layers of the network consists in using the gradients of the supervised loss function with respect to the inputs as discriminative information. More concretely, if $\mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the loss function associated to training example $l$ and $Z_{l,i} = \nabla_{x_i} \mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the input gradient corresponding to that example with respect to the $i$-th feature, then we consider the distance 
+\begin{equation}
+\label{supervisedkernel2}
+d_{gsup}(i, j) = \| Z_{\cdot, i} - Z_{\cdot, j} \|^2~,
+\end{equation}
+that is, we measure the average similarity between the gradients for features $i$ and $j$. That is, the similarity of two features depends on their respective influence (averaged over the training set) to the outcome of the network. 
+
+These constructions can be seen as ``distilling" the information learnt by a first network into a kernel. In the general case where no assumptions are made on the dimension of the graph, it amounts to extracting $N^2$ parameters from the first learning stage (which typically involves a much larger number of parameters). If, moreover, we assume a low-dimensional graph structure of dimension $m$, then $m N$ parameters are extracted by projecting the resulting kernel into its leading $m$ directions.
+
+Finally, observe that one could simply replace the eigen-basis $U$ obtained by diagonalizing the graph Laplacian by an arbitrary unitary matrix, which is then optimized by back-propagation together with the rest of the parameters of the model. We do not report results on this strategy, although we point out that it was the same learning complexity as the Fully Connected network (requiring $O(K N^2)$ parameters, where $K$ is the number of layers and $N$ is the input dimension).
 
 
 \section{ Experiments }
