@@ -225,133 +225,133 @@ Finally, observe that one could simply replace the eigen-basis $U$ obtained by d
 
 %\section{ Experiments }
 
+\input{nips2015_exp}
 
-
-\section{Experiments}
-\label{experimentssect}
-In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we conducted experiments on three datasets from text categorization, computational biology and computer vision. All experiments were done using the Torch machine learning environment with a custom CUDA backend, which is publicly available at URL.
-
-In this section we adopt the following notation to descibe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units.
-
-
-\subsection{Reuters}
-
-We used the Reuters dataset described in ~\cite{JMLR:v15:srivastava14a}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{JMLR:v15:srivastava14a} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
-
-We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and mitigate the cost of the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
-Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
-
-\begin{table}[H]
-\caption{Results for Reuters dataset}
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-Graph & Architecture & Parameters & Acc. (200) & Acc. (500)\\
-\hline
-- &FC-2000-1000-50 & $6 \cdot 10^6$ & 70.2 & 70.2 \\
-Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.41 & 70.09 \\
-Supervised & GC8-P8-FC1000 & $2 \cdot 10^6$ & 69.15 & - \\
-Supervised low rank & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.25 & - \\
-Supervised low rank & GC8-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
-Supervised & GC16-P4-GC16-P4-FC1000& $2 \cdot 10^6$ & 69.04 & - \\
-Supervised &GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
-RBF kernel & GC4-P4-FC1000 & $2\cdot 10^6$ & 67.85 & - \\
-RBF kernel & GC8-P8-FC1000 & $2 \cdot 10^6$ & 66.95 & - \\
-RBF kernel & GC16-P4-GC16-P4-FC1000 & $2 \cdot 10^6$ & 67.16 & - \\
-RBF kernel & GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
-RBF kernel (local)& GC4-P4-FC1000 & $2\cdot 10^6$ & 68.56 & - \\
-RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & 67.66 & - \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-
-\begin{figure}
-        \centering
-        \begin{subfigure}[b]{0.3\textwidth}
-                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
-                \caption{Global scaling..}
-        \end{subfigure}%
-        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-          %(or a blank line to force the subfigure onto a new line)
-        \begin{subfigure}[b]{0.3\textwidth}
-                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
-                \caption{Local scaling.}
-        \end{subfigure}
-        
-        \begin{subfigure}[b]{0.3\textwidth}
-                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
-                \caption{Global scaling.}
-        \end{subfigure}%
-        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-          %(or a blank line to force the subfigure onto a new line)
-        \begin{subfigure}[b]{0.3\textwidth}
-                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
-                \caption{Local scaling.}
-        \end{subfigure}
-        \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
-\end{figure}
-
-
-\subsection{Merck Molecular Activity Challenge}
-
-The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the network of ~\cite{Ma:JournalChem2015} which has 4 hidden layers and is regularized using dropout and weight decay.  
-
-As before, we log-normalized the data and used one-tenth of the training set to tune hyperparameters of the network. For this task we found that $k=40$ subsampled weights worked best, and that average pooling performed better than max pooling. Since the task is to predict a continuous variable, all networks were trained by minimizing the Root Mean-Squared Error loss.
-
-\begin{table}[H]
-\caption{Results for Merck DPP4 dataset}
-\begin{center}
-\begin{tabular}{|c|c|c|c|}
-\hline
-Graph & Architecture & Parameters & $R^2$\\
-\hline
-- &FC-4000-2000-1000-1000-50 & $22.1 \cdot 10^6$ & 0.2728 \\
-Supervised & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.2629 \\
-RBF Kernel & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
-RBF Kernel (local) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1487 \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-
-\subsection{ImageNet}
-
-
-\begin{center}
-\begin{figure}
- \includegraphics[width=1\textwidth]{{imagenet}.pdf}
- \caption{ConvNet vs. SpectralNet on ImageNet.}
-\end{figure}
-\end{center}
-
-
-In the experiments above our graph construction relied on an approximate estimation from the data. 
-To measure the influence of the graph construction compared to the filter learning in the frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain. Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
-
-Our network consisted of 4 convolution/ReLU/max pooling layers with 48, 128, 256 and 256 feature maps, followed by 3 fully-connected layers each with 4096 hidden units regularized with dropout. We trained two versions of the network: one classical convolutional network and one as a spectral network where the weights were defined in the frequency domain only and were interpolated using a spline kernel. Both networks were trained for 40 epochs over the ImageNet dataset where input images were scaled down to $128 \times 128$ to accelerate training.  
-
-\begin{table}[H]
-\caption{ImageNet results}
-\begin{center}
-\begin{tabular}{|c|c|c|c|}
-\hline
-Graph & Architecture & Test Accuracy (Top 5) & Test Accuracy (Top 1)\\
-\hline
-2-D Grid & Convolutional Network & 71.854 & 46.24\\
-2-D Grid & Spectral Network & 71.998 & 46.71\\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-We see that both models yield nearly identical performance. Interstingly, the spectral network learns faster than the ConvNet during the first part of training, although both networks converge around the same time. This requires further investigation.
-
-
-Word datasets. Mention that Using Word embeddings is also a possibility for future work.
-
+%\section{Experiments}
+%\label{experimentssect}
+%In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we conducted experiments on three datasets from text categorization, computational biology and computer vision. All experiments were done using the Torch machine learning environment with a custom CUDA backend, which is publicly available at URL.
+%
+%In this section we adopt the following notation to descibe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units.
+%
+%
+%\subsection{Reuters}
+%
+%We used the Reuters dataset described in ~\cite{JMLR:v15:srivastava14a}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{JMLR:v15:srivastava14a} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
+%
+%We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and mitigate the cost of the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
+%Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
+%
+%\begin{table}[H]
+%\caption{Results for Reuters dataset}
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|c|}
+%\hline
+%Graph & Architecture & Parameters & Acc. (200) & Acc. (500)\\
+%\hline
+%- &FC-2000-1000-50 & $6 \cdot 10^6$ & 70.2 & 70.2 \\
+%Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.41 & 70.09 \\
+%Supervised & GC8-P8-FC1000 & $2 \cdot 10^6$ & 69.15 & - \\
+%Supervised low rank & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.25 & - \\
+%Supervised low rank & GC8-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
+%Supervised & GC16-P4-GC16-P4-FC1000& $2 \cdot 10^6$ & 69.04 & - \\
+%Supervised &GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
+%RBF kernel & GC4-P4-FC1000 & $2\cdot 10^6$ & 67.85 & - \\
+%RBF kernel & GC8-P8-FC1000 & $2 \cdot 10^6$ & 66.95 & - \\
+%RBF kernel & GC16-P4-GC16-P4-FC1000 & $2 \cdot 10^6$ & 67.16 & - \\
+%RBF kernel & GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
+%RBF kernel (local)& GC4-P4-FC1000 & $2\cdot 10^6$ & 68.56 & - \\
+%RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & 67.66 & - \\
+%\hline
+%\end{tabular}
+%\end{center}
+%\end{table}
+%
+%
+%\begin{figure}
+%        \centering
+%        \begin{subfigure}[b]{0.3\textwidth}
+%                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
+%                \caption{Global scaling..}
+%        \end{subfigure}%
+%        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%          %(or a blank line to force the subfigure onto a new line)
+%        \begin{subfigure}[b]{0.3\textwidth}
+%                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
+%                \caption{Local scaling.}
+%        \end{subfigure}
+%        
+%        \begin{subfigure}[b]{0.3\textwidth}
+%                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
+%                \caption{Global scaling.}
+%        \end{subfigure}%
+%        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%          %(or a blank line to force the subfigure onto a new line)
+%        \begin{subfigure}[b]{0.3\textwidth}
+%                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
+%                \caption{Local scaling.}
+%        \end{subfigure}
+%        \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
+%\end{figure}
+%
+%
+%\subsection{Merck Molecular Activity Challenge}
+%
+%The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the network of ~\cite{Ma:JournalChem2015} which has 4 hidden layers and is regularized using dropout and weight decay.  
+%
+%As before, we log-normalized the data and used one-tenth of the training set to tune hyperparameters of the network. For this task we found that $k=40$ subsampled weights worked best, and that average pooling performed better than max pooling. Since the task is to predict a continuous variable, all networks were trained by minimizing the Root Mean-Squared Error loss.
+%
+%\begin{table}[H]
+%\caption{Results for Merck DPP4 dataset}
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|}
+%\hline
+%Graph & Architecture & Parameters & $R^2$\\
+%\hline
+%- &FC-4000-2000-1000-1000-50 & $22.1 \cdot 10^6$ & 0.2728 \\
+%Supervised & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.2629 \\
+%RBF Kernel & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
+%RBF Kernel (local) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1487 \\
+%\hline
+%\end{tabular}
+%\end{center}
+%\end{table}
+%
+%
+%\subsection{ImageNet}
+%
+%
+%\begin{center}
+%\begin{figure}
+% \includegraphics[width=1\textwidth]{{imagenet}.pdf}
+% \caption{ConvNet vs. SpectralNet on ImageNet.}
+%\end{figure}
+%\end{center}
+%
+%
+%In the experiments above our graph construction relied on an approximate estimation from the data. 
+%To measure the influence of the graph construction compared to the filter learning in the frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain. Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
+%
+%Our network consisted of 4 convolution/ReLU/max pooling layers with 48, 128, 256 and 256 feature maps, followed by 3 fully-connected layers each with 4096 hidden units regularized with dropout. We trained two versions of the network: one classical convolutional network and one as a spectral network where the weights were defined in the frequency domain only and were interpolated using a spline kernel. Both networks were trained for 40 epochs over the ImageNet dataset where input images were scaled down to $128 \times 128$ to accelerate training.  
+%
+%\begin{table}[H]
+%\caption{ImageNet results}
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|}
+%\hline
+%Graph & Architecture & Test Accuracy (Top 5) & Test Accuracy (Top 1)\\
+%\hline
+%2-D Grid & Convolutional Network & 71.854 & 46.24\\
+%2-D Grid & Spectral Network & 71.998 & 46.71\\
+%\hline
+%\end{tabular}
+%\end{center}
+%\end{table}
+%
+%We see that both models yield nearly identical performance. Interstingly, the spectral network learns faster than the ConvNet during the first part of training, although both networks converge around the same time. This requires further investigation.
+%
+%
+%Word datasets. Mention that Using Word embeddings is also a possibility for future work.
+%
 \section{Discussion}
 
 The graph construction using the Supervised Graph Estimation. 
