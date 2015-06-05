@@ -380,13 +380,14 @@ the architecture is quite sensitive to graph estimation errors. In the supervise
 a Bootstrapping mechanism, where an initially unconstrained network is self-adjusted to become more localized and with weight-sharing. 
 
 \item Finally, the statistical assumptions of stationarity and compositionality are not always verified. In those situations, the constraints
-imposed by the model risk to increase the bias of the model for no reason. One possibility for addressing this issue is to insert Fully connected 
+imposed by the model risk to reduce its capacity for no reason. One possibility for addressing this issue is to insert Fully connected 
 layers between the input and the spectral layers, such that data can be transformed into the appropriate statistical model. Another strategy, that is
 left for future work, is to relax the notion of weight sharing by introducing instead a commutation error $\| W_i L - L W_i \|$ with the graph Laplacian, 
 which puts a soft penalty on transformations that do not commute with the Laplacian, instead of imposing exact commutation as is the case in the spectral net. 
 
 \end{itemize}
 
+\pagebreak
 
 \bibliography{references}{}
 \bibliographystyle{plain}
