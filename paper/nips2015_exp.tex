@@ -1,0 +1,173 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{nips15submit_e,times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf}
+%\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
+
+\newtheorem{graphconv}{Definition}
+
+
+\title{Deep Networks on Graph-Structured Data}
+
+
+\author{
+Mikael Henaff \\
+Courant Institute of Mathematical Sciences\\
+New York University\\
+\texttt{mbh305@nyu.edu} \\
+\And
+Joan Bruna \\
+University of California, Berkeley \\
+\texttt{joan.bruna@berkeley.edu} \\
+\AND
+Yann LeCun \\
+Courant Institute of Mathematical Sciences \\
+New York University \\
+\texttt{yann@cs.nyu.edu} \\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+%\nipsfinalcopy % Uncomment for camera-ready version
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Experiments}
+
+In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we performed experiments on three datasets from computer vision, text categorization and computational biology. 
+
+\subsection{Reuters}
+
+We used the same version of the Reuters dataset as in ~\cite{Hinton2012}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{Hinton2012} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
+
+We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and alleviate the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. All architectures were then trained using the same hyperparameters, which can be found in the Appendix. 
+Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
+
+\begin{center}
+ 
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Graph & Architecture & Parameters & Accuracy (epoch 200) & Accuracy (epoch 500)\\
+\hline
+- &FC-2000-1000-50 & $8 \cdot 10^6$ & 70.2 & 70.2 \\
+Supervised & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 69.41 & 70.0 \\
+Supervised & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 69.15 & - \\
+Supervised & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & 68.68 & - \\
+Supervised &GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & 68.63 & - \\
+Gaussian Kernel & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 64.14 & - \\
+Gaussian Kernel & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 64.79 & - \\
+Gaussian Kernel & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & - & - \\
+Gaussian Kernel & GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & - & - \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.3\textwidth}
+                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
+                \caption{Global scaling..}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
+                \caption{Local scaling.}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.3\textwidth}
+                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
+                \caption{Global scaling.}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.3\textwidth}
+                \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
+                \caption{Local scaling.}
+        \end{subfigure}
+        \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
+\end{figure}
+
+
+\subsection{Merck Molecular Activity Challenge}
+
+The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the state-of-the-art network of ~\cite{ma2015} which has 4 hidden layers and is regularized using dropout and weight decay. 
+
+As before, we used one-tenth of the training data to find good hyperparameters and explore architectures. 
+
+\begin{center}
+ 
+\begin{tabular}{|c|c|c|c|}
+\hline
+Graph & Architecture & Parameters & Test $R^2$\\
+\hline
+- &FC-4000-2000-1000-1000-50 & $22.1 \cdot 10^6$ & 0.2728 \\
+Supervised & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.2629 \\
+Gaussian Kernel, global scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
+Gaussian Kernel, local scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & - \\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\subsection{Imagenet}
+
+\begin{center}
+\begin{figure}
+ \includegraphics[width=1\textwidth]{{imagenet}.pdf}
+ \caption{ConvNet vs. SpectralNet on ImageNet.}
+\end{figure}
+\end{center}
+
+In the experiments above our graph construction relied on an approximate estimation from the data. 
+To measure the influence of the graph construction compared to the filter learning in the frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain. Training was performed exactly as in Figure 1, except that the linear transformation was a Fast Fourier Transform. 
+
+Our network consisted of 4 convolution/ReLU/max pooling layers with 48, 128, 256 and 256 feature maps, followed by 3 fully-connected layers with 4096 hidden units each regularized with dropout. We trained two versions of the network: one classical convolutional network and one as a spectral network where the weights were defined in the frequency domain only and were interpolated using a spline kernel. Both networks were trained for 40 epochs over the ImageNet dataset where input images were scaled down to $128 \times 128$ to accelerate training.  
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Graph & Architecture & Parameters & Test Accuracy (Top 5) & Test Accuracy (Top 1)\\
+\hline
+2-D Grid & Convolutional Network & $3.8 \cdot 10^6$ & 71.854 & 46.24\\
+2-D Grid & Spectral Network & $3.8\cdot 10^6$ & 71.998 & 46.71\\
+\hline
+\end{tabular}
+\end{center}
+
+We see that both models yield nearly identical performance. Interstingly, the spectral network learns faster than during the first part of training, although both networks converge around the same time. This requires further investigation.
+
+
+
+
+\bibliography{references}{}
+\bibliographystyle{plain}
+
+\end{document}
