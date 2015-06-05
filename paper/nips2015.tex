@@ -87,14 +87,14 @@ However, there exist many examples of data that lack the underlying low-dimensio
 For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. These complex graphs might be of higher dimension, and the statistical properties of data defined on such graphs might not satisfy the stationarity, locality and compositionality assumptions previously described.
 For such type of data of dimension $N$, deep learning strategies are reduced to learning with fully-connected layers, which have $O(N^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{srivastava2014dropout}.
 
-When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize ConvNets using low learning complexity similar to that of a ConvNet, and which was demonstrated on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to high-dimensional, general datasets,  and, most importantly, to the setting where the graph structure is not known a priori. In this context, learning the graph structure amounts to estimating the similarity matrix, which has complexity $O(N^2)$. One may therefore wonder whether the graph estimation followed by graph convolutions offers advantages with respect to learning directly from the data with fully connected layers. We attempt to answer this question experimentally and to establish baselines for future reference. 
+When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize ConvNets using low learning complexity similar to that of a ConvNet, and which was demonstrated on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to high-dimensional, general datasets,  and, most importantly, to the setting where the graph structure is not known a priori. In this context, learning the graph structure amounts to estimating the similarity matrix, which has complexity $O(N^2)$. One may therefore wonder whether the graph estimation followed by graph convolutions offers advantages with respect to learning directly from the data with fully connected layers. We attempt to answer this question experimentally and to establish baselines for future work. 
  
 We explore these approaches in two areas of application for which it has not been possible to apply convolutional networks before: text categorization and bioinformatics. Our results show that our method is capable of matching or outperforming large, fully-connected networks trained with dropout using fewer parameters. 
 %Main contributions of this work. How to apply graph convolutions on problems where the graph is not known a priori.
 Our main contributions can be summarized as follows:
 \begin{itemize}
-\item We extend the ideas from \cite{spectralnet2013} to large-scale classification problems, specifically object Recognition, text categorization and bioinformatics.
-\item We consider the most general setting where no prior information on the graph structure is available, and propose unsupervised and new supervised graph estimation strategies.
+\item We extend the ideas from \cite{spectralnet2013} to large-scale classification problems, specifically Imagenet Object Recognition, text categorization and bioinformatics.
+\item We consider the most general setting where no prior information on the graph structure is available, and propose unsupervised and new supervised graph estimation strategies in combination with the supervised graph convolutions.
 %\item Finally, we introduce an alternative formulation for efficient learning in graph-structured domains which works directly in the feature domain.
 \end{itemize}
 
@@ -131,12 +131,12 @@ Extending the convolution to inputs $x$ with multiple input channels is straight
 However, for each feature map $g$ we need convolutional kernels are typically restricted to have small spatial support, independent of the number of input pixels $N$, which enables the model to learn a number of parameters independent of $N$. In order to recover a similar learning complexity in the spectral domain, it is thus necessary to restrict the class of spectral multipliers to those corresponding to localized filters. 
 
 For that purpose, we seek to express spatial localization of filters in terms of their spectral multipliers. In the grid, smoothness in the frequency domain corresponds to the spatial decay, since
-$$\left| \frac{\partial^k \hat{x}(\xi)}{\partial \xi^k} \right| \leq C \int u^k |x(u)| du~,$$
+$$\left| \frac{\partial^k \hat{x}(\xi)}{\partial \xi^k} \right| \leq C \int |u|^k |x(u)| du~,$$
 where $\hat{x}(\xi)$ is the Fourier transform of $x$.
 In \cite{spectralnet2013} it was suggested to use the same principle in a general graph, by considering a smoothing kernel $\mathcal{K} \in \mathbb{R}^{N \times N_0}$, such as splines, and searching for spectral multipliers of the form
 $$w_g = \mathcal{K} \tilde{w}_g~.$$
 
-The algorithm which implements the graph convolution is described in \ref{pseudoPSO}.
+The algorithm which implements the graph convolution is described in Algorithm \ref{pseudoPSO}.
 
 \begin{algorithm}
 \caption{Train Graph Convolution Layer}
