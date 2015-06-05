@@ -1,48 +1,49 @@
-This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+This is BibTeX, Version 0.99d (TeX Live 2014)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: nips2015.aux
 The style file: plain.bst
 Database file #1: references.bib
-Warning--I didn't find a database entry for "adagrad"
-You've used 18 entries,
+Warning--I didn't find a database entry for "Hinton2012"
+Warning--I didn't find a database entry for "ma2015"
+You've used 19 entries,
             2118 wiz_defined-function locations,
-            607 strings with 7470 characters,
-and the built_in function-call counts, 7639 in all, are:
-= -- 739
-> -- 406
+            612 strings with 7540 characters,
+and the built_in function-call counts, 7893 in all, are:
+= -- 766
+> -- 419
 < -- 8
-+ -- 160
-- -- 140
-* -- 541
-:= -- 1216
-add.period$ -- 55
-call.type$ -- 18
-change.case$ -- 120
++ -- 165
+- -- 144
+* -- 556
+:= -- 1263
+add.period$ -- 58
+call.type$ -- 19
+change.case$ -- 125
 chr.to.int$ -- 0
-cite$ -- 18
-duplicate$ -- 293
-empty$ -- 562
-format.name$ -- 140
-if$ -- 1623
+cite$ -- 19
+duplicate$ -- 303
+empty$ -- 579
+format.name$ -- 144
+if$ -- 1672
 int.to.chr$ -- 0
-int.to.str$ -- 18
-missing$ -- 19
-newline$ -- 93
-num.names$ -- 38
-pop$ -- 137
+int.to.str$ -- 19
+missing$ -- 20
+newline$ -- 98
+num.names$ -- 40
+pop$ -- 140
 preamble$ -- 1
-purify$ -- 103
+purify$ -- 107
 quote$ -- 0
-skip$ -- 235
+skip$ -- 243
 stack$ -- 0
-substring$ -- 495
-swap$ -- 99
+substring$ -- 504
+swap$ -- 100
 text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 70
+type$ -- 74
 warning$ -- 0
-while$ -- 67
-width$ -- 20
-write$ -- 197
-(There was 1 warning)
+while$ -- 70
+width$ -- 21
+write$ -- 208
+(There were 2 warnings)

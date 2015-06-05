@@ -24,6 +24,12 @@ Adam Coates and Andrew~Y Ng.
 \newblock In {\em Advances in Neural Information Processing Systems}, pages
   2528--2536, 2011.
 
+\bibitem{adagrad}
+John Duchi, Elad Hazan, and Yoram Singer.
+\newblock Adaptive subgradient methods for online learning and stochastic
+  optimization.
+\newblock {\em The Journal of Machine Learning Research}, 12:2121--2159, 2011.
+
 \bibitem{karol}
 Karol Gregor and Yann LeCun.
 \newblock Emergence of complex-like cells in a temporal product network with
@@ -49,13 +55,6 @@ Yann LeCun, Yoshua Bengio, and Geoffrey Hinton.
 \newblock Deep learning.
 \newblock {\em Nature}, 521(7553):436--444, 05 2015.
 
-\bibitem{Ma:JournalChem2015}
-Junshui Ma, Robert~P. Sheridan, Andy Liaw, George~E. Dahl, and Vladimir
-  Svetnik.
-\newblock Deep neural networks as a method for quantitative structure-activity
-  relationships.
-\newblock {\em Journal of Chemical Information and Modeling}, 2015.
-
 \bibitem{mallat1999wavelet}
 St{\'e}phane Mallat.
 \newblock {\em A wavelet tour of signal processing}.
@@ -66,6 +65,11 @@ Jonathan Masci, Davide Boscaini, Michael~M. Bronstein, and Pierre
   Vandergheynst.
 \newblock Shapenet: Convolutional neural networks on non-euclidean manifolds.
 \newblock {\em CoRR}, abs/1501.06297, 2015.
+
+\bibitem{mathieu2013fast}
+Michael Mathieu, Mikael Henaff, and Yann LeCun.
+\newblock Fast training of convolutional networks through ffts.
+\newblock {\em arXiv preprint arXiv:1312.5851}, 2013.
 
 \bibitem{ngiam2010tiled}
 Jiquan Ngiam, Zhenghao Chen, Daniel Chia, Pang~W Koh, Quoc~V Le, and Andrew~Y
@@ -94,11 +98,11 @@ Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
 \newblock {\em The Journal of Machine Learning Research}, 15(1):1929--1958,
   2014.
 
-\bibitem{JMLR:v15:srivastava14a}
-Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
-  Salakhutdinov.
-\newblock Dropout: A simple way to prevent neural networks from overfitting.
-\newblock {\em Journal of Machine Learning Research}, 15:1929--1958, 2014.
+\bibitem{DBLP:journals/corr/VasilacheJMCPL14}
+Nicolas Vasilache, Jeff Johnson, Micha{\"{e}}l Mathieu, Soumith Chintala,
+  Serkan Piantino, and Yann LeCun.
+\newblock Fast convolutional nets with fbfft: {A} {GPU} performance evaluation.
+\newblock {\em CoRR}, abs/1412.7580, 2014.
 
 \bibitem{von2007tutorial}
 Ulrike Von~Luxburg.

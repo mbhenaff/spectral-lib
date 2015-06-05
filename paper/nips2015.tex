@@ -54,7 +54,7 @@ New York University \\
 \maketitle
 
 \begin{abstract}
-
+Deep Learning recent successes have mostly relied on Convolutional Networks, which exploit fundamental statistical properties of image, sounds and video data, namely the local stationarity and multi-scale compositional structure, that allows expressing long range interactions in terms of shorter, localized interactions. However, other important data, such as text documents or bioinformatic data, may lack some or all of these strong statistical regularities. In this paper we consider the general question of how to construct deep architectures with small learning complexity on general non-Euclidean domains, which are typically unknown and need to be estimated from the data. In particular, we develop an extension of Spectral Networks which incorporates a Graph Estimation procedure and we test it on large-scale classification problems, matching or improving over Dropout Networks with far less parameters to estimate.
 \end{abstract}
 
 \section{Introduction}
@@ -64,7 +64,7 @@ New York University \\
 % how to estimate a graph structure 
 % towards efficient archiectures
 
-In recent times, deep learning models have proven extremely successful on a wide variety of tasks, from computer vision and acoustic modeling to natural language processing \cite{natureyann}. At the core of their success lies an important assumption on the statistical properties of the data, namely the \emph{stationarity} and the \emph{compositionality} through local statistics, which is present in natural images, video, and speech.
+In recent times, Deep Learning models have proven extremely successful on a wide variety of tasks, from computer vision and acoustic modeling to natural language processing \cite{natureyann}. At the core of their success lies an important assumption on the statistical properties of the data, namely the \emph{stationarity} and the \emph{compositionality} through \emph{local} statistics, which is present in natural images, video, and speech.
  These properties are exploited efficiently by ConvNets ~\cite{krizhevsky2012,hinton12}, which are designed to extract local features that are shared across the signal domain. Thanks to this, they are able to greatly reduce the number of parameters in the network with respect to generic deep architectures, without sacrificing the capacity to extract informative statistics from the data. Similarly, Recurrent Neural Nets (RNNs) trained on temporal data implicitly assume a stationary distribution.
 
 %
@@ -92,8 +92,8 @@ We explore these approaches in two areas of application for which it has not bee
 Our main contributions can be summarized as follows:
 \begin{itemize}
 \item We extend the ideas from \cite{spectralnet2013} to large-scale classification problems, specifically object Recognition, text categorization and bioinformatics.
-\item We consider the most general setting where no prior information on the graph structure is available, and propose unsupervised and supervised graph estimation strategies.
-\item Finally, we introduce an alternative formulation for efficient learning in graph-structured domains which works directly in the feature domain.
+\item We consider the most general setting where no prior information on the graph structure is available, and propose unsupervised and new supervised graph estimation strategies.
+%\item Finally, we introduce an alternative formulation for efficient learning in graph-structured domains which works directly in the feature domain.
 \end{itemize}
 
 The rest of the paper is structured as follows. Section \ref{relatedworksect} reviews similar works in the literature. Section \ref{spectralsect} discusses generalizations of convolutions on graphs, and Section \ref{graphestimsect} addresses the question of graph estimation. Finally, Section \ref{experimentssect} shows numerical experiments on large scale object recogniton, text categorization and bioinformatics.
@@ -354,19 +354,36 @@ Finally, observe that one could simply replace the eigen-basis $U$ obtained by d
 %
 \section{Discussion}
 
-Conclusion
-not all datasets are admissible for a weight-sharing
+ConvNet architectures base their appeal and success on their 
+ability to produce highly informative local statistics using low learning complexity
+and avoiding expensive matrix multiplications. This motivated us to 
+consider generalizations on high-dimensional, unstructured data.
 
-The graph construction using the Supervised Graph Estimation. 
-Related to discovering latent graphical models
+When the statistical properties of the input satisfy both stationarity 
+and composotionality, spectral networks allow for a learning complexity 
+of the same order as Convnets. However, as our results demonstrate, 
+their extension poses significant challenges:
+\begin{itemize}
+\item Although the learning complexity requires $O(1)$ parameters per feature map, 
+the evaluation, both forward and backward, requires a multiplication by the Graph Fourier Transform, 
+which costs $O(N^2)$ operations. This is a major difference with respect to traditional ConvNets, which 
+require only $O(N)$. Fourier implementations of Convnets \cite{mathieu2013fast, DBLP:journals/corr/VasilacheJMCPL14} bring the complexity to $O(N \log N)$ 
+thanks again to the specific symmetries of the grid. An open question is whether one can find approximate eigenbasis
+of general Graph Laplacians using Givens' decompositions similar to those of the FFT. 
 
+\item Our experiments show that when the input graph structure is not known a priori, graph estimation is
+the statistical bottleneck of the model, requiring $O(N^2)$ for general graphs and $O(M N)$ for $M$-dimensional graphs.
+Supervised graph estimation performs significantly better than unsupervised graph estimation based on low-order moments. Furthermore, we have verified that
+the architecture is quite sensitive to graph estimation errors. In the supervised setting, this step can be viewed in terms of
+a Bootstrapping mechanism, where an initially unconstrained network is self-adjusted to become more localized and with weight-sharing. 
 
-Limitations: 
-When is weight sharing appropriate/ not. 
-When is locality appropriate/not appropriate. 
-Complexity.
+\item Finally, the statistical assumptions of stationarity and compositionality are not always verified. In those situations, the constraints
+imposed by the model risk to increase the bias of the model for no reason. One possibility for addressing this issue is to insert Fully connected 
+layers between the input and the spectral layers, such that data can be transformed into the appropriate statistical model. Another strategy, that is
+left for future work, is to relax the notion of weight sharing by introducing instead a commutation error $\| W_i L - L W_i \|$ with the graph Laplacian, 
+which puts a soft penalty on transformations that do not commute with the Laplacian, instead of imposing exact commutation as is the case in the spectral net. 
 
- Alternatives we are working on
+\end{itemize}
 
 
 \bibliography{references}{}
