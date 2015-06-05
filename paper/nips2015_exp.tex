@@ -65,17 +65,18 @@ In order to measure the performance of spectral networks on real-world data and 
 
 We used the same version of the Reuters dataset as in ~\cite{Hinton2012}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{Hinton2012} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
 
-We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and alleviate the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. All architectures were then trained using the same hyperparameters, which can be found in the Appendix. 
+We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and alleviate the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. All architectures were then trained using the same hyperparameters, which can be found in the Supplementary Material. 
 Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
 
+\begin{table}
 \begin{center}
  
 \begin{tabular}{|c|c|c|c|c|}
 \hline
-Graph & Architecture & Parameters & Accuracy (epoch 200) & Accuracy (epoch 500)\\
+Graph & Architecture & \# Params & Acc. (epoch 200) & Acc. (epoch 500)\\
 \hline
-- &FC-2000-1000-50 & $8 \cdot 10^6$ & 70.2 & 70.2 \\
-Supervised & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 69.41 & 70.0 \\
+- &FC-2000-1000-50 & $8 \cdot 10^6$ & 70.2 & {\bf 70.2} \\
+Supervised & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 69.41 & {\bf 70.0} \\
 Supervised & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 69.15 & - \\
 Supervised & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & 68.68 & - \\
 Supervised &GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & 68.63 & - \\
@@ -86,54 +87,66 @@ Gaussian Kernel & GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & - & - \\
 \hline
 \end{tabular}
 \end{center}
+\caption{Results on Reuters Dataset}
+\label{reutersresults}
+\end{table}
 
 
 \begin{figure}
         \centering
-        \begin{subfigure}[b]{0.3\textwidth}
+        \begin{subfigure}[b]{0.25\textwidth}
                 \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
                 \caption{Global scaling..}
         \end{subfigure}%
         ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
           %(or a blank line to force the subfigure onto a new line)
-        \begin{subfigure}[b]{0.3\textwidth}
+        \begin{subfigure}[b]{0.25\textwidth}
                 \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
                 \caption{Local scaling.}
         \end{subfigure}
         
-        \begin{subfigure}[b]{0.3\textwidth}
+        \begin{subfigure}[b]{0.25\textwidth}
                 \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
                 \caption{Global scaling.}
         \end{subfigure}%
         ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
           %(or a blank line to force the subfigure onto a new line)
-        \begin{subfigure}[b]{0.3\textwidth}
+        \begin{subfigure}[b]{0.25\textwidth}
                 \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
                 \caption{Local scaling.}
         \end{subfigure}
         \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
 \end{figure}
 
+Table \ref{reutersresults} reports the classification results on the test set. We observe that, despite having $4$ times less parameters, the 
+spectral network achieves nearly the same performance as the Dropout Fully Connected network. Also, Figure \ref{convergence_reuters} 
+displays the train and test error in terms of the epoch number. It shows that the spectral model is less exposed to overfitting and therefore more robust to optimization choices. Table \ref{reutersresults} also confirms the advantage of using a supervised graph estimation on this task. We interpret it due to the high degree of sparsity of the input features, making correlation measurements unfit to describe the joint dependencies for that class of distributions. 
+Locally connected ????
 
 \subsection{Merck Molecular Activity Challenge}
 
 The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the state-of-the-art network of ~\cite{ma2015} which has 4 hidden layers and is regularized using dropout and weight decay. 
-
 As before, we used one-tenth of the training data to find good hyperparameters and explore architectures. 
 
+\begin{table}
 \begin{center}
- 
-\begin{tabular}{|c|c|c|c|}
+ \begin{tabular}{|c|c|c|c|}
 \hline
 Graph & Architecture & Parameters & Test $R^2$\\
 \hline
 - &FC-4000-2000-1000-1000-50 & $22.1 \cdot 10^6$ & 0.2728 \\
 Supervised & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.2629 \\
-Gaussian Kernel, global scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
-Gaussian Kernel, local scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & - \\
+Gaussian Kernel, global scaling & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
+Gaussian Kernel, local scaling & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & - \\
 \hline
 \end{tabular}
 \end{center}
+\caption{Results on the Merck Molecular Activity Dataset}
+\label{merckresults}
+\end{table}
+
+Table \ref{merckresults} displays the results on the test set. Similarly as in the Reuters dataset, we observe that the spectral network nearly matches the performance of the fully connected dataset, albeit having $4$ times less parameters. We note however that this dataset suffers from a clear domain shift between train and test distributions (explain that train error is very different from test error).
+Again, the supervised kernel performs clearly better than unsupervised kernels, which again fail to capture the appropriate notion of similarity between features for the task. Figure \ref{convergence_merck} displays the train and test error curves, showing the same behavior as in the Reuters dataset. Locally Connected? 
 
 
 
@@ -162,7 +175,7 @@ Graph & Architecture & Parameters & Test Accuracy (Top 5) & Test Accuracy (Top 1
 \end{tabular}
 \end{center}
 
-We see that both models yield nearly identical performance. Interstingly, the spectral network learns faster than during the first part of training, although both networks converge around the same time. This requires further investigation.
+We see that both models yield nearly identical performance. Interestingly, the spectral network learns faster than during the first part of training, although both networks converge around the same time. This requires further investigation.
 
 
 %
