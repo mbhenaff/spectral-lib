@@ -80,8 +80,8 @@ Jiquan Ngiam, Zhenghao Chen, Daniel Chia, Pang~W Koh, Quoc~V Le, and Andrew~Y
 
 \bibitem{ravikumar2010high}
 Pradeep Ravikumar, Martin~J Wainwright, John~D Lafferty, et~al.
-\newblock High-dimensional ising model selection using ?1-regularized logistic
-  regression.
+\newblock High-dimensional ising model selection using $\ell_1$-regularized
+  logistic regression.
 \newblock {\em The Annals of Statistics}, 38(3):1287--1319, 2010.
 
 \bibitem{roux2008learning}
