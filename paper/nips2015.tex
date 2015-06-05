@@ -74,7 +74,7 @@ In recent times, deep learning models have proven extremely successful in a wide
 %Images can be thought of as signals defined on a 2-D lattice, where each pixel is a node which is connected to its immediate neighbors. 
 %Similarly, audio waveforms can be viewed as signals defined on a 1-D lattice, where each node is a time point. 
 %Generalizing convolutional networks to graph-structured data is an important open problem. 
-One can think such data as being signals defined on a low-dimensional grid, where the stationarity can be well defined via the natural translation 
+One can think such data as being signals defined on a low-dimensional grid, where the stationarity is well defined via the natural translation 
 operator on the grid, locality is defined via the metric of the grid, and compositionality is obtained from downsampling. 
 However, many types of data are defined on more complex graphs. For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. For those type of data of dimension $n$, deep learning strategies are reduced to learning with fully-connected layers, which have $o(n^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{srivastava2014dropout}.
 
@@ -236,7 +236,7 @@ When is locality appropriate/not appropriate.
 
 Complexity.
 
-Current Alternatives.
+ Alternatives we are
 
 
 \bibliography{references}{}
