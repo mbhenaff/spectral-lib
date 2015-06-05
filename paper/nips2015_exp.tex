@@ -62,38 +62,37 @@
 \label{experimentssect}
 In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we conducted experiments on three datasets from text categorization, computational biology and computer vision. All experiments were done using the Torch machine learning environment with a custom CUDA backend.
 
-As noted above, training a spectral network requires an $O(N^2)$ matrix multiplication for each input and output feature map to perform the Graph Fourier Transform, compared to the efficient $O(N \text{log} N)$ Fast Fourier Transform used in classical ConvNets. We found that training the spectral networks with large numbers of feature maps to be very time-consuming and therefore chose to experiment mostly with architectures with fewer feature maps and smaller pool sizes. 
+We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution, ReLU and graph pooling layers, and ending with one or more fully connected layers. As noted above, training a spectral network requires an $O(N^2)$ matrix multiplication for each input and output feature map to perform the Graph Fourier Transform, compared to the efficient $O(N \text{log} N)$ Fast Fourier Transform used in classical ConvNets. We found that training the spectral networks with large numbers of feature maps to be very time-consuming and therefore chose to experiment mostly with architectures with fewer feature maps and smaller pool sizes. We found that performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and mitigate the cost of the expensive Graph Fourier Transform operation.
 
-In this section we adopt the following notation to descibe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units.
+In this section we adopt the following notation to descibe network architectures: GC$k$ denotes a graph convolution layer with $k$ feature maps, P$k$ denotes a graph pooling layer with stride $k$ and pool size $2k$, and FC$k$ denotes a fully connected layer with $k$ hidden units. In our results we also denote the number of free parameters in the network by $P_\text{net}$ and the number of free parameters when estimating the graph by $P_\text{graph}$.
 
 \subsection{Reuters}
 
 We used the Reuters dataset described in ~\cite{JMLR:v15:srivastava14a}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{JMLR:v15:srivastava14a} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
 
-
-We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and mitigate the cost of the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
+ We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
 Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
 
 \begin{table}[H]
 \caption{Results for Reuters dataset}
 \begin{center}
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|}
 \hline
-Graph & Architecture & Parameters & Acc. (200) & Acc. (500)\\
+Graph & Architecture & $P_\text{net}$ & $P_\text{graph}$ & Acc. (200) & Acc. (500)\\
 \hline
-- &FC2000-FC1000 & $6 \cdot 10^6$ & 70.2 & 70.2 \\
-Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.41 & 70.09 \\
-Supervised & GC8-P8-FC1000 & $2 \cdot 10^6$ & 69.15 & - \\
-Supervised low rank & GC4-P4-FC1000 & $2\cdot 10^6$ & 69.25 & - \\
-Supervised low rank & GC8-P8-FC1000 & $2 \cdot 10^6$ & 68.35 & - \\
-Supervised & GC16-P4-GC16-P4-FC1000& $2 \cdot 10^6$ & 69.04 & - \\
-Supervised &GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & 69.09 & - \\
-RBF kernel & GC4-P4-FC1000 & $2\cdot 10^6$ & 67.85 & - \\
-RBF kernel & GC8-P8-FC1000 & $2 \cdot 10^6$ & 66.95 & - \\
-RBF kernel & GC16-P4-GC16-P4-FC1000 & $2 \cdot 10^6$ & 67.16 & - \\
-RBF kernel & GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & running cims & - \\
-RBF kernel (local)& GC4-P4-FC1000 & $2\cdot 10^6$ & 68.56 & - \\
-RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & 67.66 & - \\
+- &FC2000-FC1000 & $6 \cdot 10^6$ & 0 &70.2 & 70.2 \\
+Supervised & GC4-P4-FC1000 & $2\cdot 10^6$ & $2 \cdot 10^6$ & 69.41 & 70.09 \\
+Supervised & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 69.15 & - \\
+Supervised low rank & GC4-P4-FC1000 & $2\cdot 10^6$ & $5 \cdot 10^5$ & 69.25 & - \\
+Supervised low rank & GC8-P8-FC1000 & $2 \cdot 10^6$ & $5 \cdot 10^5$ & 68.35 & - \\
+Supervised & GC16-P4-GC16-P4-FC1000& $2 \cdot 10^6$ & $2 \cdot 10^6$ & 69.04 & - \\
+Supervised &GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 69.09 & - \\
+RBF kernel & GC4-P4-FC1000 & $2\cdot 10^6$ & $2 \cdot 10^6$ & 67.85 & - \\
+RBF kernel & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 66.95 & - \\
+RBF kernel & GC16-P4-GC16-P4-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.16 & - \\
+RBF kernel & GC64-P8-GC64-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.42 & - \\
+RBF kernel (local)& GC4-P4-FC1000 & $2\cdot 10^6$ & $2 \cdot 10^6$ & 68.56 & - \\
+RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.66 & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -143,9 +142,7 @@ We note that as we increase the tradeoff between resolution in the graph domain 
 
 The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the network of ~\cite{Ma:JournalChem2015} which has 4 hidden layers and is regularized using dropout and weight decay. We used the same hyperparameter settings and data normalization recommended in the paper.   
 
-As before, we used one-tenth of the training set to tune hyperparameters of the network. For this task we found that $k=40$ subsampled weights worked best, and that average pooling performed better than max pooling. Since the task is to predict a continuous variable, all networks were trained by minimizing the Root Mean-Squared Error loss.
-
-
+As before, we used one-tenth of the training set to tune hyperparameters of the network. For this task we found that $k=40$ subsampled weights worked best, and that average pooling performed better than max pooling. Since the task is to predict a continuous variable, all networks were trained by minimizing the Root Mean-Squared Error loss. Following ~\cite{Ma:JournalChem2015}, we measured performance by computing the squared correlation between predictions and targets.
 
 \begin{figure}[h]
 \begin{center}
@@ -157,17 +154,17 @@ As before, we used one-tenth of the training set to tune hyperparameters of the 
 
 
 \begin{table}[H]
-\caption{Results for Merck DPP4 dataset}
+\caption{Results for Merck DPP4 dataset.}
 \begin{center}
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-Graph & Architecture & Parameters & $R^2$\\ 
+Graph & Architecture & $P_\text{net}$ & $P_\text{graph}$ & $R^2$\\ 
 \hline
-- &FC4000-FC2000-FC1000-FC1000 & $22.1 \cdot 10^6$ & 0.2729 \\
-Supervised & GC16-P4-GC16-P4-FC1000-FC1000 & $3.8\cdot 10^6$ & 0.2773 \\
-Supervised & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & 0.2580 \\
-RBF Kernel & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & 0.2037 \\
-RBF Kernel (local) & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & 0.1479 \\
+- &FC4000-FC2000-FC1000-FC1000 & $22.1 \cdot 10^6$ & 0 & 0.2729 \\
+Supervised & GC16-P4-GC16-P4-FC1000-FC1000 & $3.8\cdot 10^6$ & $3.9 \cdot 10^6$ & 0.2773 \\
+Supervised & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & $3.9 \cdot 10^6$ &0.2580 \\
+RBF Kernel & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & $3.9 \cdot 10^6$ &0.2037 \\
+RBF Kernel (local) & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & $3.9 \cdot 10^6$  &0.1479 \\
 \hline
 \end{tabular}
 \end{center}
