@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  4 JUN 2015 15:29
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  4 JUN 2015 16:58
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -420,61 +420,83 @@ LaTeX Warning: Reference `experimentssect' on page 2 undefined on input line 92
 .
 
 
+LaTeX Warning: Citation `karol' on page 2 undefined on input line 96.
+
+
+LaTeX Warning: Citation `coates' on page 2 undefined on input line 96.
+
+
+LaTeX Warning: Citation `tiledconvnets' on page 2 undefined on input line 96.
+
+
+LaTeX Warning: Citation `coates' on page 2 undefined on input line 96.
+
+
+LaTeX Warning: Citation `masci' on page 2 undefined on input line 98.
+
+
+LaTeX Warning: Citation `martinnips' on page 2 undefined on input line 100.
+
+
+LaTeX Warning: Citation `haarscattgraph' on page 2 undefined on input line 100.
+
+
+
 LaTeX Warning: Citation `spectralgraphcite' on page 2 undefined on input line 1
-18.
+14.
 
 
-LaTeX Warning: Citation `mallat' on page 2 undefined on input line 120.
+LaTeX Warning: Citation `mallat' on page 2 undefined on input line 116.
 
 [2]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 137.
+put line 133.
 
 
 LaTeX Warning: Citation `spectralclustering' on page 3 undefined on input line 
-156.
-
-
-LaTeX Warning: Citation `diffusion_maps' on page 3 undefined on input line 176.
-
-
-
-LaTeX Warning: Citation `self-tuning' on page 3 undefined on input line 181.
+152.
 
 [3]
 
+LaTeX Warning: Citation `diffusion_maps' on page 4 undefined on input line 172.
+
+
+
+LaTeX Warning: Citation `self-tuning' on page 4 undefined on input line 177.
+
+
 LaTeX Warning: Reference `unsupervised_kernel' on page 4 undefined on input lin
-e 187.
+e 183.
 
 
-LaTeX Warning: Citation `bengioleroux' on page 4 undefined on input line 189.
+LaTeX Warning: Citation `bengioleroux' on page 4 undefined on input line 185.
 
 
-LaTeX Warning: Citation `martin' on page 4 undefined on input line 192.
+LaTeX Warning: Citation `martin' on page 4 undefined on input line 188.
 
 (./nips2015.bbl)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 211.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 207.
  [4]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 211.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 207.
  (./nips2015.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 211.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 211.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 207.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 207.
 Package rerunfilecheck Info: File `nips2015.out' has not changed.
 (rerunfilecheck)             Checksum: 5AB20C86A85F44EC80C5DE55A6B35CD5;707.
 
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 211.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 207.
  ) 
 Here is how much of TeX's memory you used:
- 7036 strings out of 493117
- 99777 string characters out of 6135433
+ 7042 strings out of 493117
+ 99842 string characters out of 6135433
  195615 words of memory out of 5000000
- 10386 multiletter control sequences out of 15000+600000
+ 10392 multiletter control sequences out of 15000+600000
  19175 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 37i,12n,39p,887b,377s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 37i,12n,39p,972b,377s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/te
 xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/tex
@@ -493,10 +515,10 @@ onts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/ty
 pe1/urw/times/utmb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ti
 mes/utmr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmri8
 a.pfb>
-Output written on nips2015.pdf (4 pages, 174818 bytes).
+Output written on nips2015.pdf (4 pages, 176533 bytes).
 PDF statistics:
- 159 PDF objects out of 1000 (max. 8388607)
- 134 compressed objects within 2 object streams
+ 160 PDF objects out of 1000 (max. 8388607)
+ 135 compressed objects within 2 object streams
  23 named destinations out of 1000 (max. 500000)
  89 words of extra memory for PDF output out of 10000 (max. 10000000)
 
