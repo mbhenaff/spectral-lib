@@ -47,7 +47,7 @@ New York University \\
 \newcommand{\new}{\marginpar{NEW}}
 
 %\nipsfinalcopy % Uncomment for camera-ready version
-\renewcommand{\baselinestretch}{0.94}
+\renewcommand{\baselinestretch}{0.93}
 \begin{document}
 
 
@@ -364,8 +364,16 @@ and avoiding expensive matrix multiplications. This motivated us to
 consider generalizations on high-dimensional, unstructured data.
 
 When the statistical properties of the input satisfy both stationarity 
-and composotionality, spectral networks allow for a learning complexity 
-of the same order as Convnets. However, as our results demonstrate, 
+and composotionality, spectral networks have a learning complexity 
+of the same order as Convnets. In the general setting where no
+prior knowledge of the input graph structure is known, our model 
+requires estimating the similarities, a $O(N^2)$ operation, but making
+the model deeper does not increase learning complexity as much as 
+the general Fully Connected architectures. Moreover, in contexts
+where feature similarities can be estimated using unlabeled data (such as
+word representations), our model has less parameters to learn from labeled data.
+
+However, as our results demonstrate, 
 their extension poses significant challenges:
 \begin{itemize}
 \item Although the learning complexity requires $O(1)$ parameters per feature map, 
