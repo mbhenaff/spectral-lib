@@ -7,6 +7,10 @@
 \usepackage{amsthm}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf}
 %\documentstyle[nips14submit_09,times,art10]{article} % For LaTeX 2.09
 
 \newtheorem{graphconv}{Definition}
@@ -221,8 +225,9 @@ These constructions can be seen as ``distilling" the information learnt by a fir
 
 Finally, observe that one could simply replace the eigen-basis $U$ obtained by diagonalizing the graph Laplacian by an arbitrary unitary matrix, which is then optimized by back-propagation together with the rest of the parameters of the model. We do not report results on this strategy, although we point out that it was the same learning complexity as the Fully Connected network (requiring $O(K N^2)$ parameters, where $K$ is the number of layers and $N$ is the input dimension).
 
+\input{nips2015_exp}
 
-\section{ Experiments }
+%\section{ Experiments }
 
 
 Word datasets. Mention that Using Word embeddings is also a possibility for future work.
