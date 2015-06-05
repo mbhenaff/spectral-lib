@@ -4,11 +4,10 @@
 \BOOKMARK [2][-]{subsection.3.1}{Spectral Networks}{section.3}% 4
 \BOOKMARK [2][-]{subsection.3.2}{Pooling with Hierarchical Graph Clustering}{section.3}% 5
 \BOOKMARK [1][-]{section.4}{ Graph Construction }{}% 6
-\BOOKMARK [2][-]{subsection.4.1}{ Using Prior Knowledge}{section.4}% 7
-\BOOKMARK [2][-]{subsection.4.2}{ Unsupervised Graph Estimation }{section.4}% 8
-\BOOKMARK [2][-]{subsection.4.3}{ Supervised Graph Estimation }{section.4}% 9
-\BOOKMARK [1][-]{section.5}{Experiments}{}% 10
-\BOOKMARK [2][-]{subsection.5.1}{Reuters}{section.5}% 11
-\BOOKMARK [2][-]{subsection.5.2}{Merck Molecular Activity Challenge}{section.5}% 12
-\BOOKMARK [2][-]{subsection.5.3}{Imagenet}{section.5}% 13
-\BOOKMARK [1][-]{section.6}{Discussion}{}% 14
+\BOOKMARK [2][-]{subsection.4.1}{ Unsupervised Graph Estimation }{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.2}{ Supervised Graph Estimation }{section.4}% 8
+\BOOKMARK [1][-]{section.5}{Experiments}{}% 9
+\BOOKMARK [2][-]{subsection.5.1}{Reuters}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.2}{Merck Molecular Activity Challenge}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.3}{ImageNet}{section.5}% 12
+\BOOKMARK [1][-]{section.6}{Discussion}{}% 13
