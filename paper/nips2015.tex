@@ -54,7 +54,7 @@ New York University \\
 \maketitle
 
 \begin{abstract}
-Deep Learning recent successes have mostly relied on Convolutional Networks, which exploit fundamental statistical properties of image, sounds and video data: the local stationarity and multi-scale compositional structure, that allows expressing long range interactions in terms of shorter, localized interactions. However, there exist other important examples, such as text documents or bioinformatic data, that may lack some or all of these strong statistical regularities. 
+Deep Learning's recent successes have mostly relied on Convolutional Networks, which exploit fundamental statistical properties of image, sounds and video data: the local stationarity and multi-scale compositional structure, that allows expressing long range interactions in terms of shorter, localized interactions. However, there exist other important examples, such as text documents or bioinformatic data, that may lack some or all of these strong statistical regularities. 
 
 In this paper we consider the general question of how to construct deep architectures with small learning complexity on general non-Euclidean domains, which are typically unknown and need to be estimated from the data. In particular, we develop an extension of Spectral Networks which incorporates a Graph Estimation procedure, that we test on large-scale classification problems, matching or improving over Dropout Networks with far less parameters to estimate.
 \end{abstract}
@@ -66,7 +66,7 @@ In this paper we consider the general question of how to construct deep architec
 % how to estimate a graph structure 
 % towards efficient archiectures
 
-In recent times, Deep Learning models have proven extremely successful on a wide variety of tasks, from computer vision and acoustic modeling to natural language processing \cite{natureyann}. At the core of their success lies an important assumption on the statistical properties of the data, namely the \emph{stationarity} and the \emph{compositionality} through \emph{local} statistics, which is present in natural images, video, and speech.
+In recent times, Deep Learning models have proven extremely successful on a wide variety of tasks, from computer vision and acoustic modeling to natural language processing \cite{natureyann}. At the core of their success lies an important assumption on the statistical properties of the data, namely the \emph{stationarity} and the \emph{compositionality} through \emph{local} statistics, which are present in natural images, video, and speech.
  These properties are exploited efficiently by ConvNets ~\cite{krizhevsky2012,hinton12}, which are designed to extract local features that are shared across the signal domain. Thanks to this, they are able to greatly reduce the number of parameters in the network with respect to generic deep architectures, without sacrificing the capacity to extract informative statistics from the data. Similarly, Recurrent Neural Nets (RNNs) trained on temporal data implicitly assume a stationary distribution.
 
 %
@@ -84,7 +84,7 @@ One can think of such data examples as being signals defined on a low-dimensiona
 operator on the grid, locality is defined via the metric of the grid, and compositionality is obtained from downsampling, or equivalently thanks to the multi-resolution property of the grid.
 However, there exist many examples of data that lack the underlying low-dimensional grid structure. 
 %are defined on more complex graphs, which not always satisfy all the previous assumptions.
-For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. These complex graphs might be of higher dimension, and the statistical properties of data defined on such graphs might not satisfy the stationarity, locality and compositionality assumptions previously described.
+For example, text documents represented as bags of words can be thought of as signals defined on a graph whose nodes are vocabulary terms and whose weights represent some similarity measure between terms, such as co-occurence statistics. In medicine, a patient's gene expression data can be viewed as a signal defined on the graph imposed by the regulatory network. In fact, computer vision and audio, which are the main focus of research efforts in deep learning, only represent a special case of data defined on an extremely simple low-dimensional graph. Complex graphs arising in other domains might be of higher dimension, and the statistical properties of data defined on such graphs might not satisfy the stationarity, locality and compositionality assumptions previously described.
 For such type of data of dimension $N$, deep learning strategies are reduced to learning with fully-connected layers, which have $O(N^2)$ parameters, and regularization is carried out via weight decay and dropout \cite{srivastava2014dropout}.
 
 When the graph structure of the input is known, \cite{spectralnet2013} introduced a model to generalize ConvNets using low learning complexity similar to that of a ConvNet, and which was demonstrated on simple low-dimensional graphs. In this work, we are interested in generalizing ConvNets to high-dimensional, general datasets,  and, most importantly, to the setting where the graph structure is not known a priori. In this context, learning the graph structure amounts to estimating the similarity matrix, which has complexity $O(N^2)$. One may therefore wonder whether the graph estimation followed by graph convolutions offers advantages with respect to learning directly from the data with fully connected layers. We attempt to answer this question experimentally and to establish baselines for future work. 
@@ -109,14 +109,14 @@ Recently, \cite{spectralnet2013} proposed a generalization of convolutions to gr
 
 The graph or similarity estimation aspects have also been extensively studied in the past. For instance, \cite{ravikumar2010high} studies the estimation of the graph from a statistical point of view, through the identification of a certain graphical model using $\ell_1$-penalized logistic regression. Also, \cite{chen2014unsupervised} considers the problem of learning a deep architecture through a series of Haar contractions, which are learnt using an unsupervised pairing criteria over the features.
 
-\section{Generalizing Convolutions in Graphs }
+\section{Generalizing Convolutions to Graphs }
 \label{spectralsect}
 \subsection{Spectral Networks}
 
 Our work builds upon ~\cite{spectralnet2013} which introduced spectral networks. We recall the definition here and its main properties.
 A spectral network generalizes a convolutional network through the Graph Fourier Transform, which is in turn defined via a generalization of the Laplacian operator on the grid to the graph Laplacian. An input vector $x \in \mathbb{R}^N$ is seen as a a signal defined on a graph $G$ with $N$ nodes. 
 \begin{graphconv}
- Let $W$ be a $N \times N$ similarity matrix representing an undirected graph $G$, and let $L= D - W$ be its graph Laplacian with $D=W\cdot {\bf 1}$ eigenvectors $U=(u_1,\dots,u_N)$. Then a \textit{graph convolution} of input signals $x$ with filters $g$ on $G$ is defined by $x \ast_G g = U^T \left( Ux \odot Ug \right)$, where $\odot$ represents a point-wise product. 
+ Let $W$ be a $N \times N$ similarity matrix representing an undirected graph $G$, and let $L = I - D^{-1/2}WD^{-1/2}$ be its graph Laplacian with $D=W\cdot {\bf 1}$ eigenvectors $U=(u_1,\dots,u_N)$. Then a \textit{graph convolution} of input signals $x$ with filters $g$ on $G$ is defined by $x \ast_G g = U^T \left( Ux \odot Ug \right)$, where $\odot$ represents a point-wise product. 
 \end{graphconv}
 
 Here, the unitary matrix $U$ plays the role of the Fourier Transform in $\mathbb{R}^d$. 

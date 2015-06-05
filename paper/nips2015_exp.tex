@@ -99,6 +99,14 @@ RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.66 & -
 \label{reuterstable}
 \end{table}
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.4\textwidth]{{reuters_fc_vs_spectral}.pdf}
+\caption{Results on Reuters.}
+\end{center}
+\end{figure}
+\label{merckfigure}
+
 Note that our architectures are designed so that they factor the first hidden layer of the fully connected network across feature maps and a subsampled graph, trading off resolution in the graph domain for resolution across feature maps. The number of inputs into the last fully connected layer is always the same as for the fully-connected network. The idea is to reduce the number of parameters in the first layer of the network while avoiding too much compression in the second layer. 
 We note that as we increase the tradeoff between resolution in the graph domain and across features, there reaches a point where performance begins to suffer. This is especially pronounced for the unsupervised graph estimation strategies. When using the supervised method, the network is much more robust to the factorization of the first layer. Table \ref{reuterstable} compares the test accuracy of the fully connected network and the GC4-P4-FC1000 network. We see that the factorization of the lower layer has a beneficial regularizing effect. 
 
@@ -176,8 +184,6 @@ We again designed our architectures to factor the first two hidden layers of the
 Figure \ref{merckfigure} shows the test performance as the models are being trained. We note that the Merck datasets have test set samples assayed at a different time than the samples in the training set, and thus the distribution of features is typically different between the training and test sets. Therefore the test performance can be a significantly noisy function of the train performance. However, the effect of the different graph estimation procedures is still clear. 
 
 \subsection{ImageNet}
-
-
 
 In the experiments above our graph construction relied on estimation from the data. 
 To measure the influence of the graph construction compared to the filter learning in the graph frequency domain, we performed the same experiments on the ImageNet dataset for which the graph is already known, namely it is the 2-D grid. The spectral network was thus a convolutional network whose weights were defined in the frequency domain using frequency smoothing rather than imposing compactly supported filters.
