@@ -59,32 +59,37 @@ New York University \\
 
 \section{Experiments}
 
-In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we performed experiments on three datasets from computer vision, text categorization and computational biology. 
+In order to measure the performance of spectral networks on real-world data and to explore the effect of the graph estimation procedure, we performed experiments on three datasets from computer vision, text categorization and computational biology. All experiments were done using the Torch machine learning environment with a custom CUDA backend, which is publicly available at URL.
 
 \subsection{Reuters}
 
 We used the same version of the Reuters dataset as in ~\cite{Hinton2012}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{Hinton2012} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
 
-We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and alleviate the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. All architectures were then trained using the same hyperparameters, which can be found in the Appendix. 
+We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and alleviate the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
+Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
 
+\begin{table}[t]
+\caption{Results for Reuters dataset}
 \begin{center}
- 
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-Graph & Architecture & Parameters & Test Accuracy\\
+Graph & Architecture & Parameters & Accuracy (200) & Accuracy (500)\\
 \hline
-- &FC-2000-1000-50 & $8 \cdot 10^6$ & 70.2 \\
-Supervised & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 70.0 \\
-Supervised & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 68.5 \\
-Supervised & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & 68.1 \\
-Supervised &GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & 67.1 \\
-Gaussian Kernel & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 69.8 \\
-Gaussian Kernel & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 68.5 \\
-Gaussian Kernel & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & 68.1 \\
-Gaussian Kernel & GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & 67.1 \\
+- &FC-2000-1000-50 & $6 \cdot 10^6$ & 70.2 & 70.2 \\
+Supervised & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 69.41 & 70.0 \\
+Supervised & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & 69.15 & - \\
+Supervised & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & 69.04 & - \\
+Supervised &GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & running cims & - \\
+RBF kernel & GC4-P4-FC-1000-50 & $2\cdot 10^6$ & running & - \\
+RBF kernel & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & running & - \\
+RBF kernel & GC16-P4-GC16-P4-FC-1000-50 & $2 \cdot 10^6$ & running cims & - \\
+RBF kernel & GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & running cims & - \\
+RBF kernel (local)& GC4-P4-FC-1000-50 & $2\cdot 10^6$ & 68.56 & - \\
+RBF kernel (local) & GC8-P8-FC-1000-50 & $2 \cdot 10^6$ & runnning cims & - \\
 \hline
 \end{tabular}
 \end{center}
+\end{table}
 
 
 \begin{figure}
@@ -118,7 +123,7 @@ Gaussian Kernel & GC64-P8-GC64-P8-FC-1000-50 & $2 \cdot 10^6$ & 67.1 \\
 
 The Merck Molecular Activity Challenge is a computational biology benchmark where the task is to predict activity levels for various molecules based on the distances in bonds between different atoms. For our experiments we used the DPP4 dataset which has 8193 samples and 2796 features. We chose this dataset because it was one of the more challenging and was of relatively low dimensionality which made the spectral networks tractable. As a baseline architecture, we used the state-of-the-art network of ~\cite{ma2015} which has 4 hidden layers and is regularized using dropout and weight decay. 
 
-As before, we used one-tenth of the training data to find good hyperparameters and explore architectures. 
+As before, we used one-tenth of the training data to tune hyperparameters of the network. For this task we found that $k=40$ subsampled weights worked best, and that average pooling performed better than max pooling.
 
 \begin{center}
  
@@ -129,7 +134,7 @@ Graph & Architecture & Parameters & Test $R^2$\\
 - &FC-4000-2000-1000-1000-50 & $22.1 \cdot 10^6$ & 0.2728 \\
 Supervised & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.2629 \\
 Gaussian Kernel, global scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & 0.1992 \\
-Gaussian Kernel, local scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & - \\
+Gaussian Kernel, local scaling) & GC64-P8-GC64-P8-1000-1000-1 & $3.8\cdot 10^6$ & running cims \\
 \hline
 \end{tabular}
 \end{center}
