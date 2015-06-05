@@ -47,7 +47,7 @@ New York University \\
 \newcommand{\new}{\marginpar{NEW}}
 
 %\nipsfinalcopy % Uncomment for camera-ready version
-
+\renewcommand{\baselinestretch}{0.92}
 \begin{document}
 
 
@@ -210,18 +210,18 @@ and labels $y \in \{1,\dots,C\}^L$, we initially train a fully connected network
 \label{supervisedkernel}
 d_{sup}(i, j) = \| W_{1,i} - W_{1,j} \|^2~,
 \end{equation}
-that is then fed into the Gaussian kernel as in (\ref{unsupervisedkernel}). The interpretation is that the supervised criterion will extract through $W_1$ a collection of linear measurements that best serve the classification task. Thus two features are similar if the network decides to extract similar collections of linear measurements.  
+that is then fed into the Gaussian kernel as in (\ref{unsupervisedkernel}). The interpretation is that the supervised criterion will extract through $W_1$ a collection of linear measurements that best serve the classification task. Thus two features are similar if the network decides to use them similarly within these linear measurements.  
 
-Another supervised strategy that further exploits the dependencies learnt at the deeper layers of the network consists in using the gradients of the supervised loss function with respect to the inputs as discriminative information. More concretely, if $\mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the loss function associated to training example $l$ and $Z_{l,i} = \nabla_{x_i} \mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the input gradient corresponding to that example with respect to the $i$-th feature, then we consider the distance 
-\begin{equation}
-\label{supervisedkernel2}
-d_{gsup}(i, j) = \| Z_{\cdot, i} - Z_{\cdot, j} \|^2~,
-\end{equation}
-that is, we measure the average similarity between the gradients for features $i$ and $j$. That is, the similarity of two features depends on their respective influence (averaged over the training set) to the outcome of the network. 
+%Another supervised strategy that further exploits the dependencies learnt at the deeper layers of the network consists in using the gradients of the supervised loss function with respect to the inputs as discriminative information. More concretely, if $\mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the loss function associated to training example $l$ and $Z_{l,i} = \nabla_{x_i} \mathcal{L}(X_l, y_l, (W_k)_{k \leq K})$ is the input gradient corresponding to that example with respect to the $i$-th feature, then we consider the distance 
+%\begin{equation}
+%\label{supervisedkernel2}
+%d_{gsup}(i, j) = \| Z_{\cdot, i} - Z_{\cdot, j} \|^2~,
+%\end{equation}
+%that is, we measure the average similarity between the gradients for features $i$ and $j$. In other words, the similarity of two features depends on their respective infinitesimal influence (averaged over the training set) to the outcome of the network. 
 
-These constructions can be seen as distilling the information learnt by a first network into a kernel. In the general case where no assumptions are made on the dimension of the graph, it amounts to extracting $N^2$ parameters from the first learning stage (which typically involves a much larger number of parameters). If, moreover, we assume a low-dimensional graph structure of dimension $m$, then $m N$ parameters are extracted by projecting the resulting kernel into its leading $m$ directions.
+This constructions can be seen as ``distilling" the information learnt by a first network into a kernel. In the general case where no assumptions are made on the dimension of the graph, it amounts to extracting $N^2/2$ parameters from the first learning stage (which typically involves a much larger number of parameters). If, moreover, we assume a low-dimensional graph structure of dimension $m$, then $m N$ parameters are extracted by projecting the resulting kernel into its leading $m$ directions.
 
-Finally, observe that one could simply replace the eigen-basis $U$ obtained by diagonalizing the graph Laplacian by an arbitrary unitary matrix, which is then optimized by back-propagation together with the rest of the parameters of the model. We do not report results on this strategy, although we point out that it was the same learning complexity as the Fully Connected network (requiring $O(K N^2)$ parameters, where $K$ is the number of layers and $N$ is the input dimension).
+Finally, observe that one could simply replace the eigen-basis $U$ obtained by diagonalizing the graph Laplacian by an arbitrary unitary matrix, which is then optimized by back-propagation together with the rest of the parameters of the model. We do not report results on this strategy, although we point out that it has the same learning complexity as the Fully Connected network (requiring $O(K N^2)$ parameters, where $K$ is the number of layers and $N$ is the input dimension).
 
 
 

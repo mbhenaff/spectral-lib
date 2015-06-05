@@ -70,6 +70,7 @@ In this section we adopt the following notation to descibe network architectures
 
 We used the Reuters dataset described in ~\cite{JMLR:v15:srivastava14a}, which consists of training and test sets each containing 201,369 documents from 50 mutually exclusive classes. Each document is represented as a log-normalized bag of words for 2000 common non-stop words. As a baseline we used the fully-connected network of ~\cite{JMLR:v15:srivastava14a} with two hidden layers consisting of 2000 and 1000 hidden units regularized with dropout.  
 
+
 We based the spectral network architecture on that of a classical convolutional network, namely by interleaving graph convolution and graph pooling layers and ending with a fully connected layer. Performing pooling at the beginning of the network was especially important to reduce the dimensionality in the graph domain and mitigate the cost of the expensive Graph Fourier Transform operation.  We chose hyperparameters by performing initial experiments on a validation set consisting of one-tenth of the training data. Specifically, we set the number of subsampled weights to $k=60$, learning rate to 0.01 and used max pooling rather than average pooling. We also found that using AdaGrad ~\cite{adagrad} made training faster. All architectures were then trained using the same hyperparameters.
 Since the experiments were computationally expensive, we did not train all models until full convergence. This enabled us to explore more model architectures and obtain a clearer understanding of the effects of graph construction.  
 
@@ -103,29 +104,39 @@ We note that as we increase the tradeoff between resolution in the graph domain 
 
 \begin{figure}
        \centering
-       \begin{subfigure}[b]{0.3\textwidth}
-               \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
-               \caption{Global scaling..}
-       \end{subfigure}%
-       ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-         %(or a blank line to force the subfigure onto a new line)
-       \begin{subfigure}[b]{0.3\textwidth}
-               \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
-               \caption{Local scaling.}
-       \end{subfigure}
-       
-       \begin{subfigure}[b]{0.3\textwidth}
-               \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
-               \caption{Global scaling.}
-       \end{subfigure}%
-       ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-         %(or a blank line to force the subfigure onto a new line)
-       \begin{subfigure}[b]{0.3\textwidth}
-               \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
-               \caption{Local scaling.}
-       \end{subfigure}
-       \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
+        \includegraphics[width=0.25\textwidth]{{reuters_alpha_0.01_global}.pdf}
+         \includegraphics[width=0.25\textwidth]{{reuters_alpha_0.01_local}.pdf} \\
+          \includegraphics[width=0.25\textwidth]{{merck3_alpha_0.01_global}.pdf}
+          \includegraphics[width=0.25\textwidth]{{merck3_alpha_0.01_local}.pdf}
+       \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets. Left plots correspond to global $\sigma$, right plots to local $\sigma$.}\label{fig:animals}
 \end{figure}
+
+
+%\begin{figure}
+%       \centering
+%       \begin{subfigure}[b]{0.3\textwidth}
+%               \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_global}.pdf}
+%               \caption{Global scaling..}
+%       \end{subfigure}%
+%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%         %(or a blank line to force the subfigure onto a new line)
+%       \begin{subfigure}[b]{0.3\textwidth}
+%               \includegraphics[width=1\textwidth]{{reuters_alpha_0.01_local}.pdf}
+%               \caption{Local scaling.}
+%       \end{subfigure}
+%       
+%       \begin{subfigure}[b]{0.3\textwidth}
+%               \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_global}.pdf}
+%               \caption{Global scaling.}
+%       \end{subfigure}%
+%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%         %(or a blank line to force the subfigure onto a new line)
+%       \begin{subfigure}[b]{0.3\textwidth}
+%               \includegraphics[width=1\textwidth]{{merck3_alpha_0.01_local}.pdf}
+%               \caption{Local scaling.}
+%       \end{subfigure}
+%       \caption{Similarity graphs for the Reuters (top) and Merck DPP4 (bottom) datasets.}\label{fig:animals}
+%\end{figure}
 
 
 \subsection{Merck Molecular Activity Challenge}
@@ -138,7 +149,7 @@ As before, we used one-tenth of the training set to tune hyperparameters of the 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.7\textwidth]{{merck}.pdf}
+\includegraphics[width=0.4\textwidth]{{merckcrop}.pdf}
 \caption{Results on Merck DPP4 dataset.}
 \end{center}
 \end{figure}
@@ -171,7 +182,7 @@ Figure \ref{merckfigure} shows the test performance as the models are being trai
 
 \begin{figure}[h]
 \centering
- \includegraphics[width=0.7\textwidth]{{imagenetcrop}.pdf}
+ \includegraphics[width=0.4\textwidth]{{imagenetcrop}.pdf}
  \caption{ConvNet vs. SpectralNet on ImageNet.}
 \end{figure}
 

@@ -55,6 +55,13 @@ Yann LeCun, Yoshua Bengio, and Geoffrey Hinton.
 \newblock Deep learning.
 \newblock {\em Nature}, 521(7553):436--444, 05 2015.
 
+\bibitem{Ma:JournalChem2015}
+Junshui Ma, Robert~P. Sheridan, Andy Liaw, George~E. Dahl, and Vladimir
+  Svetnik.
+\newblock Deep neural networks as a method for quantitative structure-activity
+  relationships.
+\newblock {\em Journal of Chemical Information and Modeling}, 2015.
+
 \bibitem{mallat1999wavelet}
 St{\'e}phane Mallat.
 \newblock {\em A wavelet tour of signal processing}.
@@ -97,6 +104,12 @@ Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
 \newblock Dropout: A simple way to prevent neural networks from overfitting.
 \newblock {\em The Journal of Machine Learning Research}, 15(1):1929--1958,
   2014.
+
+\bibitem{JMLR:v15:srivastava14a}
+Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
+  Salakhutdinov.
+\newblock Dropout: A simple way to prevent neural networks from overfitting.
+\newblock {\em Journal of Machine Learning Research}, 15:1929--1958, 2014.
 
 \bibitem{DBLP:journals/corr/VasilacheJMCPL14}
 Nicolas Vasilache, Jeff Johnson, Micha{\"{e}}l Mathieu, Soumith Chintala,

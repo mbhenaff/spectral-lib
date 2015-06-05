@@ -3,47 +3,44 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: nips2015.aux
 The style file: plain.bst
 Database file #1: references.bib
-Warning--I didn't find a database entry for "hinton2012"
-Warning--I didn't find a database entry for "ma2015"
-You've used 19 entries,
+You've used 21 entries,
             2118 wiz_defined-function locations,
-            611 strings with 7536 characters,
-and the built_in function-call counts, 7893 in all, are:
-= -- 766
-> -- 419
+            620 strings with 8024 characters,
+and the built_in function-call counts, 8655 in all, are:
+= -- 835
+> -- 475
 < -- 8
-+ -- 165
-- -- 144
-* -- 556
-:= -- 1263
-add.period$ -- 58
-call.type$ -- 19
-change.case$ -- 125
++ -- 187
+- -- 164
+* -- 618
+:= -- 1400
+add.period$ -- 64
+call.type$ -- 21
+change.case$ -- 141
 chr.to.int$ -- 0
-cite$ -- 19
-duplicate$ -- 303
-empty$ -- 579
-format.name$ -- 144
-if$ -- 1672
+cite$ -- 21
+duplicate$ -- 324
+empty$ -- 624
+format.name$ -- 164
+if$ -- 1821
 int.to.chr$ -- 0
-int.to.str$ -- 19
-missing$ -- 20
-newline$ -- 98
-num.names$ -- 40
-pop$ -- 140
+int.to.str$ -- 21
+missing$ -- 22
+newline$ -- 108
+num.names$ -- 44
+pop$ -- 154
 preamble$ -- 1
-purify$ -- 107
+purify$ -- 121
 quote$ -- 0
-skip$ -- 243
+skip$ -- 257
 stack$ -- 0
-substring$ -- 504
-swap$ -- 100
+substring$ -- 541
+swap$ -- 102
 text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 74
+type$ -- 82
 warning$ -- 0
-while$ -- 70
-width$ -- 21
-write$ -- 208
-(There were 2 warnings)
+while$ -- 75
+width$ -- 23
+write$ -- 229
