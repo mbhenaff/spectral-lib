@@ -99,16 +99,16 @@ RBF kernel (local) & GC8-P8-FC1000 & $2 \cdot 10^6$ & $2 \cdot 10^6$ & 67.66 & -
 \label{reuterstable}
 \end{table}
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=0.4\textwidth]{{reuters_fc_vs_spectral}.pdf}
-\caption{Results on Reuters.}
-\end{center}
-\end{figure}
-\label{merckfigure}
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[width=0.4\textwidth]{{reuters_fc_vs_spectral}.pdf}
+%\caption{Results on Reuters.}
+%\end{center}
+%\end{figure}
+%\label{merckfigure}
 
 Note that our architectures are designed so that they factor the first hidden layer of the fully connected network across feature maps and a subsampled graph, trading off resolution in the graph domain for resolution across feature maps. The number of inputs into the last fully connected layer is always the same as for the fully-connected network. The idea is to reduce the number of parameters in the first layer of the network while avoiding too much compression in the second layer. 
-We note that as we increase the tradeoff between resolution in the graph domain and across features, there reaches a point where performance begins to suffer. This is especially pronounced for the unsupervised graph estimation strategies. When using the supervised method, the network is much more robust to the factorization of the first layer. Table \ref{reuterstable} compares the test accuracy of the fully connected network and the GC4-P4-FC1000 network. We see that the factorization of the lower layer has a beneficial regularizing effect. 
+We note that as we increase the tradeoff between resolution in the graph domain and across features, there reaches a point where performance begins to suffer. This is especially pronounced for the unsupervised graph estimation strategies. When using the supervised method, the network is much more robust to the factorization of the first layer. Table \ref{reuterstable} compares the test accuracy of the fully connected network and the GC4-P4-FC1000 network. Figure \ref{merckfigure}-left shows that the factorization of the lower layer has a beneficial regularizing effect. 
 
 \begin{figure}
        \centering
@@ -155,8 +155,9 @@ As before, we used one-tenth of the training set to tune hyperparameters of the 
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.4\textwidth]{{merckcrop}.pdf}
-\caption{Results on Merck DPP4 dataset.}
+\includegraphics[width=0.4\textwidth]{reuterscrop.pdf}~
+\includegraphics[width=0.4\textwidth]{merckcrop.pdf}
+\caption{Evolution of Test accuracy. Left: Reuters dataset, Right: Merck dataset.}
 \end{center}
 \end{figure}
 \label{merckfigure}
@@ -181,7 +182,7 @@ RBF Kernel (local) & GC64-P8-GC64-P8-FC1000-FC1000 & $3.8\cdot 10^6$ & $3.9 \cdo
 
 We again designed our architectures to factor the first two hidden layers of the fully-connected network across feature maps and a subsampled graph, and left the second two layers unchanged. As before, we see that the unsupervised graph estimation strategies yield a significant drop in performance whereas the supervised strategy enables our network to perform similarly to the fully-connected network with much fewer parameters. This indicates that it is able to factor the lower-level representations in such a way as to retain useful information for the classification task.
 
-Figure \ref{merckfigure} shows the test performance as the models are being trained. We note that the Merck datasets have test set samples assayed at a different time than the samples in the training set, and thus the distribution of features is typically different between the training and test sets. Therefore the test performance can be a significantly noisy function of the train performance. However, the effect of the different graph estimation procedures is still clear. 
+Figure \ref{merckfigure}-right shows the test performance as the models are being trained. We note that the Merck datasets have test set samples assayed at a different time than the samples in the training set, and thus the distribution of features is typically different between the training and test sets. Therefore the test performance can be a significantly noisy function of the train performance. However, the effect of the different graph estimation procedures is still clear. 
 
 \subsection{ImageNet}
 
